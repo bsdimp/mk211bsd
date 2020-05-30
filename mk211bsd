@@ -16,6 +16,12 @@ PATCHSRC=${UCB}/2.11BSD/Patches
 PATCHDIR=${TOP}/patches
 HINTSDIR=${TOP}/hints
 APOUT_ROOT=/
+TEMP=${TOP}/tmp
+
+die() {
+    echo $*
+    exit 1
+}
 
 extract_dump() {
     # Even with this icky code, this is imperfect: symlinks don't work
@@ -248,6 +254,7 @@ unpack_211
 
 patches=$(cd $PATCHDIR; ls | sort -rn)
 
+export TEMP
 for p in $patches; do
     echo -n "$p "
     case $p in
@@ -257,7 +264,13 @@ for p in $patches; do
 	*)
 	    if grep -q '^#! */bin/sh' $PATCHDIR/$p; then
 		echo shar
-		exit 1
+		s=$HINTSDIR/${p}.unshar
+		[ -r $s ] || die $p.unshar not found
+		rm -rf $TEMP
+		mkdir $TEMP
+		set -x
+		sh $s || die $p.unshare failed
+		set +x
 	    else
 		echo simple patch
 		(
