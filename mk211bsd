@@ -254,6 +254,8 @@ unpack_211
 
 patches=$(cd $PATCHDIR; ls | sort -rn)
 
+[ -z "$STOP_BEFORE_PATCH" ] || die asked to stop
+
 export TEMP
 for p in $patches; do
     echo -n "$p "
