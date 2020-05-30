@@ -1,19 +1,43 @@
 #!/bin/sh
 
+extract_dump() {
+    # Even with this icky code, this is imperfect: symlinks don't work
+    local r fn inode
+
+    r=$1
+    $APOUT $TOOLBIN/dumpdir f $r | tail +5 | grep -v /dev/ | fgrep -v .. | \
+	( while read inode fn; do
+	      fn=${fn#/}
+	      case $fn in
+		  */.)
+		      mkdir ${fn%%/.} ;;
+		  *)
+		      echo 1 | $APOUT $TOOLBIN/restor xf $r ${fn}
+		      mv $inode $fn
+		      ;;
+	      esac
+	  done )
+    # restor is impefect and leaves divots behind
+    rm -f rst*
+}
+
 # Vars
 TOP=$(pwd)
 TUHS=$HOME/tuhs
 UCB=$TUHS/Distributions/UCB
-TAPE=${TOP}/tape
 TOOLS=${TOP}/tools
 TOOLBIN=$TOOLS/bin
 APOUT_SRC=${TOOLS}/apout
 APOUT=${APOUT_SRC}/apout
-ROOT=${TOP}/root
+TAPE211=${TOP}/tape211
+ROOT211=${TOP}/root211
+TAPE2101=${TOP}/tape2101
+ROOT2101=${TOP}/root2101
 
 # Cleanup old stuff -- we recreate it all from extant artifacts with this script
 # and some helpers
-rm -rf $TAPE $TOOLS $ROOT
+chmod -R +w $TAPE211 $TOOLS $ROOT211 $TAPE2101 $ROOT2101
+rm -rf $TAPE211 $TOOLS $ROOT211 $TAPE2101 $ROOT2101
 
 # Create tools areas
 mkdir -p $TOOLS $TOOLBIN
@@ -25,7 +49,8 @@ mkdir -p $TOOLS $TOOLBIN
     mkdir -p $APOUT_SRC
     cd $APOUT_SRC
     cp ${TUHS}/Distributions/Research/Dennis_v1/unix72/tools/apout/* .
-    patch -p0 < $TOP/apout.patch
+    # fixes to make it happier with restor
+    patch -p1 < $TOP/apout.patch
     make clean
 	# gcc fails for me so force clang
     make CC=clang apout
@@ -58,46 +83,82 @@ rmdir sbin
 #	8	10240		src.tar		/usr/src/{everything-else}
 # 
 (
-    mkdir $TAPE
-    cd $TAPE
+    mkdir $TAPE211
+    cd $TAPE211
     tar xvf ${UCB}/2.11BSD-pl195.tar
     gunzip root.dmp.gz
 )
 
-# Now 'fake' install the 2.11BSD system into $ROOT. This does nothing to
+# Now 'fake' install the 2.11BSD system into $ROOT211. This does nothing to
 # configure the 'image'. The patches touch the entire directory tree, so
 # this is the easiest way to cope. But looking at the shell below, it's
 # far from the cleanest way to do this...
 (
-    mkdir $ROOT
-    cd $ROOT
-    # can't use TAPE because paths grow too long
-    r=../tape/root.dmp
-    $APOUT $TOOLBIN/dumpdir f $r | tail +5 | grep -v /dev/ | fgrep -v .. | \
-	( while read inode fn; do
-	      fn=${fn#/}
-	      case $fn in
-		  */.)
-		      mkdir ${fn%%/.} ;;
-		  *)
-		      echo 1 | $APOUT $TOOLBIN/restor xf $r ${fn}
-		      mv $inode $fn
-		      ;;
-	      esac
-	  done )
-    # restor is impefect and leaves divots behind
-    rm -f $ROOT/rst*
+    mkdir $ROOT211
+    cd $ROOT211
+    # can't use TAPE211 because paths grow too long
+    extract_dump ../tape211/root.dmp
     mkdir usr
     (
 	cd usr
-	tar xvf $TAPE/usr.tar.gz	# restore /usr
+	tar xvf $TAPE211/usr.tar.gz	# restore /usr
 	mkdir src
 	cd src
-	tar xvf $TAPE/sys.tar.gz	# restore /usr/src/sys and /usr/src/include
-	tar xvf $TAPE/include.tar.gz	# rest of /usr/src
+	tar xvf $TAPE211/sys.tar.gz	# restore /usr/src/sys and /usr/src/include
+	tar xvf $TAPE211/src.tar.gz	# rest of /usr/src
     )
 )
 
 #
-# OK. Now we have a good root!
+# As we reconstruct, we'll need some files from 2.10.1.
+#
+# Tape 1
+# File	RecSize	   #Recs	Content
+# ----	-------    -----	-------
+# 0	512	   41		tapeboot,tapeboot,boot
+# 1	1024	   28		mkfs
+# 2	1024	   27		restor
+# 3	1024	   26		icheck
+# 4	10240	   451		dump of root fs
+# 5	10240	   2277		tar of /usr without usr/src
+# 6	10240	   466		tar of /usr/src/{sys,include}
+# Tape 2
+# File	RecSize	   #Recs	Content
+# ----	-------    -----	-------
+# 0	10240	   3959		tar of /usr without /usr/src
+#	The exact tape files are in the two directories 'tape1' and 'tape2'
+#	respectively.  The files have been gzip'd to save space.
+#	In the directory 'root' is the unpacked version of the system.
+#
+# Turns out that the source is extracted wrong in the root file, leading to confusion,
+# so we'll do the whole thing we do for 2.11 for convenience.
+#
+(
+    mkdir $TAPE2101
+    cd $TAPE2101
+    tar xvf ${UCB}/2.10.1bsd.tar
+    gunzip tape1/file4.gz		# root.dump file
+)
+
+# Now 'fake' install the 2.10.1BSD system into $ROOT2101. This does nothing to
+# configure the 'image'. The patches touch the entire directory tree, so
+# this is the easiest way to cope. But looking at the shell below, it's
+# far from the cleanest way to do this...
+(
+    mkdir $ROOT2101
+    cd $ROOT2101
+    extract_dump ../tape2101/tape1/file4
+    mkdir usr
+    (
+	cd usr
+	tar xvf $TAPE2101/tape1/file5.gz	# restore /usr
+	mkdir src
+	cd src
+	tar xvf $TAPE2101/tape1/file6.gz	# restore /usr/src/sys and /usr/src/include
+	tar xvf $TAPE2101/tape2/file0.gz	# rest of /usr/src
+    )
+)
+
+#
+# OK. Now we have a good root for both 2.10.1BSD and 2.11pl195BSD
 #
