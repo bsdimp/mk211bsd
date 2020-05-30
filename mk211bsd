@@ -1,0 +1,103 @@
+#!/bin/sh
+
+# Vars
+TOP=$(pwd)
+TUHS=$HOME/tuhs
+UCB=$TUHS/Distributions/UCB
+TAPE=${TOP}/tape
+TOOLS=${TOP}/tools
+TOOLBIN=$TOOLS/bin
+APOUT_SRC=${TOOLS}/apout
+APOUT=${APOUT_SRC}/apout
+ROOT=${TOP}/root
+
+# Cleanup old stuff -- we recreate it all from extant artifacts with this script
+# and some helpers
+rm -rf $TAPE $TOOLS $ROOT
+
+# Create tools areas
+mkdir -p $TOOLS $TOOLBIN
+
+# We need to use the pdp-11 a.out user-mode emulator.  Copy it from the
+# unix-jun72 effort and build.
+(
+    rm -rf $APOUT_SRC
+    mkdir -p $APOUT_SRC
+    cd $APOUT_SRC
+    cp ${TUHS}/Distributions/Research/Dennis_v1/unix72/tools/apout/* .
+    patch -p0 < $TOP/apout.patch
+    make clean
+	# gcc fails for me so force clang
+    make CC=clang apout
+)
+APOUT_ROOT=/
+
+# Need to extract two helper programs. We use the actual 2.11 binaries to
+# minimize porting and maximize compatibility. This assumes that we have a
+# libarchive based tar. Thankfully, TUHS has an easy to get copy of
+# the most use version of these programs.
+tar xvf ${UCB}/2.11BSD/root.afio.gz sbin/dumpdir sbin/restor
+mv sbin/* $TOOLBIN
+rmdir sbin
+
+#
+# Unpack the pl195 tape. This is a series of files needed to bootstreap 2.11BSD
+#	The format of a 2.11BSD boot tape is:
+#
+#	File	Blocksize	Content
+#	0	512		mtboot
+#		512		mtboot
+#		512		boot
+#	1	1024		disklabel.bin
+#	2	1024		mkfs.bin
+#	3	1024		restor.bin
+#	4	1024		icheck.bin
+#	5	10240		root.dmp	/ dump, need to use restor to get files
+#	6	10240		usr.tar		/usr w/o /usr/src or /usr/include
+#	7	10240		sys.tar		/usr/src/sys /usr/src/include
+#	8	10240		src.tar		/usr/src/{everything-else}
+# 
+(
+    mkdir $TAPE
+    cd $TAPE
+    tar xvf ${UCB}/2.11BSD-pl195.tar
+    gunzip root.dmp.gz
+)
+
+# Now 'fake' install the 2.11BSD system into $ROOT. This does nothing to
+# configure the 'image'. The patches touch the entire directory tree, so
+# this is the easiest way to cope. But looking at the shell below, it's
+# far from the cleanest way to do this...
+(
+    mkdir $ROOT
+    cd $ROOT
+    # can't use TAPE because paths grow too long
+    r=../tape/root.dmp
+    $APOUT $TOOLBIN/dumpdir f $r | tail +5 | grep -v /dev/ | fgrep -v .. | \
+	( while read inode fn; do
+	      fn=${fn#/}
+	      case $fn in
+		  */.)
+		      mkdir ${fn%%/.} ;;
+		  *)
+		      echo 1 | $APOUT $TOOLBIN/restor xf $r ${fn}
+		      mv $inode $fn
+		      ;;
+	      esac
+	  done )
+    # restor is impefect and leaves divots behind
+    rm -f $ROOT/rst*
+    mkdir usr
+    (
+	cd usr
+	tar xvf $TAPE/usr.tar.gz	# restore /usr
+	mkdir src
+	cd src
+	tar xvf $TAPE/sys.tar.gz	# restore /usr/src/sys and /usr/src/include
+	tar xvf $TAPE/include.tar.gz	# rest of /usr/src
+    )
+)
+
+#
+# OK. Now we have a good root!
+#
