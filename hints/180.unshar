@@ -29,10 +29,11 @@
 # tl;dr: extract and apply patch from 180, extract {str,sym}compact.c from 172 and
 # remove symdump.c
 #
-sed -n -e '/^sed.*\/tmp\/patchfile/,/^SHAR_EOF/p' < $1 | sed -e "s=/tmp/=$TEMP=" | sh -x
+sed -n -e '/^sed.*\/tmp\/patchfile/,/^SHAR_EOF/p' < $1 | sed -e "s=/tmp/=$TEMP/=" | sh -x
+cd $ROOT211
 patch -R -p1 < $TEMP/patchfile
-sed -n -e '/^Xsed.*symcompact.c,/^XSHAR_EOF/p' < $PATCHDIR/172 | sed -e "s=/usr/src/ucb/=$TEMP=;s/^X//" | sh -x
-sed -n -e '/^Xsed.*strcompact.c,/^XSHAR_EOF/p' < $PATCHDIR/172 | sed -e "s=/usr/src/ucb/=$TEMP=;s/^X//" | sh -x
+sed -n -e '/^Xsed.*symcompact.c/,/^XSHAR_EOF/p' < $PATCHDIR/172 | sed -e "s=/usr/src/ucb/=$TEMP/=;s/^X//" | sh -x
+sed -n -e '/^Xsed.*strcompact.c/,/^XSHAR_EOF/p' < $PATCHDIR/172 | sed -e "s=/usr/src/ucb/=$TEMP/=;s/^X//" | sh -x
 cp $TEMP/symcompact.c $ROOT211/usr/src/ucb
 cp $TEMP/strcompact.c $ROOT211/usr/src/ucb
 rm -f $ROOT211/usr/src/ucb/symdump.c

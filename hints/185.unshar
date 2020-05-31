@@ -2,7 +2,8 @@
 # 185 patches the m4 man page and replaces m4. Grab the m4 from 2.10.1BSD on the theory they weren't changed.
 # we need to look at the CSRG SCCS archive and the bsd patches group to me sure.
 #
-sed -n -e '/^sed.*\/tmp\/m4.man.patch/,/^SHAR_EOF/p' < $1 | sed -e "s=/tmp/=$TEMP=" | sh -x
+sed -n -e '/^sed.*\/tmp\/m4.man.patch/,/^SHAR_EOF/p' < $1 | sed -e "s=/tmp/=$TEMP/=" | sh -x
+cd $ROOT211
 patch -R -p1 < $TEMP/m4.man.patch
 rm -rf usr/src/usr.bin/m4
 mkdir usr/src/usr.bin/m4

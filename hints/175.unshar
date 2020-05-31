@@ -1,0 +1,26 @@
+#!/bin/sh
+
+# 175 copies a bunch of files from /usr/include to /usr/src/include, but as far as we know
+# only patch 158 gets them out of sync. And only for:
+#	/usr/include/arpa/inet.h
+#	/usr/include/arpa/nameser.h
+#	/usr/include/netdb.h
+#	/usr/include/ndbm.h
+#	/usr/include/setjmp.h
+#	/usr/include/syscall.h
+# so, if we 2.11BSD shipped with them in sync, that means all we need to do is reach over
+# into patch 158, snag those patches and apply them to the /usr/src/include versions
+# of those files. All other earlier patches touch both copies, and both 2.10BSD and
+# 2.10.1BSD shipped with them in sync. Apply Occam's Razor.
+#
+# The patch trough the line
+# X*** /usr/include/Makefile.old	Sun May 27 00:45:47 1990
+# is all we need to grab, massage and reverse apply. It's easier to grab the whole patch,
+# then delete the last bits once we unpack it as part of the massage.
+#
+set -x
+( cd $TEMP ; sed -n -e '/^sed.*patchfile/,/^SHAR_EOF/p' < $PATCHDIR/158 | sh -x )
+sed -e '/^\*\*\* .*Makefile.old/,$d;s=/usr/include/=/usr/src/include/=' < $TEMP/patchfile > $TEMP/p2
+cd $ROOT211
+patch -R -p1 < $TEMP/p2
+exit 0

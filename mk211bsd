@@ -256,7 +256,7 @@ patches=$(cd $PATCHDIR; ls | sort -rn)
 
 [ -z "$STOP_BEFORE_PATCH" ] || die asked to stop
 
-export TEMP
+export TEMP PATCHDIR ROOT211 ROOT2101
 for p in $patches; do
     echo -n "$p "
     case $p in
@@ -270,9 +270,10 @@ for p in $patches; do
 		[ -r $s ] || die $p.unshar not found
 		rm -rf $TEMP
 		mkdir $TEMP
-		set -x
-		sh $s || die $p.unshare failed
-		set +x
+		cd $TEMP
+		sh -x $s $PATCHDIR/$p || die $p.unshare failed
+		echo "$p --- HIT RETURN TO CONTINUE"
+		read nothing
 	    else
 		echo simple patch
 		(
