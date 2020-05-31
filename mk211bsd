@@ -278,6 +278,11 @@ for p in $patches; do
 	    ;;
 	*)
 	    if grep -q '^#! */bin/sh' $PATCHDIR/$p; then
+		# shar file were always complex, though in a few
+		# degenerate cases were just extract a patch file
+		# of varying names and apply it. Other times one
+		# had to do more. The unshar script is expected
+		# to undo all that.
 		echo shar
 		s=$HINTSDIR/${p}.unshar
 		[ -r $s ] || die $p.unshar not found
@@ -296,10 +301,21 @@ for p in $patches; do
 		(
 		    cd $ROOT211
 		    if [ -r $HINTSDIR/${p}.unpatch ] ; then
+			# Some patches look like pure patches, but
+			# in reality the instructions had people do
+			# more than just apply the patch, and the
+			# unpatch file is supposed to sort it out
+			# either by patch -R + commands or by just
+			# doing commands to restore the old state.
 			echo "$p --- unpatch"
 			read nothing
 			. $HINTSDIR/${p}.unpatch
 		    else
+			# Some patches aren't relative to the root
+			# of the tree, so the setup routines allow
+			# us to cd before apply the patch. Though
+			# it may make sense to fold this into the
+			# unpatch mechanism instead.
 			if [ -r $HINTSDIR/${p}.setup ] ; then
 			    . $HINTSDIR/${p}.setup
 			fi
