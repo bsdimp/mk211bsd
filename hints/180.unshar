@@ -1,0 +1,39 @@
+#
+# 180 creates new and imrpoved strcompact tools
+#
+# we need to look at the CSRG SCCS archive and the bsd patches group to me sure.
+#
+# It creates:
+#	/usr/src/ucb/symcompact.c
+#	/usr/src/ucb/symdump.c
+#	/usr/src/ucb/strcompact.c
+# but also removes: 
+# Xrm -f /usr/src/ucb/symcompact.c
+# Xrm -f /usr/src/ucb/symdump.c
+# Xrm -f /usr/src/ucb/strcompact.c
+#
+# And patches usr/src/ucb/Makefile
+#
+# So, we ned to reverse apply that patch, and get the old sources from
+# $SOMEWHERE. They aren't in 2.10.1BSD.
+#
+# So, {str,sym}compact.c are mentioned in 171, but created in 172. They are
+# mentioned in 176, but that's just a list of everything patched in 158 through 175.
+# To undo, we just need extract them.
+#
+# symdump.c is removed in 180, but also created there. It's the only patch file
+# it is mentioned in, and it isn't in 2.10.1BSD either. And this patch adds it
+# to the Makefile. I conclude it's an extra rm that's not actually needed and
+# we create it here, so to undo, we just remove it.
+#
+# tl;dr: extract and apply patch from 180, extract {str,sym}compact.c from 172 and
+# remove symdump.c
+#
+sed -n -e '/^sed.*\/tmp\/patchfile/,/^SHAR_EOF/p' < $1 | sed -e "s=/tmp/=$TEMP=" | sh -x
+patch -R -p1 < $TEMP/patchfile
+sed -n -e '/^Xsed.*symcompact.c,/^XSHAR_EOF/p' < $PATCHDIR/172 | sed -e "s=/usr/src/ucb/=$TEMP=;s/^X//" | sh -x
+sed -n -e '/^Xsed.*strcompact.c,/^XSHAR_EOF/p' < $PATCHDIR/172 | sed -e "s=/usr/src/ucb/=$TEMP=;s/^X//" | sh -x
+cp $TEMP/symcompact.c $ROOT211/usr/src/ucb
+cp $TEMP/strcompact.c $ROOT211/usr/src/ucb
+rm -f $ROOT211/usr/src/ucb/symdump.c
+exit 0
