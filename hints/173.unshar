@@ -1,0 +1,12 @@
+#!/bin/sh
+
+# 173 creates a patch file you are expected to apply. So extract it and reverse apply.
+# It also adds a randlib directory to replace ranlib.c. So, remove ranlib dir and
+# Copy ranlib.c from 2.10.1BSD on the assumption that it hasn't changed.
+cd $TEMP
+sed -n -e '/^sed.*patchfile/,/^SHAR_EOF/p' < $1 | sh -x
+cd $ROOT211
+patch -R -p1 < $TEMP/patchfile
+rm -rf usr/src/usr.bin/ranlib
+cp $ROOT2101/usr/src/usr.bin/ranlib.c $ROOT211/usr/src/usr.bin
+exit 0

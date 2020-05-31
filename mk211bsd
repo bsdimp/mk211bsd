@@ -273,7 +273,7 @@ for p in $patches; do
 		cd $TEMP
 		sh -x $s $PATCHDIR/$p || die $p.unshare failed
 		echo "$p --- HIT RETURN TO CONTINUE"
-		read nothing
+#		read nothing
 	    else
 		echo simple patch
 		(

@@ -1,0 +1,11 @@
+#!/bin/sh
+
+# 159 creates a 2 patch filse you are expected to apply. So extract it and reverse apply.
+cd $TEMP
+sed -e '1,/================cut here/d' < $1 | sh -x
+uncompress patchfile1.Z
+uncompress patchfile2.Z
+cd $ROOT211
+patch -R -p1 < $TEMP/patchfile1
+patch -R -p1 < $TEMP/patchfile2
+exit 0

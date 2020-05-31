@@ -1,0 +1,14 @@
+#!/bin/sh
+
+# 171 creates a patch file you are expected to apply. So extract it and reverse apply.
+# It removes /usr/src/ucb/window/shortnames.h, /usr/src/ucb/tn3270/shortnames.h,
+# and /usr/src/ucb/symorder.c. Copy them from 2.10.1BSD
+
+cd $TEMP
+sed -n -e '/^sed.*patchfile/,/^SHAR_EOF/p' < $1 | sh -x
+cd $ROOT211
+patch -R -p1 < $TEMP/patchfile
+cp $ROOT2101/usr/src/ucb/symorder.c $ROOT211/usr/src/ucb/symorder.c
+cp $ROOT2101/usr/src/ucb/tn3270/shortnames.h $ROOT211/usr/src/ucb/tn3270/shortnames.h
+cp $ROOT2101//usr/src/ucb/window/shortnames.h $ROOT211/usr/src/ucb/window/shortnames.h
+exit 0

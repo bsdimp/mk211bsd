@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# 172 creates symorder.c, symcompact.c, and strcompact.c
+# just remove them...
+cd $ROOT211
+rm -rf usr/src/ucb/symorder.c
+rm -rf usr/src/ucb/symcompact.c
+rm -rf usr/src/ucb/strcompact.c
+exit 0

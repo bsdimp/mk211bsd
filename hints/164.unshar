@@ -1,0 +1,16 @@
+#!/bin/sh
+
+# 164 creates a patch file you are expected to apply. So extract it and reverse apply.
+# It also removes:
+#	rm -f /usr/src/etc/named/tools/nslookup/shortnames.h
+#	rm -f /usr/src/etc/named/named/shortnames.h
+#	rm -f /usr/src/etc/talkd/shortnames.h
+# So add them back from 2.10.1BSD
+cd $TEMP
+sed -n -e '/^sed.*patchfile/,/^SHAR_EOF/p' < $1 | sh -x
+cd $ROOT211
+patch -R -p1 < $TEMP/patchfile
+cp $ROOT2101/usr/src/etc/named/tools/nslookup/shortnames.h $ROOT211/usr/src/etc/named/tools/nslookup/shortnames.h
+cp $ROOT2101/usr/src/etc/named/named/shortnames.h $ROOT211/usr/src/etc/named/named/shortnames.h
+cp $ROOT2101/usr/src/etc/talkd/shortnames.h $ROOT211/usr/src/etc/talkd/shortnames.h
+exit 0

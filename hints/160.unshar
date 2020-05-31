@@ -1,0 +1,25 @@
+#!/bin/sh
+
+# 160 creates a patch file you are expected to apply. So extract it and reverse apply.
+# It also does:
+#	rm -f /usr/src/bin/csh/shortnames.h
+#	rm -f /usr/src/bin/ar.c
+#	rm -f /usr/src/bin/ld.c
+#	rm -f /usr/src/bin/adb/dummy.c /usr/src/bin/adb/mac.h
+#	rm -f /usr/src/bin/adb/machine.h /usr/src/bin/adb/mode.h
+#	rm -rf /usr/src/bin/nm rm /usr/src/bin/ld /usr/src/bin/ar
+#	mkdir /usr/src/bin/nm /usr/src/bin/ld /usr/src/bin/ar
+#	chmod 755 /usr/src/bin/nm /usr/src/bin/ld /usr/src/bin/ar
+#	mv /usr/src/bin/nm.c /usr/src/bin/nm/nm.c
+# So add them back from 2.10.1BSD, remove dirs or move nm.c back
+cd $TEMP
+sed -n -e '/^sed.*patchfile/,/^SHAR_EOF/p' < $1 | sh -x
+cd $ROOT211
+patch -R -p1 < $TEMP/patchfile
+for i in csh/shortnames.h ar.c ld.c adb/dummy.c adb/mac.h adb/machine.h adb/mode.h; do
+    cp $ROOT2101/usr/src/bin/$i $ROOT211/usr/src/bin/$i
+done
+# need to move this AFTER because the patch patches it in the new place.
+mv $ROOT211/usr/src/bin/nm/nm.c $ROOT211/usr/src/bin/nm.c
+rm -rf $ROOT211/usr/src/bin/nm
+exit 0

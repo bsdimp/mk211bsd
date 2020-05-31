@@ -1,0 +1,23 @@
+#!/bin/sh
+
+# 158 creates a patch file you are expected to apply. So extract it and reverse apply.
+# It also does:
+#	rm -f /usr/include/a.out.h
+#	rm -f /usr/include/nlist.h
+#	rm -f /usr/include/ar.h
+#	rm -f /usr/include/ranlib.h
+#	rm -f /usr/include/short_names.h
+# It also creates:
+#	/usr/include/a.out.h
+#	/usr/include/nlist.h
+#	/usr/include/ar.h
+#	/usr/include/ranlib.h
+# So we can just copy over stuff from 2.10.1BSD and not worry about removal.
+cd $TEMP
+sed -n -e '/^sed.*patchfile/,/^SHAR_EOF/p' < $1 | sh -x
+cd $ROOT211
+patch -R -p1 < $TEMP/patchfile
+for i in a.out.h nlist.h ar.h ranlib.h short_names.h; do
+    cp $ROOT2101/usr/include/$i $ROOT211/usr/include/$i
+done
+exit 0

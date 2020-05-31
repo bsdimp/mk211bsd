@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# 174 creates a patch file you are expected to apply. So extract it and reverse apply.
+# 168 creates a patch file you are expected to apply. So extract it and reverse apply.
 cd $TEMP
 sed -n -e '/^sed.*patchfile/,/^SHAR_EOF/p' < $1 | sh -x
 cd $ROOT211
