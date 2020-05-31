@@ -7,10 +7,9 @@
 #	/usr/src/man/man1/symcompact.1
 # so delete them to go back...
 cd $TEMP
-sed -n -e '/^sed.*patchfile/,/^SHAR_EOF/p' < $1 | sh -x
+sed -n -e '/^sed.*patchfile/,/^SHAR_EOF/p' < $patch | sh -x
 cd $ROOT211
 patch -R -p1 < $TEMP/patchfile
 rm $ROOT211/usr/src/man/man1/symorder.1
 rm $ROOT211/usr/src/man/man1/strcompact.1
 rm $ROOT211/usr/src/man/man1/symcompact.1
-exit 0

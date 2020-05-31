@@ -7,10 +7,7 @@
 #	rm -f /usr/src/etc/talkd/shortnames.h
 # So add them back from 2.10.1BSD
 cd $TEMP
-sed -n -e '/^sed.*patchfile/,/^SHAR_EOF/p' < $1 | sh -x
+sed -n -e '/^sed.*patchfile/,/^SHAR_EOF/p' < $patch | sh -x
 cd $ROOT211
 patch -R -p1 < $TEMP/patchfile
-cp $ROOT2101/usr/src/etc/named/tools/nslookup/shortnames.h $ROOT211/usr/src/etc/named/tools/nslookup/shortnames.h
-cp $ROOT2101/usr/src/etc/named/named/shortnames.h $ROOT211/usr/src/etc/named/named/shortnames.h
-cp $ROOT2101/usr/src/etc/talkd/shortnames.h $ROOT211/usr/src/etc/talkd/shortnames.h
-exit 0
+from2.10.1 usr/src/etc/named/tools/nslookup/shortnames.h usr/src/etc/named/named/shortnames.h usr/src/etc/talkd/shortnames.h

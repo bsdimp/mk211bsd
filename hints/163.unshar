@@ -3,4 +3,3 @@
 # 163 creates ld and ar, so we need to remove them.
 cd $ROOT211
 rm -rf $ROOT211/usr/src/bin/ar $ROOT211/usr/src/bin/ld
-exit 0

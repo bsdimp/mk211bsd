@@ -1,0 +1,10 @@
+#
+# 178.unpatch
+#
+# A file was removed here. We'll need it later...
+#
+cd $ROOT211
+patch -R -p1 < $patch
+from2.10.1 usr/src/sys/netinet/ip_acct.h
+# need to apply all the patches 2.11 patch set has already appled to 2.10.1 start
+patch -R -p1 < $HINTSDIR/178.fixup

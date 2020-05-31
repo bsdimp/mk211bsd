@@ -2,9 +2,7 @@
 # 187 adds the fchdir system call. To undo it we just have to apply
 # the patch backwards and remove fchdir.s
 #
-sed -n -e '/^sed.*\/tmp\/187/,/^SHAR_EOF/p' < $1 | sed -e "s=/tmp/=$TEMP/=" | sh -x
+sed -n -e '/^sed.*\/tmp\/187/,/^SHAR_EOF/p' < $patch | sed -e "s=/tmp/=$TEMP/=" | sh -x
 cd $ROOT211
 patch -R -p1 < $TEMP/187
 rm usr/src/lib/libc/pdp/sys/fchdir.s
-exit 0
-

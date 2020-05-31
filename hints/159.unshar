@@ -1,11 +1,13 @@
 #!/bin/sh
 
 # 159 creates a 2 patch filse you are expected to apply. So extract it and reverse apply.
+# Fun twist: they are uuencoded and compressed!
 cd $TEMP
-sed -e '1,/================cut here/d' < $1 | sh -x
+sed -e '1,/================cut here/d' < $patch | sh -x
+uudecode patchfile1.Z.uu
 uncompress patchfile1.Z
+uudecode patchfile2.Z.uu
 uncompress patchfile2.Z
 cd $ROOT211
 patch -R -p1 < $TEMP/patchfile1
 patch -R -p1 < $TEMP/patchfile2
-exit 0

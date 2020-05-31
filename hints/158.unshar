@@ -14,10 +14,9 @@
 #	/usr/include/ranlib.h
 # So we can just copy over stuff from 2.10.1BSD and not worry about removal.
 cd $TEMP
-sed -n -e '/^sed.*patchfile/,/^SHAR_EOF/p' < $1 | sh -x
+sed -n -e '/^sed.*patchfile/,/^SHAR_EOF/p' < $patch | sh -x
 cd $ROOT211
 patch -R -p1 < $TEMP/patchfile
 for i in a.out.h nlist.h ar.h ranlib.h short_names.h; do
-    cp $ROOT2101/usr/include/$i $ROOT211/usr/include/$i
+    from2.10.1 usr/include/$i
 done
-exit 0

@@ -17,6 +17,7 @@ PATCHDIR=${TOP}/patches
 HINTSDIR=${TOP}/hints
 APOUT_ROOT=/
 TEMP=${TOP}/tmp
+RECOVERY_LOG=${TOP}/recovery.log
 
 die() {
     echo $*
@@ -210,6 +211,14 @@ extract_patches() {
     )
 }
 
+# helper routine to recover from 2.10.1BSD
+from2.10.1() {
+    for i; do
+	echo 'Recovering $i from 2.10.1BSD' >> $RECOVERY_LOG
+	cp $ROOT2101/$i $ROOT211/$i
+    done
+}
+
 # Set the stage
 [ -n "$FORCE_CLEAN" ] && cleanup
 [ -d $TOOLS ] || mktools
@@ -256,12 +265,16 @@ patches=$(cd $PATCHDIR; ls | sort -rn)
 
 [ -z "$STOP_BEFORE_PATCH" ] || die asked to stop
 
+rm $RECOVERY_LOG
+touch $RECOVERY_LOG
 export TEMP PATCHDIR ROOT211 ROOT2101
 for p in $patches; do
     echo -n "$p "
+    patch=$PATCHDIR/$p
     case $p in
 	*.tar)
 	    echo tarball of patches
+	    exit 0
 	    ;;
 	*)
 	    if grep -q '^#! */bin/sh' $PATCHDIR/$p; then
@@ -271,17 +284,27 @@ for p in $patches; do
 		rm -rf $TEMP
 		mkdir $TEMP
 		cd $TEMP
-		sh -x $s $PATCHDIR/$p || die $p.unshare failed
+		set -e
+		trap "die undo patch $p failed" EXIT
+		. $s
+		set +e
+		trap - EXIT
 		echo "$p --- HIT RETURN TO CONTINUE"
-#		read nothing
+		read nothing
 	    else
 		echo simple patch
 		(
 		    cd $ROOT211
-		    if [ -r $HINTSDIR/${p}.setup ] ; then
-			. $HINTSDIR/${p}.setup
+		    if [ -r $HINTSDIR/${p}.unpatch ] ; then
+			echo "$p --- unpatch"
+			read nothing
+			. $HINTSDIR/${p}.unpatch
+		    else
+			if [ -r $HINTSDIR/${p}.setup ] ; then
+			    . $HINTSDIR/${p}.setup
+			fi
+			patch -R -p1 < $PATCHDIR/$p
 		    fi
-		    patch -R -p1 < $PATCHDIR/$p
 		)
 	    fi
 	    ;;

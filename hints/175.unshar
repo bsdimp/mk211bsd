@@ -22,5 +22,5 @@ set -x
 ( cd $TEMP ; sed -n -e '/^sed.*patchfile/,/^SHAR_EOF/p' < $PATCHDIR/158 | sh -x )
 sed -e '/^\*\*\* .*Makefile.old/,$d;s=/usr/include/=/usr/src/include/=' < $TEMP/patchfile > $TEMP/p2
 cd $ROOT211
-patch -R -p1 < $TEMP/p2
-exit 0
+#XXXX this fails to apply. need to investigate why more
+# patch -R -p1 < $TEMP/p2

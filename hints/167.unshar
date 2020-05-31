@@ -12,10 +12,9 @@
 # not in 2.10.1. the new nsym.c is added in the right place, and it's added to the
 # right makefile, and nsym.c isn't removed from a different makefile.
 cd $TEMP
-sed -n -e '/^sed.*patchfile/,/^SHAR_EOF/p' < $1 | sh -x
+sed -n -e '/^sed.*patchfile/,/^SHAR_EOF/p' < $patch | sh -x
 cd $ROOT211
 patch -R -p1 < $TEMP/patchfile
 rm $ROOT211/usr/src/lib/libc/gen/nlist.c
 rm $ROOT211/usr/src/lib/libc/pdp/gen/nsym.c
-cp $ROOT2101/usr/src/lib/libc/gen/nlist.c $ROOT211/usr/src/lib/libc/gen/nlist.c
-exit 0
+from2.10.1 usr/src/lib/libc/gen/nlist.c
