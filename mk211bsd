@@ -17,7 +17,8 @@ PATCHDIR=${TOP}/patches
 HINTSDIR=${TOP}/hints
 APOUT_ROOT=/
 TEMP=${TOP}/tmp
-RECOVERY_LOG=${TOP}/recovery.log
+LOGS=${TOP}/log
+RECOVERY_LOG=${LOGS}/recovery.log
 
 die() {
     echo $*
@@ -199,12 +200,12 @@ unpack_2101() {
 }
 
 extract_patches() {
-    (
+    [ -d $PATCHDIR ] || (
 	mkdir $PATCHDIR
 	cd $PATCHDIR
 	for i in $(jot 20 0); do
 	    j=$(printf %02d $i)
-	    tar xvf $PATCHSRC/${j}0-${j}9.tar.bz2
+	    tar xf $PATCHSRC/${j}0-${j}9.tar.bz2
 	done
 	# we're at patch 195, so remove the rest
 	rm -f 196 197 198 199
@@ -217,6 +218,64 @@ from2.10.1() {
 	echo "Recovering $i from 2.10.1BSD" >> $RECOVERY_LOG
 	cp $ROOT2101/$i $ROOT211/$i
     done
+}
+
+undo_patch_level()
+{
+    local p patch s
+    p=$1
+    patch=$PATCHDIR/$p
+
+    rm -f $LOGS/$p.log
+    case $p in
+	*.tar)
+	    echo tarball of patches
+	    exit 0
+	    ;;
+	*)
+	    if grep -q '^#! */bin/sh' $PATCHDIR/$p; then
+		# shar file were always complex, though in a few
+		# degenerate cases were just extract a patch file
+		# of varying names and apply it. Other times one
+		# had to do more. The unshar script is expected
+		# to undo all that.
+		s=$HINTSDIR/${p}.unshar
+		[ -r $s ] || die $p.unshar not found
+		rm -rf $TEMP
+		mkdir $TEMP
+		cd $TEMP
+		echo undoing shar with $s
+		. $s 2>&1 >> $LOGS/$p.log
+	    else
+		echo simple patch
+		(
+		    cd $ROOT211
+		    if [ -r $HINTSDIR/${p}.unpatch ] ; then
+			# Some patches look like pure patches, but
+			# in reality the instructions had people do
+			# more than just apply the patch, and the
+			# unpatch file is supposed to sort it out
+			# either by patch -R + commands or by just
+			# doing commands to restore the old state.
+			echo undoing patch with ${p}.unpatch
+			. $HINTSDIR/${p}.unpatch 2>&1 >> $LOGS/$p.log
+		    else
+			# Some patches aren't relative to the root
+			# of the tree, so the setup routines allow
+			# us to cd before apply the patch. Though
+			# it may make sense to fold this into the
+			# unpatch mechanism instead.
+			if [ -r $HINTSDIR/${p}.setup ] ; then
+			    echo setup to unapply $p with $p.setup
+			    . $HINTSDIR/${p}.setup 2>&1 >> $LOGS/$p.log
+			fi
+			echo patch -R $p
+			patch -V none -R -p1 < $PATCHDIR/$p 2>&1 >> $LOGS/$p.log
+		    fi
+		)
+	    fi
+	    ;;
+    esac
 }
 
 # Set the stage
@@ -265,58 +324,13 @@ patches=$(cd $PATCHDIR; ls | sort -rn)
 
 [ -z "$STOP_BEFORE_PATCH" ] || die asked to stop
 
+mkdir ${LOGS}
 rm $RECOVERY_LOG
 touch $RECOVERY_LOG
 set -e
 trap 'die undo patch $p failed' EXIT
 export TEMP PATCHDIR ROOT211 ROOT2101
 for p in $patches; do
-    echo -n "$p "
-    patch=$PATCHDIR/$p
-    case $p in
-	*.tar)
-	    echo tarball of patches
-	    exit 0
-	    ;;
-	*)
-	    if grep -q '^#! */bin/sh' $PATCHDIR/$p; then
-		# shar file were always complex, though in a few
-		# degenerate cases were just extract a patch file
-		# of varying names and apply it. Other times one
-		# had to do more. The unshar script is expected
-		# to undo all that.
-		echo shar
-		s=$HINTSDIR/${p}.unshar
-		[ -r $s ] || die $p.unshar not found
-		rm -rf $TEMP
-		mkdir $TEMP
-		cd $TEMP
-		. $s
-	    else
-		echo simple patch
-		(
-		    cd $ROOT211
-		    if [ -r $HINTSDIR/${p}.unpatch ] ; then
-			# Some patches look like pure patches, but
-			# in reality the instructions had people do
-			# more than just apply the patch, and the
-			# unpatch file is supposed to sort it out
-			# either by patch -R + commands or by just
-			# doing commands to restore the old state.
-			. $HINTSDIR/${p}.unpatch
-		    else
-			# Some patches aren't relative to the root
-			# of the tree, so the setup routines allow
-			# us to cd before apply the patch. Though
-			# it may make sense to fold this into the
-			# unpatch mechanism instead.
-			if [ -r $HINTSDIR/${p}.setup ] ; then
-			    . $HINTSDIR/${p}.setup
-			fi
-			patch -V none -R -p1 < $PATCHDIR/$p
-		    fi
-		)
-	    fi
-	    ;;
-    esac
+    echo "$p"
+    undo_patch_level $p
 done

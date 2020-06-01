@@ -1,0 +1,2 @@
+# Patch 176 is a nop. It's a bookend for the patch train that started in
+# 158. Expet nothing to happen, so provide a do nothing shell.
