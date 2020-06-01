@@ -9,5 +9,5 @@ uncompress patchfile1.Z
 uudecode patchfile2.Z.uu
 uncompress patchfile2.Z
 cd $ROOT211
-patch -R -p1 < $TEMP/patchfile1
-patch -R -p1 < $TEMP/patchfile2
+patch -V none -R -p1 < $TEMP/patchfile1
+patch -V none -R -p1 < $TEMP/patchfile2

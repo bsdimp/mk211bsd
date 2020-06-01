@@ -1,0 +1,12 @@
+#
+# 142 The shar file creaets 5 patchs. Just apply them all.
+# and there's instructions to make copies. Remove them instead
+#
+sed -e '1,/===cut here===/d' < $patch | sed -e "s=/tmp/=$TEMP/=" | sh -x
+cd $ROOT211
+patch -V none -R -p1 < $TEMP/8
+patch -V none -R -p1 < $TEMP/9
+patch -V none -R -p1 < $TEMP/10
+patch -V none -R -p1 < $TEMP/11
+patch -V none -R -p1 < $TEMP/16
+rm $ROOT211/sys/pdp/libc_uldiv.s $ROOT211/sys/pdp/libc_ulsh.s

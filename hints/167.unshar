@@ -14,7 +14,7 @@
 cd $TEMP
 sed -n -e '/^sed.*patchfile/,/^SHAR_EOF/p' < $patch | sh -x
 cd $ROOT211
-patch -R -p1 < $TEMP/patchfile
+patch -V none -R -p1 < $TEMP/patchfile
 rm $ROOT211/usr/src/lib/libc/gen/nlist.c
 rm $ROOT211/usr/src/lib/libc/pdp/gen/nsym.c
 from2.10.1 usr/src/lib/libc/gen/nlist.c

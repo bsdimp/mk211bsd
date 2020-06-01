@@ -267,6 +267,8 @@ patches=$(cd $PATCHDIR; ls | sort -rn)
 
 rm $RECOVERY_LOG
 touch $RECOVERY_LOG
+set -e
+trap 'die undo patch $p failed' EXIT
 export TEMP PATCHDIR ROOT211 ROOT2101
 for p in $patches; do
     echo -n "$p "
@@ -289,13 +291,7 @@ for p in $patches; do
 		rm -rf $TEMP
 		mkdir $TEMP
 		cd $TEMP
-		set -e
-		trap "die undo patch $p failed" EXIT
 		. $s
-		set +e
-		trap - EXIT
-		echo "$p --- HIT RETURN TO CONTINUE"
-		read nothing
 	    else
 		echo simple patch
 		(
@@ -307,8 +303,6 @@ for p in $patches; do
 			# unpatch file is supposed to sort it out
 			# either by patch -R + commands or by just
 			# doing commands to restore the old state.
-			echo "$p --- unpatch"
-			read nothing
 			. $HINTSDIR/${p}.unpatch
 		    else
 			# Some patches aren't relative to the root
@@ -319,7 +313,7 @@ for p in $patches; do
 			if [ -r $HINTSDIR/${p}.setup ] ; then
 			    . $HINTSDIR/${p}.setup
 			fi
-			patch -R -p1 < $PATCHDIR/$p
+			patch -V none -R -p1 < $PATCHDIR/$p
 		    fi
 		)
 	    fi

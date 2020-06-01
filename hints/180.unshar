@@ -31,7 +31,7 @@
 #
 sed -n -e '/^sed.*\/tmp\/patchfile/,/^SHAR_EOF/p' < $patch | sed -e "s=/tmp/=$TEMP/=" | sh -x
 cd $ROOT211
-patch -R -p1 < $TEMP/patchfile
+patch -V none -R -p1 < $TEMP/patchfile
 sed -n -e '/^Xsed.*symcompact.c/,/^XSHAR_EOF/p' < $PATCHDIR/172 | sed -e "s=/usr/src/ucb/=$TEMP/=;s/^X//" | sh -x
 sed -n -e '/^Xsed.*strcompact.c/,/^XSHAR_EOF/p' < $PATCHDIR/172 | sed -e "s=/usr/src/ucb/=$TEMP/=;s/^X//" | sh -x
 cp $TEMP/symcompact.c $ROOT211/usr/src/ucb

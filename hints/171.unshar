@@ -7,5 +7,5 @@
 cd $TEMP
 sed -n -e '/^sed.*patchfile/,/^SHAR_EOF/p' < $patch | sh -x
 cd $ROOT211
-patch -R -p1 < $TEMP/patchfile
+patch -V none -R -p1 < $TEMP/patchfile
 from2.10.1 usr/src/ucb/symorder.c usr/src/ucb/tn3270/shortnames.h usr/src/ucb/window/shortnames.h

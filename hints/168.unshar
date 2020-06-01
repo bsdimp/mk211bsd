@@ -4,4 +4,4 @@
 cd $TEMP
 sed -n -e '/^sed.*patchfile/,/^SHAR_EOF/p' < $patch | sh -x
 cd $ROOT211
-patch -R -p1 < $TEMP/patchfile
+patch -V none -R -p1 < $TEMP/patchfile

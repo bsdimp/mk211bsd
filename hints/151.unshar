@@ -1,0 +1,8 @@
+#!/bin/sh
+
+# 151 has a patch and a new file. Just need to apply it backwards and remove the new file.
+cd $TEMP
+sed -n -e '/^sed.*\/tmp\/c/,/^SHAR_EOF/p' < $patch | sed -e "s=/tmp/c=$TEMP/patchfile=" | sh -x
+cd $ROOT211
+patch -V none -R -p1 < $TEMP/patchfile
+rm $ROOT211/usr/src/sys/pdpstand/toyset.s

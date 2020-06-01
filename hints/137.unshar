@@ -1,0 +1,9 @@
+#
+# 141 The shar file creaets 5 patchs. Just apply them all.
+#
+sed -e '1,/===cut here===/d' < $patch | sed -e "s=/tmp/=$TEMP/=" | sh -x
+cd $ROOT211
+patch -V none -R -p1 < $TEMP/3
+patch -V none -R -p1 < $TEMP/4
+patch -V none -R -p1 < $TEMP/17
+patch -V none -R -p1 < $TEMP/18

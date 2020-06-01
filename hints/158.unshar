@@ -16,7 +16,7 @@
 cd $TEMP
 sed -n -e '/^sed.*patchfile/,/^SHAR_EOF/p' < $patch | sh -x
 cd $ROOT211
-patch -R -p1 < $TEMP/patchfile
+patch -V none -R -p1 < $TEMP/patchfile
 for i in a.out.h nlist.h ar.h ranlib.h short_names.h; do
     from2.10.1 usr/include/$i
 done

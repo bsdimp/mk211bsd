@@ -1,0 +1,5 @@
+#!/bin/sh
+
+# 151 has a patch and a new file. Just need to apply it backwards and remove the new file.
+rm $ROOT211/usr/src/bin/mkdir.c $ROOT211/usr/src/man/man1/mkdir.1
+from2.10.1 usr/src/bin/mkdir.c usr/src/man/man1/mkdir.1

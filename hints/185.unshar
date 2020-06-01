@@ -4,7 +4,7 @@
 #
 sed -n -e '/^sed.*\/tmp\/m4.man.patch/,/^SHAR_EOF/p' < $patch | sed -e "s=/tmp/=$TEMP/=" | sh -x
 cd $ROOT211
-patch -R -p1 < $TEMP/m4.man.patch
+patch -V none -R -p1 < $TEMP/m4.man.patch
 rm -rf usr/src/usr.bin/m4
 mkdir usr/src/usr.bin/m4
 from2.10.1 usr/src/usr.bin/m4/Makefile usr/src/usr.bin/m4/m4.c usr/src/usr.bin/m4/m4y.y
