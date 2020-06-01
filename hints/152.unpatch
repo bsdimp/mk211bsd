@@ -6,7 +6,7 @@
 # So here, we remove as0.s, and copy all the as1?.s
 # files.
 rm $ROOT211/usr/src/bin/as/as0.s
-for i 1 2 3 4 5 6 7 8 9; do
+for i in 1 2 3 4 5 6 7 8 9; do
     from2.10.1 usr/src/bin/as/as1${i}.s
 done
 # Maybe I should snag the patch from 152 for just Makefile, but
