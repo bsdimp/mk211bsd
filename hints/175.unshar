@@ -13,14 +13,81 @@
 # of those files. All other earlier patches touch both copies, and both 2.10BSD and
 # 2.10.1BSD shipped with them in sync. Apply Occam's Razor.
 #
+# Except there's evidence to suggest that it's more complicated than that, and there
+# were bugs post 2.10.1 pre 2.11 that might account for the long list.
+#
 # The patch trough the line
 # X*** /usr/include/Makefile.old	Sun May 27 00:45:47 1990
 # is all we need to grab, massage and reverse apply. It's easier to grab the whole patch,
 # then delete the last bits once we unpack it as part of the massage.
 #
-set -x
-( cd $TEMP ; sed -n -e '/^sed.*patchfile/,/^SHAR_EOF/p' < $PATCHDIR/158 | sh -x )
-sed -e '/^\*\*\* .*Makefile.old/,$d;s=/usr/include/=/usr/src/include/=' < $TEMP/patchfile > $TEMP/p2
+
+# Note: have to fix the generated patches from 158, so moved to 175.fixup so
+# it can evolve as new data comes to light. The number of compressed patches
+# in the chain makes it harder to know for sure 'this is it'. The list
+# is unusually long and may just be the result of find (eg, I can find no
+# evidence of pascal/unixio.h being changed in either the patch train or in
+# the 1989 or 1990 comp.bugs.2bsd archive).
 cd $ROOT211
-#XXXX this fails to apply. need to investigate why more
-# patch -R -p1 < $TEMP/p2
+patch -V none -R -p1 < $HINTSDIR/175.fixup
+from2.10.1 usr/src/include/short_names.h
+#
+# Here's the full list.
+#
+# cp -p /usr/include/pascal/unixio.h /usr/src/include/pascal/unixio.h
+# cp -p /usr/include/protocols/dumprestor.h /usr/src/include/protocols/dumprestor.h
+# cp -p /usr/include/protocols/routed.h /usr/src/include/protocols/routed.h
+# cp -p /usr/include/protocols/rwhod.h /usr/src/include/protocols/rwhod.h
+# cp -p /usr/include/protocols/talkd.h /usr/src/include/protocols/talkd.h
+# cp -p /usr/include/protocols/timed.h /usr/src/include/protocols/timed.h
+# cp -p /usr/include/arpa/ftp.h /usr/src/include/arpa/ftp.h
+# cp -p /usr/include/arpa/inet.h /usr/src/include/arpa/inet.h
+# cp -p /usr/include/arpa/nameser.h /usr/src/include/arpa/nameser.h
+# cp -p /usr/include/arpa/telnet.h /usr/src/include/arpa/telnet.h
+# cp -p /usr/include/arpa/tftp.h /usr/src/include/arpa/tftp.h
+# cp -p /usr/include/a.out.h /usr/src/include/a.out.h
+# cp -p /usr/include/ar.h /usr/src/include/ar.h
+# cp -p /usr/include/assert.h /usr/src/include/assert.h
+# cp -p /usr/include/ctype.h /usr/src/include/ctype.h
+# cp -p /usr/include/curses.h /usr/src/include/curses.h
+# cp -p /usr/include/dbm.h /usr/src/include/dbm.h
+# cp -p /usr/include/OLD/dk.h /usr/src/include/OLD/dk.h
+# cp -p /usr/include/OLD/psout.h /usr/src/include/OLD/psout.h
+# cp -p /usr/include/disktab.h /usr/src/include/disktab.h
+# cp -p /usr/include/errno.h /usr/src/include/errno.h
+# cp -p /usr/include/fcntl.h /usr/src/include/fcntl.h
+# cp -p /usr/include/frame.h /usr/src/include/frame.h
+# cp -p /usr/include/fstab.h /usr/src/include/fstab.h
+# cp -p /usr/include/grp.h /usr/src/include/grp.h
+# cp -p /usr/include/lastlog.h /usr/src/include/lastlog.h
+# cp -p /usr/include/math.h /usr/src/include/math.h
+# cp -p /usr/include/memory.h /usr/src/include/memory.h
+# cp -p /usr/include/mp.h /usr/src/include/mp.h
+# cp -p /usr/include/mtab.h /usr/src/include/mtab.h
+# cp -p /usr/include/ndbm.h /usr/src/include/ndbm.h
+# cp -p /usr/include/netdb.h /usr/src/include/netdb.h
+# cp -p /usr/include/nlist.h /usr/src/include/nlist.h
+# cp -p /usr/include/paths.h /usr/src/include/paths.h
+# cp -p /usr/include/pcc.h /usr/src/include/pcc.h
+# cp -p /usr/include/pwd.h /usr/src/include/pwd.h
+# cp -p /usr/include/sgtty.h /usr/src/include/sgtty.h
+# cp -p /usr/include/ranlib.h /usr/src/include/ranlib.h
+# cp -p /usr/include/regexp.h /usr/src/include/regexp.h
+# cp -p /usr/include/resolv.h /usr/src/include/resolv.h
+# cp -p /usr/include/vmf.h /usr/src/include/vmf.h
+# cp -p /usr/include/setjmp.h /usr/src/include/setjmp.h
+# cp -p /usr/include/signal.h /usr/src/include/signal.h
+# cp -p /usr/include/stab.h /usr/src/include/stab.h
+# cp -p /usr/include/stdio.h /usr/src/include/stdio.h
+# cp -p /usr/include/string.h /usr/src/include/string.h
+# cp -p /usr/include/strings.h /usr/src/include/strings.h
+# cp -p /usr/include/struct.h /usr/src/include/struct.h
+# cp -p /usr/include/syscall.h /usr/src/include/syscall.h
+# cp -p /usr/include/sysexits.h /usr/src/include/sysexits.h
+# cp -p /usr/include/syslog.h /usr/src/include/syslog.h
+# cp -p /usr/include/time.h /usr/src/include/time.h
+# cp -p /usr/include/ttyent.h /usr/src/include/ttyent.h
+# cp -p /usr/include/tzfile.h /usr/src/include/tzfile.h
+# cp -p /usr/include/utmp.h /usr/src/include/utmp.h
+# cp -p /usr/include/varargs.h /usr/src/include/varargs.h
+# cp -p /usr/include/vfont.h /usr/src/include/vfont.h

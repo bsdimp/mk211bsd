@@ -22,3 +22,27 @@ done
 # need to move this AFTER because the patch patches it in the new place.
 mv $ROOT211/usr/src/bin/nm/nm.c $ROOT211/usr/src/bin/nm.c
 rm -rf $ROOT211/usr/src/bin/nm
+
+# There's one known patch to ld.c that is post 2.10.1 that appeared
+# in comp.bugs.2bsd:
+# From: sms at wlv.imsd.contel.com (Steven M. Schultz)
+# Date: 2 Aug 89 05:40:21 GMT
+# Subject: ld symboltable size is wrong
+# Message-ID: <34359@wlbr.IMSD.CONTEL.COM>
+#
+# Index:	bin/ld.c 2.10BSD
+# extract it and apply.
+cd $ROOT211/usr/src/bin
+chmod +w ld.c
+zcat $TUHS/Usenet/comp.bugs.2bsd/1989-August.txt.gz | \
+    sed -n -e '/^Index:.*bin\/ld.c/,/^==========/p' | patch -V none -p1
+# There were other changes. The following is enough to allow 141 to apply
+chmod +w ld.c
+patch -V none -p1 < $HINTSDIR/160.mu
+chmod +w ld.c
+# And because ld.c was 2.11 pl 141 apply it in as well
+cd $TEMP
+sed -e '1,/===cut here===/d' < $PATCHDIR/141 | sed -e "s=/tmp/=$TEMP/=" | sh -x
+cd $ROOT211
+patch -V none -p1 < $TEMP/19
+# 23 also in this arcive patches ld.1, which we're not recoverying from 2.10.1

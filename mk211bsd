@@ -109,36 +109,46 @@ unpack_211() {
     # configure the 'image'. The patches touch the entire directory tree, so
     # this is the easiest way to cope. But looking at the shell below, it's
     # far from the cleanest way to do this...
-    [ -d $ROOT211 ] || (
-	mkdir $ROOT211
-	cd $ROOT211
-	# can't use TAPE211 because paths grow too long
-	extract_dump ../tape211/root.dmp
-	# symlinks don't work, but they are important for the reverse patching,
-	# so fix all known ones. Thankfully, all of them extract with a file
-	# containing a path to the target. There's others in the system, but
-	# tar gets them right.
-	for i in vmunix sys etc/termcap etc/crash bin/sort; do
-	    ln -sf $(cat $i) $i
-	done
-	mkdir usr
+    # Also, have a kludge for running this a bunch where we just restore the
+    # root from the cached tarball...
+    if [ -d $ROOT211 ] ; then
+	if [ -r $TOP/root211.tar.xz ]; then
+	    echo Refreshing 2.11 root from tarball
+	    rm -rf $ROOT211
+	    (cd $TOP ; sudo tar xf $TOP/root211.tar.xz)
+	fi
+    else
 	(
-	    cd usr
-	    tar xvf $TAPE211/usr.tar.gz	# restore /usr
-	    mkdir src
-	    cd src
-	    tar xvf $TAPE211/sys.tar.gz	# restore /usr/src/sys and /usr/src/include
-	    tar xvf $TAPE211/src.tar.gz	# rest of /usr/src
+	    mkdir $ROOT211
+	    cd $ROOT211
+	    # can't use TAPE211 because paths grow too long
+	    extract_dump ../tape211/root.dmp
+	    # symlinks don't work, but they are important for the reverse patching,
+	    # so fix all known ones. Thankfully, all of them extract with a file
+	    # containing a path to the target. There's others in the system, but
+	    # tar gets them right.
+	    for i in vmunix sys etc/termcap etc/crash bin/sort; do
+		ln -sf $(cat $i) $i
+	    done
+	    mkdir usr
+	    (
+		cd usr
+		tar xvf $TAPE211/usr.tar.gz	# restore /usr
+		mkdir src
+		cd src
+		tar xvf $TAPE211/sys.tar.gz	# restore /usr/src/sys and /usr/src/include
+		tar xvf $TAPE211/src.tar.gz	# rest of /usr/src
+	    )
+
+	    # Some 'fixes' for things that make this root less pure, but that allow
+	    # for the patch process to work.
+
+	    # big hammer, make this relative
+	    ln -sf usr/src/sys sys
+	    # This messes up permissions, but lets more patches succeed.
+	    chmod -R +w $ROOT211
 	)
-
-	# Some 'fixes' for things that make this root less pure, but that allow
-	# for the patch process to work.
-
-	# big hammer, make this relative
-	ln -sf usr/src/sys sys
-	# This messes up permissions, but lets more patches succeed.
-	chmod -R +w $ROOT211
-    )
+    fi
 }
 
 unpack_2101() {
