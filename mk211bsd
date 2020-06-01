@@ -214,7 +214,7 @@ extract_patches() {
 # helper routine to recover from 2.10.1BSD
 from2.10.1() {
     for i; do
-	echo 'Recovering $i from 2.10.1BSD' >> $RECOVERY_LOG
+	echo "Recovering $i from 2.10.1BSD" >> $RECOVERY_LOG
 	cp $ROOT2101/$i $ROOT211/$i
     done
 }
