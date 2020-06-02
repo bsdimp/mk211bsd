@@ -1,0 +1,22 @@
+# 124 removes files and creates two patches. Reverse apply the patches and copy
+# the files from 2.10.1
+
+cd $TEMP
+sed -e '1,/================cut here/d' < $patch | sh -x
+cd $ROOT211
+patch -V none -p1 -R < $TEMP/patch.conf
+patch -V none -p1 -R < $TEMP/patch.param.c
+for i in \
+    usr/src/lib/libc/gen/popen.c \
+    usr/src/lib/libc/gen/system.c \
+    usr/src/lib/libc/pdp/sys/wait.s \
+    usr/src/lib/libc/pdp/sys/wait3.s \
+    usr/src/man/man2/rtp.2 \
+    usr/src/man/man2/wait.2 \
+    usr/src/sys/sys/kern_rtp.c; do
+	from2.10.1 $i
+done
+
+# Tweak name
+cp $ROOT2101/usr/src/lib/libc/pdp/com-2.9/rtp.s usr/src/lib/libc/pdp/compat-2.9/rtp.s
+echo "Recovering usr/src/lib/libc/pdp/com-2.9/rtp.s to usr/src/lib/libc/pdp/compat-2.9/rtp.sfrom 2.10.1BSD" >> $RECOVERY_LOG

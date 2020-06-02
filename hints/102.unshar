@@ -1,0 +1,2 @@
+# 102 adds welcome, remove it
+rm -rf $ROOT211/usr/src/local/welcome

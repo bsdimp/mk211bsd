@@ -1,0 +1,2 @@
+# patch 37 is relative to usr/src/lib/c2,  so cd there first
+chdir $ROOT211/usr/src/lib/c2

@@ -1,0 +1,11 @@
+# 127 creates some files, so just delete them
+
+for i in /usr/src/lib/libc/pdp/sys/wait4.s \
+    /usr/src/man/man2/wait.2 \
+    /usr/src/lib/libc/gen/popen.c \
+    /usr/src/lib/libc/gen/system.c \
+    /usr/src/lib/libc/gen/wait.c \
+    /usr/src/lib/libc/gen/wait3.c \
+    /usr/src/lib/libc/gen/waitpid.c; do
+	rm $ROOT211/$i
+done

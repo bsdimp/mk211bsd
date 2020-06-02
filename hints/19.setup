@@ -1,0 +1,2 @@
+# patch 37 is relative to usr/src/ucb/ex,  so cd there first
+chdir $ROOT211/usr/src/ucb/ex

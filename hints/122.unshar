@@ -1,0 +1,8 @@
+# 122 brings in rdump, so we need to reverse apply the patch and
+# then delete the new file.
+
+cd $TEMP
+sed -n -e '/^sed.*\/tmp\/c/,/^SHAR_EOF/p' < $patch | sed -e "s=/tmp/c=$TEMP/patchfile=" | sh -x
+cd $ROOT211
+patch -V none -R -p1 < $TEMP/patchfile
+rm usr/src/etc/dump/dumprmt.c

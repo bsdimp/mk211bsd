@@ -1,0 +1,2 @@
+# patch 60 is relative to the rshd src dir
+cd $ROOT211/usr/src/etc/rshd

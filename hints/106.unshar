@@ -1,0 +1,26 @@
+#
+# 106 patches a bunch of stuff after deleting some man pages and moving
+# some others.
+#
+# mv /usr/src/man/man6/battlestar.6 /usr/src/games/battlestar/battlestar.6
+# mv /usr/src/man/man6/sail.6 /usr/src/games/sail/sail.6
+# rm /usr/src/new/shar/getopt.3
+# rm /usr/src/etc/ftpd/getusershell.3
+# rm /usr/src/usr.lib/sendmail/aux/logger.1
+# rm /usr/src/usr.lib/sendmail/doc/mailaddr.7
+# rm /usr/src/usr.lib/sendmail/doc/sendmail.8
+# rm /usr/src/usr.lib/sendmail/aux/vacation.1
+# rm /usr/src/man/man8/tftpd.8
+cd $ROOT211
+patch -V none -R -p1 < $patch
+# move these back
+mv usr/src/games/battlestar/battlestar.6 usr/src/man/man6/battlestar.6
+mv usr/src/games/sail/sail.6 usr/src/man/man6/sail.6
+# copy these from the non-redundant location
+cp $(find . -name getopt.3) usr/src/new/shar/getopt.3
+cp $(find . -name getusershell.3) usr/src/etc/ftpd/getusershell.3
+cp $(find . -name logger.1) usr/src/usr.lib/sendmail/aux/logger.1
+cp $(find . -name mailaddr.7) usr/src/usr.lib/sendmail/doc/mailaddr.7
+cp $(find . -name sendmail.8) usr/src/usr.lib/sendmail/doc/sendmail.8
+cp $(find . -name vacation.1) usr/src/usr.lib/sendmail/aux/vacation.1
+cp $(find . -name tftpd.8) usr/src/man/man8/tftpd.8

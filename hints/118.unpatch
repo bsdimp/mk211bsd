@@ -1,0 +1,11 @@
+#
+# 118 replaces ucb/Mail, so we snag the old one from 2.10.1 on
+# the theory that the main line development happened in 4BSD and
+# this wasn't updated in time for 2.11BSD release
+#
+cd $ROOT211
+find usr/src/ucb/Mail -type f | xargs rm
+mkdir usr/src/ucb/Mail/misc
+for i in $(cd $ROOT2101 ; find usr/src/ucb/Mail -type f); do
+    from2.10.1 $i
+done

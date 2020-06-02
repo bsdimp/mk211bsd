@@ -1,2 +1,2 @@
-# patch 1 is relative to usr/src/bin, so cd there first
-chdir usr/src/ucb/Mail
+# patch 10 is relative to usr/ucb/Mail
+chdir $ROOT211/usr/src/ucb/Mail

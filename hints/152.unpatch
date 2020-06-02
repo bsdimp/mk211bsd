@@ -12,3 +12,50 @@ done
 # Maybe I should snag the patch from 152 for just Makefile, but
 # I'm lazy atm.
 from2.10.1 usr/src/bin/as/Makefile
+
+cd $ROOT211
+# Before we start to recover using the changes post 2.11, we need to do the ones between 2.10.1
+# and 2.11. These were posted in comp.bugs.2bsd (which the release notes say were applied to
+# 2.11).
+#
+# One bug from 23 Aug 89 fixes nops
+#	Message-ID: <35363@wlbr.IMSD.CONTEL.COM>
+# One bug from 15 Dec 89 fixing 1st phase of assembler not being split I/D friendly
+#	Message-ID: <42590@wlbr.IMSD.CONTEL.COM>
+# One bug from 26 Dec 89 fixes 2nd phase of assembler not being split I/D friendly
+#	Message-ID: <43068@wlbr.IMSD.CONTEL.COM>
+#
+# We re-apply them in date order, even though they appear to be backwards in the archive.
+(
+	cd usr/src/bin/as
+
+	#	Message-ID: <35363@wlbr.IMSD.CONTEL.COM>
+	zcat $TUHS/Usenet/comp.bugs.2bsd/1989-August.txt.gz | \
+	sed -n -e '/Index:.bin\/as 2.10BSD/,/^From /p' | \
+	patch -V none -p1
+
+	#	Message-ID: <42590@wlbr.IMSD.CONTEL.COM>
+	zcat $TUHS/Usenet/comp.bugs.2bsd/1989-December.txt.gz | \
+	sed -n -e '/Index:.bin\/as\/as1\?\.s 2.10BSD/,/^From /p' | \
+	patch -V none -p1
+
+	#	Message-ID: <43068@wlbr.IMSD.CONTEL.COM>
+	zcat $TUHS/Usenet/comp.bugs.2bsd/1989-December.txt.gz | \
+	sed -n -e '/Index:.bin\/as\/as2\?\.s 2.10BSD/,/^From /p' | \
+	patch -V none -p1
+)
+
+# XXX gap here? need to test that the results are patchable going the other
+# way. We can test whether or not we have the right sources because 152 and 153
+# cat all the as files together, then apply a patch to get to something we
+# know. If it doesn't produce the right results, then we'll need to do something
+# by hand here to bridge the gap.
+
+# 65 patches both as1 and as2 files, so do them both here. Going the other way it will be fine so
+# we don't need to be perfect.
+patch -V none -p1 < $PATCHDIR/65
+# 71 patches both as1 and as2 files, so do them both here. Going the other way it will be fine so
+# we don't need to be perfect.
+patch -V none -p1 < $PATCHDIR/71
+# Patch 107 makes some fixes to Makefile, so apply those in too so 107 undoes them
+sed -n -e'/\*\*\* .*\/as\/Makefile.old/,/*\*\* .*\/awk\/Makefile.old/p' < $PATCHDIR/107 | patch -V none -p1

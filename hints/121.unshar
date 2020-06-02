@@ -1,0 +1,8 @@
+# 121 removes files created by 98 and replaces them.
+
+chdir $ROOT211
+rm $ROOT211/usr/src/sys/pdpif/if_qt.c
+rm $ROOT211/usr/src/sys/pdpif/if_qtreg.h
+# Snag the files that this repplaces from patch 98, which was a beta version of
+# this driver
+sed -n -e'/\*\*\* .*if_qt.c.old/,/*\*\* .*\/if_uba.c.old/p' < $PATCHDIR/98 | patch -V none -p1

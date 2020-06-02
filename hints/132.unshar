@@ -1,0 +1,15 @@
+#
+# 132 replaces named/tools and has a patch, so undo the patch and just update
+# the tools from 2.10.1. The patch describes them as ancient, and 2.10.1 qualifies.
+#
+sed -e '1,/===cut here===/d' < $patch | sh -x
+cd $ROOT211
+patch -V none -R -p1 < $TEMP/c.patch
+find usr/src/etc/named/tools -type f | xargs rm
+for i in $(cd $ROOT2101 ; find usr/src/etc/named/tools -type f); do
+    from2.10.1 $i
+done
+# patch 76 fixes some stuff
+patch -V none -p1 < $PATCHDIR/76
+# Patch 108 makes some fixes to Makefile, so apply those in too so 108 undoes them
+sed -n -e'/\*\*\* .*\/tools\/Makefile.old/,/*\*\* .*\/restor\/Makefile.old/p' < $PATCHDIR/108 | patch -V none -p1

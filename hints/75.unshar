@@ -1,0 +1,7 @@
+# 75: A few file names were overlooked in the "liberation from the 14
+# character limit".
+# Sadly, we need to reimprision them.
+cd $ROOT211/usr/src/usr.lib/sendmail/cf.named
+mv nicregistered.m4 nicregistered.
+mv postwriterule.m4 postwriterule.
+mv prewriterule.m4 prewriterule.m

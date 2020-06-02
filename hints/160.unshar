@@ -1,5 +1,3 @@
-#!/bin/sh
-
 # 160 creates a patch file you are expected to apply. So extract it and reverse apply.
 # It also does:
 #	rm -f /usr/src/bin/csh/shortnames.h
@@ -33,13 +31,10 @@ rm -rf $ROOT211/usr/src/bin/nm
 # Index:	bin/ld.c 2.10BSD
 # extract it and apply.
 cd $ROOT211/usr/src/bin
-chmod +w ld.c
 zcat $TUHS/Usenet/comp.bugs.2bsd/1989-August.txt.gz | \
     sed -n -e '/^Index:.*bin\/ld.c/,/^==========/p' | patch -V none -p1
 # There were other changes. The following is enough to allow 141 to apply
-chmod +w ld.c
 patch -V none -p1 < $HINTSDIR/160.mu
-chmod +w ld.c
 # And because ld.c was 2.11 pl 141 apply it in as well
 cd $TEMP
 sed -e '1,/===cut here===/d' < $PATCHDIR/141 | sed -e "s=/tmp/=$TEMP/=" | sh -x

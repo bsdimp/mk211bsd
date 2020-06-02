@@ -8,10 +8,10 @@ TOOLS=${TOP}/tools
 TOOLBIN=$TOOLS/bin
 APOUT_SRC=${TOOLS}/apout
 APOUT=${APOUT_SRC}/apout
-TAPE211=${TOP}/tape211
-ROOT211=${TOP}/root211
-TAPE2101=${TOP}/tape2101
-ROOT2101=${TOP}/root2101
+TAPE211=${TOP}/tape-2.11
+ROOT211=${TOP}/root-2.11
+TAPE2101=${TOP}/tape-2.10.1
+ROOT2101=${TOP}/root-2.10.1
 PATCHSRC=${UCB}/2.11BSD/Patches
 PATCHDIR=${TOP}/patches
 HINTSDIR=${TOP}/hints
@@ -19,6 +19,9 @@ APOUT_ROOT=/
 TEMP=${TOP}/tmp
 LOGS=${TOP}/log
 RECOVERY_LOG=${LOGS}/recovery.log
+ROOT211TAR=$TOP/root-2.11.tar.xz
+
+export APOUT_ROOT
 
 die() {
     echo $*
@@ -30,7 +33,7 @@ extract_dump() {
     local r fn inode
 
     r=$1
-    $APOUT $TOOLBIN/dumpdir f $r | tail +5 | grep -v /dev/ | fgrep -v .. | \
+    $APOUT $TOOLBIN/dumpdir f $r | tail +5 | grep -v '/dev/[a-z]' | fgrep -v .. | \
 	( while read inode fn; do
 	      fn=${fn#/}
 	      case $fn in
@@ -112,17 +115,17 @@ unpack_211() {
     # Also, have a kludge for running this a bunch where we just restore the
     # root from the cached tarball...
     if [ -d $ROOT211 ] ; then
-	if [ -r $TOP/root211.tar.xz ]; then
+	if [ -r $ROOT211TAR ]; then
 	    echo Refreshing 2.11 root from tarball
 	    rm -rf $ROOT211
-	    (cd $TOP ; sudo tar xf $TOP/root211.tar.xz)
+	    (cd $TOP ; sudo tar xf $ROOT211TAR)
 	fi
     else
 	(
 	    mkdir $ROOT211
 	    cd $ROOT211
 	    # can't use TAPE211 because paths grow too long
-	    extract_dump ../tape211/root.dmp
+	    extract_dump ../tape-2.11/root.dmp
 	    # symlinks don't work, but they are important for the reverse patching,
 	    # so fix all known ones. Thankfully, all of them extract with a file
 	    # containing a path to the target. There's others in the system, but
@@ -148,6 +151,9 @@ unpack_211() {
 	    # This messes up permissions, but lets more patches succeed.
 	    chmod -R +w $ROOT211
 	)
+	if [ ! -r $ROOT211TAR ]; then
+	    (cd $TOP ; sudo tar xf $ROOT211TAR $ROOT211)
+	fi
     fi
 }
 
@@ -190,7 +196,7 @@ unpack_2101() {
     (
 	mkdir $ROOT2101
 	cd $ROOT2101
-	extract_dump ../tape2101/tape1/file4
+	extract_dump ../tape2.10.1/tape1/file4
 	# symlinks don't work, so fix all known ones. Thankfully, all of them
 	# extract with a file containing a path to the target. There's others in
 	# the system, but tar gets them right.
@@ -213,10 +219,11 @@ extract_patches() {
     [ -d $PATCHDIR ] || (
 	mkdir $PATCHDIR
 	cd $PATCHDIR
-	for i in $(jot 20 0); do
+	for i in $(jot 19 1); do
 	    j=$(printf %02d $i)
 	    tar xf $PATCHSRC/${j}0-${j}9.tar.bz2
 	done
+	tar xf $PATCHSRC/001-009.tar.bz2
 	# we're at patch 195, so remove the rest
 	rm -f 196 197 198 199
     )
@@ -227,6 +234,7 @@ from2.10.1() {
     for i; do
 	echo "Recovering $i from 2.10.1BSD" >> $RECOVERY_LOG
 	cp $ROOT2101/$i $ROOT211/$i
+	chmod +w $ROOT211/$i
     done
 }
 
@@ -280,7 +288,7 @@ undo_patch_level()
 			    . $HINTSDIR/${p}.setup 2>&1 >> $LOGS/$p.log
 			fi
 			echo patch -R $p
-			patch -V none -R -p1 < $PATCHDIR/$p 2>&1 >> $LOGS/$p.log
+			patch -V none -R -p1 < $PATCHDIR/$p 2>&1 | tee $LOGS/$p.log
 		    fi
 		)
 	    fi

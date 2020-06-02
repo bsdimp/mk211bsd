@@ -1,0 +1,2 @@
+# patch 37 is relative to usr/src/sys/mdec, so cd there first
+chdir $ROOT211/usr/src/sys/mdec

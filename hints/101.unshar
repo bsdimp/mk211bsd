@@ -1,0 +1,2 @@
+# 101 adds less, remove it
+rm -rf $ROOT211/usr/src/local/less

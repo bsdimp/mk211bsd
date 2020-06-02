@@ -1,0 +1,7 @@
+# This is an announcement for corrupt files. so it's optional. We'll
+# recreate the non-currupt tape.
+#		/usr/src/games/mille/end.c
+#		/usr/src/games/banner.c
+#		/usr/src/games/warp/{sig.c,smap.1,smp.5}
+# It is impossible to recreate the corruption, so we'll silently assume
+# that it's ok to create a non-currupt version of them.

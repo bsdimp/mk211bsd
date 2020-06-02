@@ -8,3 +8,5 @@ patch -V none -R -p1 < $TEMP/m4.man.patch
 rm -rf usr/src/usr.bin/m4
 mkdir usr/src/usr.bin/m4
 from2.10.1 usr/src/usr.bin/m4/Makefile usr/src/usr.bin/m4/m4.c usr/src/usr.bin/m4/m4y.y
+# Patch 115 makes some fixes to Makefile, so draw those in too so 115 undoes them
+sed -n -e'/\*\*\* .*m4\/Makefile.old/,/*\*\* .*\/prof\/Makefile.old/p' < $PATCHDIR/115 | patch -V none -p1
