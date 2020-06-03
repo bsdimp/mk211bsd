@@ -1,0 +1,11 @@
+--- /usr/src/local/Makefile.old	2020-06-02 22:51:21.717212000 -0600
++++ /usr/src/local/Makefile	2020-06-02 22:51:39.289621000 -0600
+@@ -10,7 +10,7 @@
+ # C programs that live in the current directory and do not need
+ # explicit make lines.
+ #
+-STD= trace decompr16
++STD= trace
+ 
+ # C programs that live in the current directory and need explicit make lines.
+ #

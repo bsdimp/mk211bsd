@@ -9,3 +9,6 @@ mkdir usr/src/ucb/Mail/misc
 for i in $(cd $ROOT2101 ; find usr/src/ucb/Mail -type f); do
     from2.10.1 $i
 done
+cd usr/src/ucb/Mail
+# Patch 10 updates this file
+patch -V none -p1 < $PATCHDIR/10

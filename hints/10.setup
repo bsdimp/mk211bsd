@@ -1,2 +1,2 @@
 # patch 10 is relative to usr/ucb/Mail
-chdir $ROOT211/usr/src/ucb/Mail
+cd $ROOT211/usr/src/ucb/Mail

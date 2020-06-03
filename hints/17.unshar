@@ -1,0 +1,19 @@
+# 17
+# we remove INDEX  :rofix fort.h.vax
+# cd /usr/src/lib/pcc
+# rm INDEX :rofix fort.h.vax
+# cp /tmp/stab.c .
+# mv macdefs macdefs.h
+# mv mac2defs mac2defs.h
+# cd ..
+# zcat PORT/pcc.tar.Z | tar xvf - pcc/localdefs.h pcc/DEBUGS pcc/INFO
+# 
+sed -n -e '/^sed.*\/tmp\/c/,/^SHAR_EOF/p' < $patch | sed -e "s=/tmp/c=$TEMP/patchfile=" | sh -x
+cd $ROOT211
+for i in INDEX :rofix fort.h.vax; do
+    from2.10.1 usr/src/lib/pcc/$i
+done
+cd usr/src/lib/pcc/
+rm localdefs.h DEBUGS INFO stab.c
+mv macdefs.h macdefs
+mv mac2defs.h mac2defs

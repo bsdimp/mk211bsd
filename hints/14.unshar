@@ -1,0 +1,16 @@
+# 14
+# cd /usr/src/usr.bin
+# rm lint/*
+# zcat PORT/lint.tar.Z | tar xf -
+# cd lint
+# rm :yyfix llib-*
+# cp -p /tmp/libs libs
+# Then patch makefile, which is really 'take what's there, throw it away and..." so we just need
+# to un throw it away. The old stuff doesn't build w/o errors (warnings?), or run, so this is
+# our best guess.
+cd $ROOT211
+# restore all of lint from 2.10.1
+rm usr/src/usr.bin/lint/*
+for i in $(cd $ROOT2101 ; find usr/src/usr.bin/lint -type f); do
+    from2.10.1 $i
+done

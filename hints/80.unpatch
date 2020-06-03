@@ -1,0 +1,4 @@
+# 80
+rm $ROOT211/usr/src/local/decompr16.c
+cd $ROOT211
+patch -V none -p1 < $HINTSDIR/80.fixup

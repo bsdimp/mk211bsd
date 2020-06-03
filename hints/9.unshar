@@ -1,0 +1,8 @@
+# 4
+# Applies a patch and Creates:
+#	/usr/src/local/trace.c
+# so undo all that.
+sed -n -e '/^sed.*\/tmp\/c/,/^SHAR_EOF/p' < $patch | sed -e "s=/tmp/c=$TEMP/patchfile=" | sh -x
+cd $ROOT211
+patch -R -V none -p1 < $TEMP/patchfile
+rm usr/src/local/trace.c
