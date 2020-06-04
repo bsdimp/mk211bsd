@@ -1,0 +1,6 @@
+# 3 has two issues
+# 1, MAKEDEV doesn't apply, punt on that
+# 2, it patches localopts.h, which is a generate file
+chmod +wx $TEMP/3
+sed -e '88,193d;901,$d' < $TEMP/3/b.2 > $TEMP/3/b.2.new
+mv  $TEMP/3/b.2.new $TEMP/3/b.2

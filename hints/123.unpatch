@@ -1,0 +1,14 @@
+# Patch 123 updates the docs
+# It would appear that that changes to 4.t weren't included in the
+# patch, but are part of the patch 195 tape we have. Use this mechanism
+# to correct the SCCS id that's in the file. We don't know what else
+# changed, but things should be similar enough...
+#
+# Most of the changes to the OTHER chapters are minor / trivial. The dates of
+# the tag matches, so at most we're leaking just a tiny bit of tweaks...
+# We can look to the other patches to judge which, if any, of the large
+# number of diffs between 2.10 and 2.11 versions of this doc may have been
+# included here, but lost.
+cd $ROOT211
+patch -V none -p1 -R < $patch
+patch -V none -p1 < $HINTSDIR/123.fixup

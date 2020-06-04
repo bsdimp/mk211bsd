@@ -1,2 +1,2 @@
 # patch 1 is relative to usr/src/bin, so cd there first
-chdir $ROOT211/usr/src/bin
+cd $ROOT211/usr/src/bin

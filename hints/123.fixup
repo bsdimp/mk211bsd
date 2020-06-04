@@ -1,0 +1,19 @@
+*** /usr/doc/2.10/setup.2.11/4.t.old	Wed Dec 30 01:12:05 1992
+--- /usr/doc/2.10/setup.2.11/4.t	Sat Feb  6 00:29:22 1993
+***************
+*** 2,8 ****
+  .\" All rights reserved.  The Berkeley software License Agreement
+  .\" specifies the terms and conditions for redistribution.
+  .\"
+! .\"	@(#)4.t	2.1 (2.11BSD GTE) Feb 6, 1993
+  .\"
+  .de IR
+  \fI\\$1\fP\|\\$2
+--- 2,8 ----
+  .\" All rights reserved.  The Berkeley software License Agreement
+  .\" specifies the terms and conditions for redistribution.
+  .\"
+! .\"	@(#)4.t	2.0 (2.11BSD GTE) 12/30/92
+  .\"
+  .de IR
+  \fI\\$1\fP\|\\$2

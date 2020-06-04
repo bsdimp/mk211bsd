@@ -21,11 +21,30 @@ LOGS=${TOP}/log
 RECOVERY_LOG=${LOGS}/recovery.log
 ROOT211TAR=$TOP/root-2.11.tar.xz
 
-export APOUT_ROOT
+# here to the end of pprint stolen from nanobsd.
+export PPLEVEL=1
+export STARTTIME=`date +%s`
+# File descriptor 3 is used for logging output
+exec 3>&1
+# Progress Print
+#	Print $2 at level $1.
+pprint ( ) (
+    lvl=$1
+    shift
+    if [ "$lvl" -le $PPLEVEL ]; then
+	runtime=$(( `date +%s` - $STARTTIME ))
+	printf "%s %.${lvl}s %s\n" "`date -u -r $runtime +%H:%M:%S`" "#####" "$*" 1>&3
+    fi
+)
 
 die() {
     echo $*
     exit 1
+}
+
+clean_tree() {
+    chmod -R +w $1
+    rm -rf $1
 }
 
 extract_dump() {
@@ -116,7 +135,7 @@ unpack_211() {
     # root from the cached tarball...
     if [ -d $ROOT211 ] ; then
 	if [ -r $ROOT211TAR ]; then
-	    echo Refreshing 2.11 root from tarball
+	    pprint 1 Refreshing 2.11 root from tarball
 	    rm -rf $ROOT211
 	    (cd $TOP ; sudo tar xf $ROOT211TAR)
 	fi
@@ -233,22 +252,44 @@ extract_patches() {
 from2.10.1() {
     for i; do
 	echo "Recovering $i from 2.10.1BSD" >> $RECOVERY_LOG
+	echo "Recovering $i from 2.10.1BSD"
+	pprint 1 "Recovering $i from 2.10.1BSD"
 	cp $ROOT2101/$i $ROOT211/$i
 	chmod +w $ROOT211/$i
     done
 }
 
-undo_patch_level()
-{
+undo_patch_level() (
     local p patch s
     p=$1
     patch=$PATCHDIR/$p
 
-    rm -f $LOGS/$p.log
+    clean_tree $TEMP
+    mkdir $TEMP
+    cd $TEMP
     case $p in
 	*.tar)
-	    echo tarball of patches
-	    exit 0
+	    pprint 1 "patch $p: tarball of patches"
+	    echo "patch $p: tarball of patches"
+	    cd $TEMP
+	    tar xvf $patch
+	    pp=${p%%.tar}
+	    cd $pp
+	    chmod -R +w .
+	    cwd=$(pwd)
+	    if [ -r $HINTSDIR/${pp}.unpatch ] ; then
+		pprint 1 massaging patches with ${pp}.unpatch
+		echo massaging patches with ${pp}.unpatch
+		. $HINTSDIR/${pp}.unpatch
+	    else
+		pprint 1 nothing
+	    fi
+	    for i in *; do
+		( cd ${ROOT211}
+		  echo patch -V none -R -p1 ${cwd}/$i
+		  patch -V none -R -p1 < ${cwd}/$i
+		)
+	    done
 	    ;;
 	*)
 	    if grep -q '^#! */bin/sh' $PATCHDIR/$p; then
@@ -259,13 +300,11 @@ undo_patch_level()
 		# to undo all that.
 		s=$HINTSDIR/${p}.unshar
 		[ -r $s ] || die $p.unshar not found
-		rm -rf $TEMP
-		mkdir $TEMP
-		cd $TEMP
-		echo undoing shar with $s
-		. $s 2>&1 >> $LOGS/$p.log
+		pprint 1 "patch $p: undoing shar with $s"
+		echo "patch $p: undoing shar with $s"
+		. $s
 	    else
-		echo simple patch
+		pprint 1 "patch $p: simple patch"
 		(
 		    cd $ROOT211
 		    if [ -r $HINTSDIR/${p}.unpatch ] ; then
@@ -275,8 +314,9 @@ undo_patch_level()
 			# unpatch file is supposed to sort it out
 			# either by patch -R + commands or by just
 			# doing commands to restore the old state.
+			pprint 1 undoing patch with ${p}.unpatch
 			echo undoing patch with ${p}.unpatch
-			. $HINTSDIR/${p}.unpatch 2>&1 >> $LOGS/$p.log
+			. $HINTSDIR/${p}.unpatch
 		    else
 			# Some patches aren't relative to the root
 			# of the tree, so the setup routines allow
@@ -284,17 +324,19 @@ undo_patch_level()
 			# it may make sense to fold this into the
 			# unpatch mechanism instead.
 			if [ -r $HINTSDIR/${p}.setup ] ; then
+			    pprint 1 setup to unapply $p with $p.setup
 			    echo setup to unapply $p with $p.setup
-			    . $HINTSDIR/${p}.setup 2>&1 >> $LOGS/$p.log
+			    . $HINTSDIR/${p}.setup
 			fi
-			echo patch -R $p
-			patch -V none -R -p1 < $PATCHDIR/$p 2>&1 | tee $LOGS/$p.log
+			pprint 1 "Reverse applying $PATCHDIR/$p"
+			echo "Reverse applying $PATCHDIR/$p"
+			patch -V none -R -p1 < $PATCHDIR/$p
 		    fi
 		)
 	    fi
 	    ;;
     esac
-}
+)
 
 # Set the stage
 [ -n "$FORCE_CLEAN" ] && cleanup
@@ -313,30 +355,26 @@ unpack_211
 # they aren't.  There's a number of files that were lost in this process since
 # the instructions have you do things like in patch 180:
 #
-# Save the text below into a temporary file (/tmp/foo).  Then:
-#	1) cd /tmp
-#	2) sh foo
-#	3) patch -p0 < m4.man.patch
-#	4) mv /usr/src/usr.bin/m4 /usr/src/usr.bin/m4.old
-#	   (or optionally you can simply "rm -r /usr/src/usr.bin/m4")
-#	5) sh m4.shar
-#	6) rm foo m4.man.patch m4.shar
-#	7) cd /usr/src/usr.bin/m4
-#	8) make
-#	9) make install
-#	10) cd /usr/src/man/man1
-#	11) /usr/man/manroff m4.1 > /usr/man/cat1/m4.0
+
+# Hack:
+# Somewhere along the way, net_csv.s and mch_csv.s became hard-linked together.
+# This causes patch 96 to fail, so unhard link them, even though the changes
+# appear to be the same to both files in 96. Why are they hard linked? Who knows.
+# They were separate files in 2.10.1.
+rm $ROOT211/usr/src/sys/pdp/net_csv.s
+cp $ROOT211/usr/src/sys/pdp/mch_csv.s $ROOT211/usr/src/sys/pdp/net_csv.s
+
 #
-# Step 4 is the information destorying step. The old m4 src directory is gone
-# and not preserved. Thankfully, in most (all?) of these cases we can consult
-# 2.10.1BSD to get the files. Sometimes we can cross check them (like patch
-# 153 which has us transform the old sources into the new and then patches them
-# so we can check that the 'old sources' we recreate produce the same results.
-# In this case it could be ambiguos, but it turns out not to be).
+# Also, the KAZOO config was included through some unknown rev. It's not in
+# the 195 patchlevel image we have, but patches 84 and 42 reference it. I
+# can find no patch that removes it...
 #
-# So, this means that we'll need to proceed carefully. These are shar files, and
-# we don't want anything in them to affect the host system.
+# The KAZOO in hints was created by taking GENERIC, applying the diffs from
+# 2.10.1 between the two, and then hand-apply the conflicts as they were
+# all pretty obvious. I'm not 100% up on things, but we may need to create
+# other files to be able to build this.
 #
+cp $HINTSDIR/KAZOO $ROOT211/usr/src/sys/conf
 
 patches=$(cd $PATCHDIR; ls | sort -rn)
 
@@ -347,8 +385,8 @@ rm $RECOVERY_LOG
 touch $RECOVERY_LOG
 set -e
 trap 'die undo patch $p failed' EXIT
-export TEMP PATCHDIR ROOT211 ROOT2101
+export LOGS TEMP PATCHDIR ROOT211 ROOT2101 APOUT_ROOT HINTSDIR
 for p in $patches; do
-    echo "$p"
-    undo_patch_level $p
+    undo_patch_level $p 2>&1 > $LOGS/$p.log
 done
+trap - EXIT
