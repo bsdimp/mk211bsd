@@ -86,6 +86,8 @@ Status | Source | Total
 | Likely | 2.10.1BSD | 99
 | Likely | 2.11BSD | 10
 
+Total files in usr/src and etc 7500, so .1% of the files are known bad. 1.8% of missing files recovered with likely correct results, and .4% are recovered, but in doubt. 97.7% are not in doubt, absent missing patches 'silently' applied.
+
 Status | Patch | File | From | Comments
 -------|------|------|------|-------
 | Likely | 187 | usr/src/include/syscall.h | 2.11BSD | Small tweak to allow subsequent patches to apply, maybe a missing chunk from another patch?
