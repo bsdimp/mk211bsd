@@ -84,10 +84,11 @@ Status | Source | Total
 | mostly | imp | 4
 | mostly | 2.10.1BSD | 23
 | Likely | 2.10.1BSD | 99
-| Likely | 2.11BSD | 2
+| Likely | 2.11BSD | 10
 
 Status | Patch | File | From | Comments
 -------|------|------|------|-------
+| Likely | 187 | usr/src/include/syscall.h | 2.11BSD | Small tweak to allow subsequent patches to apply, maybe a missing chunk from another patch?
 | Likely | 185 | usr/src/usr.bin/m4/Makefile | 2.10.1BSD | Most likely contents (no 2bsd patches)
 | Likely | 185 | usr/src/usr.bin/m4/m4.c | 2.10.1BSD | Most likely contents (no 2bsd patches)
 | Likely | 185 | usr/src/usr.bin/m4/m4y.y | 2.10.1BSD | Most likely contents (no 2bsd patches)
@@ -100,7 +101,7 @@ Status | Patch | File | From | Comments
 | Likely | 175 | usr/src/include/setjmp.h | 2.11BSD + hack | fixup patch makes tiny hacks so this will 'unapply' so we're back to something closer to that was in 2.11BSD. It's likely, but not guaranteed to be perfect.
 | Likely | 175 | usr/src/include/syscall.h | 2.11BSD + hack | fixup patch makes tiny hacks so this will 'unapply' so we're back to something closer to that was in 2.11BSD. It's likely, but not guaranteed to be perfect.
 | Likely | 173 | usr/src/usr.bin/ranlib.c | 2.10.1BSD | Most likely contents (no 2bsd patches)
-| Likely | 171 | usr/src/ucb/symorder.c | 2.10.1BSD | Almost certainly correct, since the file was trivial and was patched in 50 and we have most of the text
+| Likely | 171 | usr/src/ucb/symorder.c | 2.10.1BSD + 50 | Almost certainly correct, since the file was trivial and was patched in 50 and we have most of the text
 | Likely | 171 | usr/src/ucb/tn3270/shortnames.h | 2.10.1BSD | Most likely contents (short names)
 | Likely | 171 | usr/src/ucb/window/shortnames.h | 2.10.1BSD | Most likely contents (short names)
 | Likely | 167 | usr/src/lib/libc/gen/nlist.c | 2.10.1BSD | Most likely contents (no 2bsd patches)
@@ -140,21 +141,21 @@ Status | Patch | File | From | Comments
 | mostly | 152 | usr/src/bin/as/Makefile | 2.10.1BSD | Most likely contents, might be able to reconstruct it better
 | Likely | 149 | usr/src/bin/mkdir.c | 2.10.1BSD | Most likely contents (no 2bsd patches)
 | Likely | 149 | usr/src/man/man1/mkdir.1 | 2.10.1BSD | Most likely contents (no 2bsd patches)
-| Likely | 132 | usr/src/etc/named/tools/Makefile | 2.10.1BSD | Most likely contents, the patches from 76 and 108 reverse apply, no 2bsd patches
-| Likely | 132 | usr/src/etc/named/tools/nsquery.c | 2.10.1BSD | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
-| Likely | 132 | usr/src/etc/named/tools/nstest.c | 2.10.1BSD | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
-| Likely | 132 | usr/src/etc/named/tools/nslookup/Makefile | 2.10.1BSD | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
-| Likely | 132 | usr/src/etc/named/tools/nslookup/nslookup.help | 2.10.1BSD | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
-| Likely | 132 | usr/src/etc/named/tools/nslookup/res.h | 2.10.1BSD | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
-| Likely | 132 | usr/src/etc/named/tools/nslookup/commands.l | 2.10.1BSD | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
-| Likely | 132 | usr/src/etc/named/tools/nslookup/debug.c | 2.10.1BSD | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
-| Likely | 132 | usr/src/etc/named/tools/nslookup/getinfo.c | 2.10.1BSD | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
-| Likely | 132 | usr/src/etc/named/tools/nslookup/list.c | 2.10.1BSD | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
-| Likely | 132 | usr/src/etc/named/tools/nslookup/main.c | 2.10.1BSD | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
-| Likely | 132 | usr/src/etc/named/tools/nslookup/send.c | 2.10.1BSD | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
-| Likely | 132 | usr/src/etc/named/tools/nslookup/skip.c | 2.10.1BSD | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
-| Likely | 132 | usr/src/etc/named/tools/nslookup/subr.c | 2.10.1BSD | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
-| Likely | 132 | usr/src/etc/named/tools/nslookup/shortnames.h | 2.10.1BSD | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
+| Likely | 132 | usr/src/etc/named/tools/Makefile | 2.10.1BSD + 76 + 108 | Most likely contents, the patches from 76 and 108 reverse apply, no 2bsd patches
+| Likely | 132 | usr/src/etc/named/tools/nsquery.c | 2.10.1BSD + 76 | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
+| Likely | 132 | usr/src/etc/named/tools/nstest.c | 2.10.1BSD + 76 | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
+| Likely | 132 | usr/src/etc/named/tools/nslookup/Makefile | 2.10.1BSD + 76 | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
+| Likely | 132 | usr/src/etc/named/tools/nslookup/nslookup.help | 2.10.1BSD + 76 | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
+| Likely | 132 | usr/src/etc/named/tools/nslookup/res.h | 2.10.1BSD + 76 | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
+| Likely | 132 | usr/src/etc/named/tools/nslookup/commands.l | 2.10.1BSD + 76 | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
+| Likely | 132 | usr/src/etc/named/tools/nslookup/debug.c | 2.10.1BSD + 76 | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
+| Likely | 132 | usr/src/etc/named/tools/nslookup/getinfo.c | 2.10.1BSD + 76 | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
+| Likely | 132 | usr/src/etc/named/tools/nslookup/list.c | 2.10.1BSD + 76 | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
+| Likely | 132 | usr/src/etc/named/tools/nslookup/main.c | 2.10.1BSD + 76 | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
+| Likely | 132 | usr/src/etc/named/tools/nslookup/send.c | 2.10.1BSD + 76 | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
+| Likely | 132 | usr/src/etc/named/tools/nslookup/skip.c | 2.10.1BSD + 76 | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
+| Likely | 132 | usr/src/etc/named/tools/nslookup/subr.c | 2.10.1BSD + 76 | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
+| Likely | 132 | usr/src/etc/named/tools/nslookup/shortnames.h | 2.10.1BSD + 76 | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
 | mostly | 124 | usr/src/lib/libc/gen/popen.c | 2.10.1BSD | most likely content, *1 2bsd patch Nov 89*
 | Likely | 124 | usr/src/lib/libc/gen/system.c | 2.10.1BSD | most likely content, no 2bsd patches
 | Likely | 124 | usr/src/lib/libc/pdp/sys/wait.s | 2.10.1BSD | most likely content, no 2bsd patches
@@ -204,6 +205,13 @@ Status | Patch | File | From | Comments
 | Likely | 118 | usr/src/ucb/Mail/sigretro.h | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
 | Likely | 118 | usr/src/ucb/Mail/Makefile.11 | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
 | Likely | 118 | usr/src/ucb/Mail/strings | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
+| Likely | 104 | usr/src/new/shar/getopt.3 | 2.11BSD | From redundant copy
+| Likely | 104 | usr/src/etc/ftpd/getusershell.3 | 2.11BSD | From redundant copy
+| Likely | 104 | usr/src/usr.lib/sendmail/aux/logger.1 | 2.11BSD | From redundant copy
+| Likely | 104 | usr/src/usr.lib/sendmail/doc/mailaddr.7 | 2.11BSD | From redundant copy
+| Likely | 104 | usr/src/usr.lib/sendmail/doc/sendmail.8 | 2.11BSD | From redundant copy
+| Likely | 104 | usr/src/usr.lib/sendmail/aux/vacation.1 | 2.11BSD | From redundant copy
+| Likely | 104 | usr/src/man/man8/tftpd.8 | 2.11BSD | From redundant copy
 | mostly | 80 | usr/src/local/Makefile | imp | decompr16 was added to the tree at some point (it's unclear when at the moment, we'll discover it when it goes forward). So we have a small fixup patch to remove it here so that patch 4 applies cleanly.
 | Likely | 17 | usr/src/lib/pcc/INDEX | 2.10.1BSD | Most likely contents, no 2bsd patches, comments that this hasn't changed in a while
 | Likely | 17 | usr/src/lib/pcc/:rofix | 2.10.1BSD | Most likely contents, no 2bsd patches, comments that this hasn't changed in a while
