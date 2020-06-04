@@ -50,43 +50,60 @@ ones that are likely lost.
  * minor edits to 2.11 install guide apparently omitted 4.t in the update, but
    the master tree was updated to reflect it.
 
-And I've not verified that any of the 123 files we've recovered from 2.10.1BSD
-have patches in the newsgroup.
+123 files were recovered from 2.10.1BSD, and patched with known patches. 1 of
+these needs to have a patch added. 1 (ld.c) is known bad. 21 need more
+verification. 20 of these are the assembler. All are believed to be
+good. There's about a half dozen files that we tweak via other means that
+havne't been written up other than in the hints/* files. There's 57 include
+files that were copied to put them in sync in patch 175, but it's unknown how
+many were out of sync, and how badly they differed (also not in the table
+below). There's several (10ish) redunant copies of man pages that I assume were
+identical for this reconstruction (also not in the table below).
 
-So a quick sensus suggests we're < 100 files away (maybe less than 10) from what
-the 2.11BSD tape as shipped looked like. This is out of 11,242 files that I
-think are on the tape (well likely a few less since this includes removed
-binaries). So 100/11200 is 0.89% and 10/11200 is 0.089%. We're at least 99.1%
-recovered, maybe as much as 99.9%
+So we have one file that's known bad, maybe 5 or so that we have evidence to
+believe might be bad and matter and need remdiation, and maybe another 20 that
+we can't say for sure are identical, but don't matter. And then maybe 100 that
+we're pretty sure are the same, but absent extant tapes we can't be absolutely
+sure. This puts us at maybe 20 different files out of ~11400 (which includes
+binaries, though, and none of those we can be sure recreated to an identical
+copy absent more work). 20/11400 is about .2%.
+
+The standard I'm striving for is
+ 1. No changes in the patch series considered identical to 2.11
+ 2. Changes in the patch series that preserve data and reverse cleanly considered identical to 2.11
+ 3. Files deleted can be substituted with 2.10.1 files, absent evidence to the contrary.
+ 4. Patches in comp.bugs.2bsd is prima facia evidence that they changed between 2.10.1 and 2.11, absent stronger info
+ 5. Where possible, SCCS IDs should be checked to make sure that we don't have gaps in numbers between 2.10.1 and 2.11pl195 that might otherwise escape detection.
+ 6. Where the 2.11 patches mess up (and they do), document and use common sense. The bad patches haven't been documented here yet.
 
 ## All the files recovered from 2.10.1
 Status | Patch | File | From | Comments
 -------|------|------|------|-------
-| Good | 185 | usr/src/usr.bin/m4/Makefile | 2.10.1BSD | Most likely contents (no 2bsd patches)
-| Good | 185 | usr/src/usr.bin/m4/m4.c | 2.10.1BSD | Most likely contents (no 2bsd patches)
-| Good | 185 | usr/src/usr.bin/m4/m4y.y | 2.10.1BSD | Most likely contents (no 2bsd patches)
-| Good | 178 | usr/src/sys/netinet/ip_acct.h | 2.10.1BSD | Most likely contents, patched twice successfully, not relevant for 2.11bsd which is why it was removed
-| Good | 175 | usr/src/include/short_names.h | 2.10.1BSD | Most likely contents (short names)
-| Good | 173 | usr/src/usr.bin/ranlib.c | 2.10.1BSD | Most likely contents (no 2bsd patches)
-| Good | 171 | usr/src/ucb/symorder.c | 2.10.1BSD | Almost certainly correct, since the file was trivial and was patched in 50 and we have most of the text
-| Good | 171 | usr/src/ucb/tn3270/shortnames.h | 2.10.1BSD | Most likely contents (short names)
-| Good | 171 | usr/src/ucb/window/shortnames.h | 2.10.1BSD | Most likely contents (short names)
-| Good | 167 | usr/src/lib/libc/gen/nlist.c | 2.10.1BSD | Most likely contents (no 2bsd patches)
-| Good | 164 | usr/src/etc/named/tools/nslookup/shortnames.h | 2.10.1BSD | Most likely contents (short names)
-| Good | 164 | usr/src/etc/named/named/shortnames.h | 2.10.1BSD | Most likely contents (short names)
-| Good | 164 | usr/src/etc/talkd/shortnames.h | 2.10.1BSD | Most likely contents (short names)
-| Good | 160 | usr/src/bin/csh/shortnames.h | 2.10.1BSD | Most likely contents (short names)
-| Good | 160 | usr/src/bin/ar.c | 2.10.1BSD | Most likely contents (no 2bsd patches)
+| Likely | 185 | usr/src/usr.bin/m4/Makefile | 2.10.1BSD | Most likely contents (no 2bsd patches)
+| Likely | 185 | usr/src/usr.bin/m4/m4.c | 2.10.1BSD | Most likely contents (no 2bsd patches)
+| Likely | 185 | usr/src/usr.bin/m4/m4y.y | 2.10.1BSD | Most likely contents (no 2bsd patches)
+| Likely | 178 | usr/src/sys/netinet/ip_acct.h | 2.10.1BSD | Most likely contents, patched twice successfully, not relevant for 2.11bsd which is why it was removed
+| Likely | 175 | usr/src/include/short_names.h | 2.10.1BSD | Most likely contents (short names)
+| Likely | 173 | usr/src/usr.bin/ranlib.c | 2.10.1BSD | Most likely contents (no 2bsd patches)
+| Likely | 171 | usr/src/ucb/symorder.c | 2.10.1BSD | Almost certainly correct, since the file was trivial and was patched in 50 and we have most of the text
+| Likely | 171 | usr/src/ucb/tn3270/shortnames.h | 2.10.1BSD | Most likely contents (short names)
+| Likely | 171 | usr/src/ucb/window/shortnames.h | 2.10.1BSD | Most likely contents (short names)
+| Likely | 167 | usr/src/lib/libc/gen/nlist.c | 2.10.1BSD | Most likely contents (no 2bsd patches)
+| Likely | 164 | usr/src/etc/named/tools/nslookup/shortnames.h | 2.10.1BSD | Most likely contents (short names)
+| Likely | 164 | usr/src/etc/named/named/shortnames.h | 2.10.1BSD | Most likely contents (short names)
+| Likely | 164 | usr/src/etc/talkd/shortnames.h | 2.10.1BSD | Most likely contents (short names)
+| Likely | 160 | usr/src/bin/csh/shortnames.h | 2.10.1BSD | Most likely contents (short names)
+| Likely | 160 | usr/src/bin/ar.c | 2.10.1BSD | Most likely contents (no 2bsd patches)
 | BAD | 160 | usr/src/bin/ld.c | 2.10.1BSD | Issues. changes between 2.10.1 and 2.11 and we don't have them all.
-| Good | 160 | usr/src/bin/adb/dummy.c | 2.10.1BSD | Most likely contents (no 2bsd patches)
-| Good | 160 | usr/src/bin/adb/mac.h | 2.10.1BSD | Most likely contents (no 2bsd patches)
-| Good | 160 | usr/src/bin/adb/machine.h | 2.10.1BSD | Most likely contents (no 2bsd patches)
-| Good | 160 | usr/src/bin/adb/mode.h | 2.10.1BSD | Most likely contents (no 2bsd patches)
-| Good | 158 | usr/include/a.out.h | 2.10.1BSD | Most likely contents (no 2bsd patches)
-| Good | 158 | usr/include/nlist.h | 2.10.1BSD | Most likely contents (no 2bsd patches)
-| Good | 158 | usr/include/ar.h | 2.10.1BSD | Most likely contents (no 2bsd patches)
-| Good | 158 | usr/include/ranlib.h | 2.10.1BSD | Most likely contents (no 2bsd patches)
-| Good | 158 | usr/include/short_names.h | 2.10.1BSD | Most likely contents (short names)
+| Likely | 160 | usr/src/bin/adb/dummy.c | 2.10.1BSD | Most likely contents (no 2bsd patches)
+| Likely | 160 | usr/src/bin/adb/mac.h | 2.10.1BSD | Most likely contents (no 2bsd patches)
+| Likely | 160 | usr/src/bin/adb/machine.h | 2.10.1BSD | Most likely contents (no 2bsd patches)
+| Likely | 160 | usr/src/bin/adb/mode.h | 2.10.1BSD | Most likely contents (no 2bsd patches)
+| Likely | 158 | usr/include/a.out.h | 2.10.1BSD | Most likely contents (no 2bsd patches)
+| Likely | 158 | usr/include/nlist.h | 2.10.1BSD | Most likely contents (no 2bsd patches)
+| Likely | 158 | usr/include/ar.h | 2.10.1BSD | Most likely contents (no 2bsd patches)
+| Likely | 158 | usr/include/ranlib.h | 2.10.1BSD | Most likely contents (no 2bsd patches)
+| Likely | 158 | usr/include/short_names.h | 2.10.1BSD | Most likely contents (short names)
 | mostly | 153 | usr/src/bin/as/as21.s | 2.10.1BSD | As consolidated and we can test if these reconstructions are correct. haven't tested it.
 | mostly | 153 | usr/src/bin/as/as22.s | 2.10.1BSD | ditto
 | mostly | 153 | usr/src/bin/as/as23.s | 2.10.1BSD | ditto
@@ -106,82 +123,82 @@ Status | Patch | File | From | Comments
 | mostly | 152 | usr/src/bin/as/as18.s | 2.10.1BSD | ditto
 | mostly | 152 | usr/src/bin/as/as19.s | 2.10.1BSD | ditto
 | mostly | 152 | usr/src/bin/as/Makefile | 2.10.1BSD | Most likely contents, might be able to reconstruct it better
-| Good | 149 | usr/src/bin/mkdir.c | 2.10.1BSD | Most likely contents (no 2bsd patches)
-| Good | 149 | usr/src/man/man1/mkdir.1 | 2.10.1BSD | Most likely contents (no 2bsd patches)
-| Good | 132 | usr/src/etc/named/tools/Makefile | 2.10.1BSD | Most likely contents, the patches from 76 and 108 reverse apply, no 2bsd patches
-| Good | 132 | usr/src/etc/named/tools/nsquery.c | 2.10.1BSD | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
-| Good | 132 | usr/src/etc/named/tools/nstest.c | 2.10.1BSD | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
-| Good | 132 | usr/src/etc/named/tools/nslookup/Makefile | 2.10.1BSD | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
-| Good | 132 | usr/src/etc/named/tools/nslookup/nslookup.help | 2.10.1BSD | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
-| Good | 132 | usr/src/etc/named/tools/nslookup/res.h | 2.10.1BSD | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
-| Good | 132 | usr/src/etc/named/tools/nslookup/commands.l | 2.10.1BSD | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
-| Good | 132 | usr/src/etc/named/tools/nslookup/debug.c | 2.10.1BSD | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
-| Good | 132 | usr/src/etc/named/tools/nslookup/getinfo.c | 2.10.1BSD | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
-| Good | 132 | usr/src/etc/named/tools/nslookup/list.c | 2.10.1BSD | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
-| Good | 132 | usr/src/etc/named/tools/nslookup/main.c | 2.10.1BSD | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
-| Good | 132 | usr/src/etc/named/tools/nslookup/send.c | 2.10.1BSD | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
-| Good | 132 | usr/src/etc/named/tools/nslookup/skip.c | 2.10.1BSD | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
-| Good | 132 | usr/src/etc/named/tools/nslookup/subr.c | 2.10.1BSD | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
-| Good | 132 | usr/src/etc/named/tools/nslookup/shortnames.h | 2.10.1BSD | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
+| Likely | 149 | usr/src/bin/mkdir.c | 2.10.1BSD | Most likely contents (no 2bsd patches)
+| Likely | 149 | usr/src/man/man1/mkdir.1 | 2.10.1BSD | Most likely contents (no 2bsd patches)
+| Likely | 132 | usr/src/etc/named/tools/Makefile | 2.10.1BSD | Most likely contents, the patches from 76 and 108 reverse apply, no 2bsd patches
+| Likely | 132 | usr/src/etc/named/tools/nsquery.c | 2.10.1BSD | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
+| Likely | 132 | usr/src/etc/named/tools/nstest.c | 2.10.1BSD | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
+| Likely | 132 | usr/src/etc/named/tools/nslookup/Makefile | 2.10.1BSD | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
+| Likely | 132 | usr/src/etc/named/tools/nslookup/nslookup.help | 2.10.1BSD | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
+| Likely | 132 | usr/src/etc/named/tools/nslookup/res.h | 2.10.1BSD | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
+| Likely | 132 | usr/src/etc/named/tools/nslookup/commands.l | 2.10.1BSD | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
+| Likely | 132 | usr/src/etc/named/tools/nslookup/debug.c | 2.10.1BSD | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
+| Likely | 132 | usr/src/etc/named/tools/nslookup/getinfo.c | 2.10.1BSD | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
+| Likely | 132 | usr/src/etc/named/tools/nslookup/list.c | 2.10.1BSD | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
+| Likely | 132 | usr/src/etc/named/tools/nslookup/main.c | 2.10.1BSD | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
+| Likely | 132 | usr/src/etc/named/tools/nslookup/send.c | 2.10.1BSD | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
+| Likely | 132 | usr/src/etc/named/tools/nslookup/skip.c | 2.10.1BSD | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
+| Likely | 132 | usr/src/etc/named/tools/nslookup/subr.c | 2.10.1BSD | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
+| Likely | 132 | usr/src/etc/named/tools/nslookup/shortnames.h | 2.10.1BSD | Most likely contents, the patches from 76 reverse apply, no 2bsd patches
 | mostly | 124 | usr/src/lib/libc/gen/popen.c | 2.10.1BSD | most likely content, *1 2bsd patch Nov 89*
-| Good | 124 | usr/src/lib/libc/gen/system.c | 2.10.1BSD | most likely content, no 2bsd patches
-| Good | 124 | usr/src/lib/libc/pdp/sys/wait.s | 2.10.1BSD | most likely content, no 2bsd patches
-| Good | 124 | usr/src/lib/libc/pdp/sys/wait3.s | 2.10.1BSD | most likely content, no 2bsd patches
-| Good | 124 | usr/src/man/man2/rtp.2 | 2.10.1BSD | most likely content, no 2bsd patches, rtp broken for a long time
-| Good | 124 | usr/src/man/man2/wait.2 | 2.10.1BSD | most likely content, no 2bsd patches
-| Good | 124 | usr/src/sys/sys/kern_rtp.c | 2.10.1BSD | most likely content, no 2bsd patches, rtp broken for a long time
+| Likely | 124 | usr/src/lib/libc/gen/system.c | 2.10.1BSD | most likely content, no 2bsd patches
+| Likely | 124 | usr/src/lib/libc/pdp/sys/wait.s | 2.10.1BSD | most likely content, no 2bsd patches
+| Likely | 124 | usr/src/lib/libc/pdp/sys/wait3.s | 2.10.1BSD | most likely content, no 2bsd patches
+| Likely | 124 | usr/src/man/man2/rtp.2 | 2.10.1BSD | most likely content, no 2bsd patches, rtp broken for a long time
+| Likely | 124 | usr/src/man/man2/wait.2 | 2.10.1BSD | most likely content, no 2bsd patches
+| Likely | 124 | usr/src/sys/sys/kern_rtp.c | 2.10.1BSD | most likely content, no 2bsd patches, rtp broken for a long time
 | mostly | 124 | usr/src/lib/libc/pdp/com-2.9/rtp.s | 2.10.1BSD | Recovered from usr/src/lib/libc/pdp/compat-2.9/rtp.s so maybe there's other changes
-| Good | 118 | usr/src/ucb/Mail/misc/Mail.rc | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
-| Good | 118 | usr/src/ucb/Mail/misc/Mail.help | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
-| Good | 118 | usr/src/ucb/Mail/misc/Mail.tildehelp | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
-| Good | 118 | usr/src/ucb/Mail/aux.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
-| Good | 118 | usr/src/ucb/Mail/cmd1.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
-| Good | 118 | usr/src/ucb/Mail/cmd2.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
-| Good | 118 | usr/src/ucb/Mail/cmd3.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
-| Good | 118 | usr/src/ucb/Mail/cmdtab.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
-| Good | 118 | usr/src/ucb/Mail/collect.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
-| Good | 118 | usr/src/ucb/Mail/config.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
-| Good | 118 | usr/src/ucb/Mail/def.h | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
-| Good | 118 | usr/src/ucb/Mail/edit.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
-| Good | 118 | usr/src/ucb/Mail/fio.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
-| Good | 118 | usr/src/ucb/Mail/configdefs.h | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
-| Good | 118 | usr/src/ucb/Mail/glob.h | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
-| Good | 118 | usr/src/ucb/Mail/fmt.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
-| Good | 118 | usr/src/ucb/Mail/getname.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
-| Good | 118 | usr/src/ucb/Mail/head.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
-| Good | 118 | usr/src/ucb/Mail/lex.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
-| Good | 118 | usr/src/ucb/Mail/list.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
-| Good | 118 | usr/src/ucb/Mail/main.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
-| Good | 118 | usr/src/ucb/Mail/Makefile | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
-| Good | 118 | usr/src/ucb/Mail/names.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
-| Good | 118 | usr/src/ucb/Mail/optim.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
-| Good | 118 | usr/src/ucb/Mail/local.h | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
-| Good | 118 | usr/src/ucb/Mail/popen.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
-| Good | 118 | usr/src/ucb/Mail/quit.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
-| Good | 118 | usr/src/ucb/Mail/send.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
-| Good | 118 | usr/src/ucb/Mail/sigretro.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
-| Good | 118 | usr/src/ucb/Mail/strings.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
-| Good | 118 | usr/src/ucb/Mail/temp.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
-| Good | 118 | usr/src/ucb/Mail/rcv.h | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
-| Good | 118 | usr/src/ucb/Mail/tty.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
-| Good | 118 | usr/src/ucb/Mail/v7.local.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
-| Good | 118 | usr/src/ucb/Mail/vars.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
-| Good | 118 | usr/src/ucb/Mail/version.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
-| Good | 118 | usr/src/ucb/Mail/v7.local.h | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
-| Good | 118 | usr/src/ucb/Mail/sigretro.h | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
-| Good | 118 | usr/src/ucb/Mail/Makefile.11 | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
-| Good | 118 | usr/src/ucb/Mail/strings | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
-| Good | 17 | usr/src/lib/pcc/INDEX | 2.10.1BSD | Most likely contents, no 2bsd patches, comments that this hasn't changed in a while
-| Good | 17 | usr/src/lib/pcc/:rofix | 2.10.1BSD | Most likely contents, no 2bsd patches, comments that this hasn't changed in a while
-| Good | 17 | usr/src/lib/pcc/fort.h.vax | 2.10.1BSD | Most likely contents, no 2bsd patches, comments that this hasn't changed in a while
-| Good | 14 | usr/src/usr.bin/lint/READ_ME | 2.10.1BSD | Most likely contents, no 2bsd patches, comments that this hasn't changed in a while
-| Good | 14 | usr/src/usr.bin/lint/SHELL | 2.10.1BSD | Most likely contents, no 2bsd patches, comments that this hasn't changed in a while
-| Good | 14 | usr/src/usr.bin/lint/lint.c | 2.10.1BSD | Most likely contents, no 2bsd patches, comments that this hasn't changed in a while
-| Good | 14 | usr/src/usr.bin/lint/lmanifest | 2.10.1BSD | Most likely contents, no 2bsd patches, comments that this hasn't changed in a while
-| Good | 14 | usr/src/usr.bin/lint/lpass2.c | 2.10.1BSD | Most likely contents, no 2bsd patches, comments that this hasn't changed in a while
-| Good | 14 | usr/src/usr.bin/lint/macdefs | 2.10.1BSD | Most likely contents, no 2bsd patches, comments that this hasn't changed in a while
-| Good | 14 | usr/src/usr.bin/lint/cgram.s | 2.10.1BSD | Most likely contents, no 2bsd patches, comments that this hasn't changed in a while
-| Good | 14 | usr/src/usr.bin/lint/cgram.c | 2.10.1BSD | Most likely contents, no 2bsd patches, comments that this hasn't changed in a while
-| Good | 14 | usr/src/usr.bin/lint/Ovmakefile | 2.10.1BSD | Most likely contents, no 2bsd patches, comments that this hasn't changed in a while
-| Good | 14 | usr/src/usr.bin/lint/allo.c | 2.10.1BSD | Most likely contents, no 2bsd patches, comments that this hasn't changed in a while
-| Good | 14 | usr/src/usr.bin/lint/Makefile | 2.10.1BSD | Most likely contents, no 2bsd patches, comments that this hasn't changed in a while
+| Likely | 118 | usr/src/ucb/Mail/misc/Mail.rc | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
+| Likely | 118 | usr/src/ucb/Mail/misc/Mail.help | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
+| Likely | 118 | usr/src/ucb/Mail/misc/Mail.tildehelp | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
+| Likely | 118 | usr/src/ucb/Mail/aux.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
+| Likely | 118 | usr/src/ucb/Mail/cmd1.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
+| Likely | 118 | usr/src/ucb/Mail/cmd2.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
+| Likely | 118 | usr/src/ucb/Mail/cmd3.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
+| Likely | 118 | usr/src/ucb/Mail/cmdtab.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
+| Likely | 118 | usr/src/ucb/Mail/collect.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
+| Likely | 118 | usr/src/ucb/Mail/config.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
+| Likely | 118 | usr/src/ucb/Mail/def.h | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
+| Likely | 118 | usr/src/ucb/Mail/edit.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
+| Likely | 118 | usr/src/ucb/Mail/fio.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
+| Likely | 118 | usr/src/ucb/Mail/configdefs.h | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
+| Likely | 118 | usr/src/ucb/Mail/glob.h | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
+| Likely | 118 | usr/src/ucb/Mail/fmt.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
+| Likely | 118 | usr/src/ucb/Mail/getname.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
+| Likely | 118 | usr/src/ucb/Mail/head.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
+| Likely | 118 | usr/src/ucb/Mail/lex.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
+| Likely | 118 | usr/src/ucb/Mail/list.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
+| Likely | 118 | usr/src/ucb/Mail/main.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
+| Likely | 118 | usr/src/ucb/Mail/Makefile | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
+| Likely | 118 | usr/src/ucb/Mail/names.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
+| Likely | 118 | usr/src/ucb/Mail/optim.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
+| Likely | 118 | usr/src/ucb/Mail/local.h | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
+| Likely | 118 | usr/src/ucb/Mail/popen.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
+| Likely | 118 | usr/src/ucb/Mail/quit.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
+| Likely | 118 | usr/src/ucb/Mail/send.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
+| Likely | 118 | usr/src/ucb/Mail/sigretro.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
+| Likely | 118 | usr/src/ucb/Mail/strings.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
+| Likely | 118 | usr/src/ucb/Mail/temp.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
+| Likely | 118 | usr/src/ucb/Mail/rcv.h | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
+| Likely | 118 | usr/src/ucb/Mail/tty.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
+| Likely | 118 | usr/src/ucb/Mail/v7.local.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
+| Likely | 118 | usr/src/ucb/Mail/vars.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
+| Likely | 118 | usr/src/ucb/Mail/version.c | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
+| Likely | 118 | usr/src/ucb/Mail/v7.local.h | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
+| Likely | 118 | usr/src/ucb/Mail/sigretro.h | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
+| Likely | 118 | usr/src/ucb/Mail/Makefile.11 | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
+| Likely | 118 | usr/src/ucb/Mail/strings | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
+| Likely | 17 | usr/src/lib/pcc/INDEX | 2.10.1BSD | Most likely contents, no 2bsd patches, comments that this hasn't changed in a while
+| Likely | 17 | usr/src/lib/pcc/:rofix | 2.10.1BSD | Most likely contents, no 2bsd patches, comments that this hasn't changed in a while
+| Likely | 17 | usr/src/lib/pcc/fort.h.vax | 2.10.1BSD | Most likely contents, no 2bsd patches, comments that this hasn't changed in a while
+| Likely | 14 | usr/src/usr.bin/lint/READ_ME | 2.10.1BSD | Most likely contents, no 2bsd patches, comments that this hasn't changed in a while
+| Likely | 14 | usr/src/usr.bin/lint/SHELL | 2.10.1BSD | Most likely contents, no 2bsd patches, comments that this hasn't changed in a while
+| Likely | 14 | usr/src/usr.bin/lint/lint.c | 2.10.1BSD | Most likely contents, no 2bsd patches, comments that this hasn't changed in a while
+| Likely | 14 | usr/src/usr.bin/lint/lmanifest | 2.10.1BSD | Most likely contents, no 2bsd patches, comments that this hasn't changed in a while
+| Likely | 14 | usr/src/usr.bin/lint/lpass2.c | 2.10.1BSD | Most likely contents, no 2bsd patches, comments that this hasn't changed in a while
+| Likely | 14 | usr/src/usr.bin/lint/macdefs | 2.10.1BSD | Most likely contents, no 2bsd patches, comments that this hasn't changed in a while
+| Likely | 14 | usr/src/usr.bin/lint/cgram.s | 2.10.1BSD | Most likely contents, no 2bsd patches, comments that this hasn't changed in a while
+| Likely | 14 | usr/src/usr.bin/lint/cgram.c | 2.10.1BSD | Most likely contents, no 2bsd patches, comments that this hasn't changed in a while
+| Likely | 14 | usr/src/usr.bin/lint/Ovmakefile | 2.10.1BSD | Most likely contents, no 2bsd patches, comments that this hasn't changed in a while
+| Likely | 14 | usr/src/usr.bin/lint/allo.c | 2.10.1BSD | Most likely contents, no 2bsd patches, comments that this hasn't changed in a while
+| Likely | 14 | usr/src/usr.bin/lint/Makefile | 2.10.1BSD | Most likely contents, no 2bsd patches, comments that this hasn't changed in a while
