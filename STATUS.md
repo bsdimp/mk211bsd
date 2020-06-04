@@ -76,14 +76,29 @@ The standard I'm striving for is
  5. Where possible, SCCS IDs should be checked to make sure that we don't have gaps in numbers between 2.10.1 and 2.11pl195 that might otherwise escape detection.
  6. Where the 2.11 patches mess up (and they do), document and use common sense. The bad patches haven't been documented here yet.
 
-## All the files recovered from 2.10.1
+## All the hacks
+
+Status | Source | Total
+-------|--------|------
+| BAD | 2.10.1BSD | 7
+| mostly | imp | 4
+| mostly | 2.10.1BSD | 23
+| Likely | 2.10.1BSD | 99
+| Likely | 2.11BSD | 2
+
 Status | Patch | File | From | Comments
 -------|------|------|------|-------
 | Likely | 185 | usr/src/usr.bin/m4/Makefile | 2.10.1BSD | Most likely contents (no 2bsd patches)
 | Likely | 185 | usr/src/usr.bin/m4/m4.c | 2.10.1BSD | Most likely contents (no 2bsd patches)
 | Likely | 185 | usr/src/usr.bin/m4/m4y.y | 2.10.1BSD | Most likely contents (no 2bsd patches)
-| Likely | 178 | usr/src/sys/netinet/ip_acct.h | 2.10.1BSD | Most likely contents, patched twice successfully, not relevant for 2.11bsd which is why it was removed
+| Likely | 178 | usr/src/sys/netinet/ip_acct.h | 2.10.1BSD + hack | Most likely contents, patched twice successfully, not relevant for 2.11bsd which is why it was removed
 | Likely | 175 | usr/src/include/short_names.h | 2.10.1BSD | Most likely contents (short names)
+| Likely | 175 | usr/src/include/arpa/inet.h | 2.11BSD + hack | fixup patch makes tiny hacks so this will 'unapply' so we're back to something closer to that was in 2.11BSD. It's likely, but not guaranteed to be perfect.
+| Likely | 175 | usr/src/include/arpa/nameser.h | 2.11BSD + hack | fixup patch makes tiny hacks so this will 'unapply' so we're back to something closer to that was in 2.11BSD. It's likely, but not guaranteed to be perfect.
+| Likely | 175 | usr/src/include/netdb.h | 2.11BSD + hack | fixup patch makes tiny hacks so this will 'unapply' so we're back to something closer to that was in 2.11BSD. It's likely, but not guaranteed to be perfect.
+| Likely | 175 | usr/src/include/ndbm.h | 2.11BSD + hack | fixup patch makes tiny hacks so this will 'unapply' so we're back to something closer to that was in 2.11BSD. It's likely, but not guaranteed to be perfect.
+| Likely | 175 | usr/src/include/setjmp.h | 2.11BSD + hack | fixup patch makes tiny hacks so this will 'unapply' so we're back to something closer to that was in 2.11BSD. It's likely, but not guaranteed to be perfect.
+| Likely | 175 | usr/src/include/syscall.h | 2.11BSD + hack | fixup patch makes tiny hacks so this will 'unapply' so we're back to something closer to that was in 2.11BSD. It's likely, but not guaranteed to be perfect.
 | Likely | 173 | usr/src/usr.bin/ranlib.c | 2.10.1BSD | Most likely contents (no 2bsd patches)
 | Likely | 171 | usr/src/ucb/symorder.c | 2.10.1BSD | Almost certainly correct, since the file was trivial and was patched in 50 and we have most of the text
 | Likely | 171 | usr/src/ucb/tn3270/shortnames.h | 2.10.1BSD | Most likely contents (short names)
@@ -104,24 +119,24 @@ Status | Patch | File | From | Comments
 | Likely | 158 | usr/include/ar.h | 2.10.1BSD | Most likely contents (no 2bsd patches)
 | Likely | 158 | usr/include/ranlib.h | 2.10.1BSD | Most likely contents (no 2bsd patches)
 | Likely | 158 | usr/include/short_names.h | 2.10.1BSD | Most likely contents (short names)
-| mostly | 153 | usr/src/bin/as/as21.s | 2.10.1BSD | As consolidated and we can test if these reconstructions are correct. haven't tested it.
-| mostly | 153 | usr/src/bin/as/as22.s | 2.10.1BSD | ditto
-| mostly | 153 | usr/src/bin/as/as23.s | 2.10.1BSD | ditto
-| mostly | 153 | usr/src/bin/as/as24.s | 2.10.1BSD | ditto
-| mostly | 153 | usr/src/bin/as/as25.s | 2.10.1BSD | ditto
-| mostly | 153 | usr/src/bin/as/as26.s | 2.10.1BSD | ditto
-| mostly | 153 | usr/src/bin/as/as27.s | 2.10.1BSD | ditto
-| mostly | 153 | usr/src/bin/as/as28.s | 2.10.1BSD | ditto
-| mostly | 153 | usr/src/bin/as/as29.s | 2.10.1BSD | ditto
-| mostly | 152 | usr/src/bin/as/as11.s | 2.10.1BSD | ditto
-| mostly | 152 | usr/src/bin/as/as12.s | 2.10.1BSD | ditto
-| mostly | 152 | usr/src/bin/as/as13.s | 2.10.1BSD | ditto
-| mostly | 152 | usr/src/bin/as/as14.s | 2.10.1BSD | ditto
-| mostly | 152 | usr/src/bin/as/as15.s | 2.10.1BSD | ditto
-| mostly | 152 | usr/src/bin/as/as16.s | 2.10.1BSD | ditto
-| mostly | 152 | usr/src/bin/as/as17.s | 2.10.1BSD | ditto
-| mostly | 152 | usr/src/bin/as/as18.s | 2.10.1BSD | ditto
-| mostly | 152 | usr/src/bin/as/as19.s | 2.10.1BSD | ditto
+| mostly | 153 | usr/src/bin/as/as21.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | As consolidated and we can test if these reconstructions are correct. haven't tested it.
+| mostly | 153 | usr/src/bin/as/as22.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | ditto
+| mostly | 153 | usr/src/bin/as/as23.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | ditto
+| mostly | 153 | usr/src/bin/as/as24.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | ditto
+| mostly | 153 | usr/src/bin/as/as25.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | ditto
+| mostly | 153 | usr/src/bin/as/as26.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | ditto
+| mostly | 153 | usr/src/bin/as/as27.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | ditto
+| mostly | 153 | usr/src/bin/as/as28.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | ditto
+| mostly | 153 | usr/src/bin/as/as29.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | ditto
+| mostly | 152 | usr/src/bin/as/as11.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | ditto
+| mostly | 152 | usr/src/bin/as/as12.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | ditto
+| mostly | 152 | usr/src/bin/as/as13.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | ditto
+| mostly | 152 | usr/src/bin/as/as14.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | ditto
+| mostly | 152 | usr/src/bin/as/as15.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | ditto
+| mostly | 152 | usr/src/bin/as/as16.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | ditto
+| mostly | 152 | usr/src/bin/as/as17.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | ditto
+| mostly | 152 | usr/src/bin/as/as18.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | ditto
+| mostly | 152 | usr/src/bin/as/as19.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | ditto
 | mostly | 152 | usr/src/bin/as/Makefile | 2.10.1BSD | Most likely contents, might be able to reconstruct it better
 | Likely | 149 | usr/src/bin/mkdir.c | 2.10.1BSD | Most likely contents (no 2bsd patches)
 | Likely | 149 | usr/src/man/man1/mkdir.1 | 2.10.1BSD | Most likely contents (no 2bsd patches)
@@ -147,7 +162,8 @@ Status | Patch | File | From | Comments
 | Likely | 124 | usr/src/man/man2/rtp.2 | 2.10.1BSD | most likely content, no 2bsd patches, rtp broken for a long time
 | Likely | 124 | usr/src/man/man2/wait.2 | 2.10.1BSD | most likely content, no 2bsd patches
 | Likely | 124 | usr/src/sys/sys/kern_rtp.c | 2.10.1BSD | most likely content, no 2bsd patches, rtp broken for a long time
-| mostly | 124 | usr/src/lib/libc/pdp/com-2.9/rtp.s | 2.10.1BSD | Recovered from usr/src/lib/libc/pdp/compat-2.9/rtp.s so maybe there's other changes
+| Likely | 124 | usr/src/lib/libc/pdp/com-2.9/rtp.s | 2.10.1BSD | Recovered from usr/src/lib/libc/pdp/compat-2.9/rtp.s so maybe there's other changes
+| mostly | 123 | usr/doc/2.10/setup.2.11/4.t | imp | Hacked so that later ptaches apply cleanly. It's clear that 4.t was missing from this patch when sent. It's different in 2.11pl195 and this hack to the SCCS id is my proof of that. It's unclear if we can use the other changes to guess what else should be in this patch.
 | Likely | 118 | usr/src/ucb/Mail/misc/Mail.rc | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
 | Likely | 118 | usr/src/ucb/Mail/misc/Mail.help | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
 | Likely | 118 | usr/src/ucb/Mail/misc/Mail.tildehelp | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
@@ -188,6 +204,7 @@ Status | Patch | File | From | Comments
 | Likely | 118 | usr/src/ucb/Mail/sigretro.h | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
 | Likely | 118 | usr/src/ucb/Mail/Makefile.11 | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
 | Likely | 118 | usr/src/ucb/Mail/strings | 2.10.1BSD | Most likely contents (hasn't been updated for a while), no 2bsd patches
+| mostly | 80 | usr/src/local/Makefile | imp | decompr16 was added to the tree at some point (it's unclear when at the moment, we'll discover it when it goes forward). So we have a small fixup patch to remove it here so that patch 4 applies cleanly.
 | Likely | 17 | usr/src/lib/pcc/INDEX | 2.10.1BSD | Most likely contents, no 2bsd patches, comments that this hasn't changed in a while
 | Likely | 17 | usr/src/lib/pcc/:rofix | 2.10.1BSD | Most likely contents, no 2bsd patches, comments that this hasn't changed in a while
 | Likely | 17 | usr/src/lib/pcc/fort.h.vax | 2.10.1BSD | Most likely contents, no 2bsd patches, comments that this hasn't changed in a while
@@ -202,3 +219,9 @@ Status | Patch | File | From | Comments
 | Likely | 14 | usr/src/usr.bin/lint/Ovmakefile | 2.10.1BSD | Most likely contents, no 2bsd patches, comments that this hasn't changed in a while
 | Likely | 14 | usr/src/usr.bin/lint/allo.c | 2.10.1BSD | Most likely contents, no 2bsd patches, comments that this hasn't changed in a while
 | Likely | 14 | usr/src/usr.bin/lint/Makefile | 2.10.1BSD | Most likely contents, no 2bsd patches, comments that this hasn't changed in a while
+| BAD | 3 | dev/MAKEDEV | imp | Patch doesn't work, so it's just omitted
+| BAD | 3 | usr/src/sys/GENERIC/localopts.h | imp | Patch doesn't work, so omitted... This is a generated file, so it may be OK.
+| BAD | 2 | usr/src/sys/GENERIC/Makefile | imp | Patch 2/b.1 doesn't work, need to investigate why
+| BAD | 2 | etc/disktab | imp | Patch 2/b.16 doesn't work, need to investigate why
+| BAD | 2 | usr/src/sys/mdec/bruboot.s | imp | Patch 2/b.4 doesn't unapply to this one file bruboot.s (so we don't do any others) so there's some investigation needed.
+| mostly | 0 | usr/src/sys/conf/KAZOO | imp | KAZOO disappeared from 2.11 before pl 195 but after pl 84 where it was referenced. I reconstructed this by doing a diff between GENERIC and KAZOO in 2.10.1, then apply that to a copy of GENERIC to KAZOO in 2.11 and hand applied a few patches, then hacked it to be consistent with patches 42 and 84. Maybe I need a plausably speculative category.
