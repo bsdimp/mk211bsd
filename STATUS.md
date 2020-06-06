@@ -59,14 +59,6 @@ of sync, and how badly they differed (also not in the table below). There's
 several (10ish) redunant copies of man pages that I assume were identical for
 this reconstruction (also not in the table below).
 
-So we have one file that's known bad, maybe 5 or so that we have evidence to
-believe might be bad and matter and need remdiation, and maybe another 20 that
-we can't say for sure are identical, but don't matter. And then maybe 100 that
-we're pretty sure are the same, but absent extant tapes we can't be absolutely
-sure. This puts us at maybe 20 different files out of ~11400 (which includes
-binaries, though, and none of those we can be sure recreated to an identical
-copy absent more work). 20/11400 is about .2%.
-
 The standard I'm striving for is
  1. No changes in the patch series considered identical to 2.11
  2. Changes in the patch series that preserve data and reverse cleanly considered identical to 2.11
