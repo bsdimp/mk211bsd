@@ -77,16 +77,16 @@ The standard I'm striving for is
 
 ## All the hacks
 
-Status | Source | Total
--------|--------|------
-| BAD | 2.10.1BSD | 7
-| mostly | imp | 4
-| mostly | 2.10.1BSD | 2
-| Likely | 2.10.1BSD | 99
-| Likely | 2.11BSD | 10
-| GOOD | 2.10.1BSD | 21
+Status | Source | Total | %
+-------|--------|------|---
+| BAD | 2.10.1BSD | 7 | 0.093%
+| mostly | imp | 4 | 0.053%
+| mostly | 2.10.1BSD | 2 | 0.026%
+| Likely | 2.10.1BSD | 99 | 1.320%
+| Likely | 2.11BSD | 10 | 0.133%
+| GOOD | 2.10.1BSD | 21 | -
 
-Total files in usr/src and etc is about 7500.
+Total files in usr/src and etc is about 7500. 122/7500 or 1.3% aren't confirmed, but most are likely right. 13/7500 or 0.17% are likely not quite right or have issues. 7/7500 or 0.093% are known bad.
 
 Status | Patch | File | From | Comments
 -------|------|------|------|-------
