@@ -52,13 +52,12 @@ ones that are likely lost.
 
 123 files were recovered from 2.10.1BSD, and patched with known patches. 1 of
 these needs to have a patch added. 1 (ld.c) is known bad. 21 need more
-verification. 20 of these are the assembler. All are believed to be
-good. There's about a half dozen files that we tweak via other means that
-havne't been written up other than in the hints/* files. There's 57 include
-files that were copied to put them in sync in patch 175, but it's unknown how
-many were out of sync, and how badly they differed (also not in the table
-below). There's several (10ish) redunant copies of man pages that I assume were
-identical for this reconstruction (also not in the table below).
+verification. 21 of these are the assembler. These are all now good and produce
+identical files to what's in pl 195 when patched.  There's 57 include files that
+were copied to put them in sync in patch 175, but it's unknown how many were out
+of sync, and how badly they differed (also not in the table below). There's
+several (10ish) redunant copies of man pages that I assume were identical for
+this reconstruction (also not in the table below).
 
 So we have one file that's known bad, maybe 5 or so that we have evidence to
 believe might be bad and matter and need remdiation, and maybe another 20 that
@@ -82,11 +81,12 @@ Status | Source | Total
 -------|--------|------
 | BAD | 2.10.1BSD | 7
 | mostly | imp | 4
-| mostly | 2.10.1BSD | 23
+| mostly | 2.10.1BSD | 2
 | Likely | 2.10.1BSD | 99
 | Likely | 2.11BSD | 10
+| GOOD | 2.10.1BSD | 21
 
-Total files in usr/src and etc 7500, so .1% of the files are known bad. 1.8% of missing files recovered with likely correct results, and .4% are recovered, but in doubt. 97.7% are not in doubt, absent missing patches 'silently' applied.
+Total files in usr/src and etc is about 7500.
 
 Status | Patch | File | From | Comments
 -------|------|------|------|-------
@@ -122,25 +122,25 @@ Status | Patch | File | From | Comments
 | Likely | 158 | usr/include/ar.h | 2.10.1BSD | Most likely contents (no 2bsd patches)
 | Likely | 158 | usr/include/ranlib.h | 2.10.1BSD | Most likely contents (no 2bsd patches)
 | Likely | 158 | usr/include/short_names.h | 2.10.1BSD | Most likely contents (short names)
-| mostly | 153 | usr/src/bin/as/as21.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | As consolidated and we can test if these reconstructions are correct. haven't tested it.
-| mostly | 153 | usr/src/bin/as/as22.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | ditto
-| mostly | 153 | usr/src/bin/as/as23.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | ditto
-| mostly | 153 | usr/src/bin/as/as24.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | ditto
-| mostly | 153 | usr/src/bin/as/as25.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | ditto
-| mostly | 153 | usr/src/bin/as/as26.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | ditto
-| mostly | 153 | usr/src/bin/as/as27.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | ditto
-| mostly | 153 | usr/src/bin/as/as28.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | ditto
-| mostly | 153 | usr/src/bin/as/as29.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | ditto
-| mostly | 152 | usr/src/bin/as/as11.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | ditto
-| mostly | 152 | usr/src/bin/as/as12.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | ditto
-| mostly | 152 | usr/src/bin/as/as13.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | ditto
-| mostly | 152 | usr/src/bin/as/as14.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | ditto
-| mostly | 152 | usr/src/bin/as/as15.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | ditto
-| mostly | 152 | usr/src/bin/as/as16.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | ditto
-| mostly | 152 | usr/src/bin/as/as17.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | ditto
-| mostly | 152 | usr/src/bin/as/as18.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | ditto
-| mostly | 152 | usr/src/bin/as/as19.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | ditto
-| mostly | 152 | usr/src/bin/as/Makefile | 2.10.1BSD | Most likely contents, might be able to reconstruct it better
+| GOOD | 153 | usr/src/bin/as/as21.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | Forward patching works, no diffs to expected
+| GOOD | 153 | usr/src/bin/as/as22.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | Forward patching works, no diffs to expected
+| GOOD | 153 | usr/src/bin/as/as23.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | Forward patching works, no diffs to expected
+| GOOD | 153 | usr/src/bin/as/as24.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | Forward patching works, no diffs to expected
+| GOOD | 153 | usr/src/bin/as/as25.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | Forward patching works, no diffs to expected
+| GOOD | 153 | usr/src/bin/as/as26.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | Forward patching works, no diffs to expected
+| GOOD | 153 | usr/src/bin/as/as27.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | Forward patching works, no diffs to expected
+| GOOD | 153 | usr/src/bin/as/as28.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | Forward patching works, no diffs to expected
+| GOOD | 153 | usr/src/bin/as/as29.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | Forward patching works, no diffs to expected
+| GOOD | 152 | usr/src/bin/as/as11.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | Forward patching works, no diffs to expected
+| GOOD | 152 | usr/src/bin/as/as12.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | Forward patching works, no diffs to expected
+| GOOD | 152 | usr/src/bin/as/as13.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | Forward patching works, no diffs to expected
+| GOOD | 152 | usr/src/bin/as/as14.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | Forward patching works, no diffs to expected
+| GOOD | 152 | usr/src/bin/as/as15.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | Forward patching works, no diffs to expected
+| GOOD | 152 | usr/src/bin/as/as16.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | Forward patching works, no diffs to expected
+| GOOD | 152 | usr/src/bin/as/as17.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | Forward patching works, no diffs to expected
+| GOOD | 152 | usr/src/bin/as/as18.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | Forward patching works, no diffs to expected
+| GOOD | 152 | usr/src/bin/as/as19.s | 2.10.1BSD + earlier 2.11 and 2bsd patches | Forward patching works, no diffs to expected
+| GOOD | 152 | usr/src/bin/as/Makefile | 2.10.1BSD + patches | Forward patching works, identical results
 | Likely | 149 | usr/src/bin/mkdir.c | 2.10.1BSD | Most likely contents (no 2bsd patches)
 | Likely | 149 | usr/src/man/man1/mkdir.1 | 2.10.1BSD | Most likely contents (no 2bsd patches)
 | Likely | 132 | usr/src/etc/named/tools/Makefile | 2.10.1BSD + 76 + 108 | Most likely contents, the patches from 76 and 108 reverse apply, no 2bsd patches

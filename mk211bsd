@@ -20,6 +20,7 @@ TEMP=${TOP}/tmp
 LOGS=${TOP}/log
 RECOVERY_LOG=${LOGS}/recovery.log
 ROOT211TAR=$TOP/root-2.11.tar.xz
+export SAVE=${TOP}/saveit
 
 # here to the end of pprint stolen from nanobsd.
 export PPLEVEL=1
@@ -380,7 +381,8 @@ patches=$(cd $PATCHDIR; ls | sort -rn)
 
 [ -z "$STOP_BEFORE_PATCH" ] || die asked to stop
 
-mkdir ${LOGS}
+mkdir -p  ${SAVE}
+mkdir -p ${LOGS}
 rm $RECOVERY_LOG
 touch $RECOVERY_LOG
 set -e
@@ -390,3 +392,4 @@ for p in $patches; do
     undo_patch_level $p 2>&1 > $LOGS/$p.log
 done
 trap - EXIT
+pprint 1 "Welcome to ur2.11BSD"

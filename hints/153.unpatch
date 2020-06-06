@@ -3,17 +3,14 @@
 # backwards, we'll just copy the 2.10.1 stuff and see if
 # it works going back foward and adjust as needed.
 #
+# See 152.unpatch
 #
-# comp.bugs.2bsd/1989-December.txt.gz
-#   has a number of fixes that post-date 2.10.1
-#   and may need to be applied.
-# comp.bugs.2bsd/1989-August.txt.gz
-#   has a fix for nop. It's not clear if this needs
-#   to be applied or not since my eyeball says it
-#   is. We may need these to get the forward
-#   direction to work.
 # So here, we remove as2.s, and copy all the as2?.s
 # files.
+#
+# Save p153 version for comparison
+mkdir -p ${SAVE}/153
+cp $ROOT211/usr/src/bin/as/* ${SAVE}/153
 rm $ROOT211/usr/src/bin/as/as2.s
 for i in 1 2 3 4 5 6 7 8 9; do
     from2.10.1 usr/src/bin/as/as2${i}.s

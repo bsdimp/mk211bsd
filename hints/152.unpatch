@@ -5,6 +5,7 @@
 #
 # So here, we remove as0.s, and copy all the as1?.s
 # files.
+mkdir -p ${SAVE}/152
 rm $ROOT211/usr/src/bin/as/as0.s
 for i in 1 2 3 4 5 6 7 8 9; do
     from2.10.1 usr/src/bin/as/as1${i}.s
@@ -45,17 +46,20 @@ cd $ROOT211
 	patch -V none -p1
 )
 
-# XXX gap here? need to test that the results are patchable going the other
-# way. We can test whether or not we have the right sources because 152 and 153
-# cat all the as files together, then apply a patch to get to something we
-# know. If it doesn't produce the right results, then we'll need to do something
-# by hand here to bridge the gap.
+# The August 1989 patch added nop. The nop was already in the table in the wrong
+# place, so it needs to be removed to recover what was released in 2.11
+patch -V none -p1 < $HINTSDIR/152.fixup
 
-# 65 patches both as1 and as2 files, so do them both here. Going the other way it will be fine so
-# we don't need to be perfect.
+# 65 patches both as1 and as2 files, so do them both here. Going the other way
+# it will be fine so we don't need to be perfect.
 patch -V none -p1 < $PATCHDIR/65
-# 71 patches both as1 and as2 files, so do them both here. Going the other way it will be fine so
-# we don't need to be perfect.
+
+# 71 patches both as1 and as2 files, so do them both here. Going the other way
+# it will be fine so we don't need to be perfect.
 patch -V none -p1 < $PATCHDIR/71
-# Patch 107 makes some fixes to Makefile, so apply those in too so 107 undoes them
+
+# Patch 107 makes some fixes to Makefile, so apply those in too so 107 undoes
+# them.
 sed -n -e'/\*\*\* .*\/as\/Makefile.old/,/*\*\* .*\/awk\/Makefile.old/p' < $PATCHDIR/107 | patch -V none -p1
+
+cp $ROOT211/usr/src/bin/as/* ${SAVE}/152
