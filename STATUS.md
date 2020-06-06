@@ -41,8 +41,8 @@ ones that are likely lost.
    to synchronize things. It's unclear how many of these copies are needed
    and minor tweaks have been done to come close.
  * as -- also was rewritten. We have a number of patches from comp.bugs.2bsd
-   that we've pulled in and the reverse patch now applies. We've not tested
-   it forwards yet.
+   that we've pulled in and the reverse patch now applies. One additional patch
+   is needed to recover as0.s and as2.s as patched in 195, it's now it's identical.
  * Patches 2 and 3 are problematic. They don't reverse apply cleanly for
    reasons  still under investigation. this means that bruboot.s is in limbo
    until we can sort it out (it won't reverse apply, suggesting a local hack).
