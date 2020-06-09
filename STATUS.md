@@ -29,13 +29,17 @@ It's hard to say for sure, but my best guess is that the following files are the
 ones that are likely lost.
 
  * ld.c -- ld was written in patches 158 to 176. It was deleted in patch 160 and
-   replaced in 163
+   replaced in 163. One issue here is that one of the main features of the
+   2.11BSD release was the transition to the portable archive format. ar,
+   and ranlib were rewritten. nm, ld, and make were heavily modified. ar
+   and ranlib currently come from 2.10.1BSD, and that's known to be wrong.
  * MAKEDEV -- Patch 3 changes this, but it doesn't reverse apply cleanly to the
    tree we have, with 42 and 72 backed out as well. The reason for this is unknown.
  * usr/local/Makefile has decompr16 in it in 195. decompr16 was added to the tree
    at some point, but the makefile wasn't updated in the patcehes we have. But
    in patch 9, we add trace to the same line and the context diff says it shouldn't
-   be there.
+   be there. Safe extraction for forward patching of the patches will
+   highlight where this was added, it is hoped.
  * It looks like during the development process, /usr/include was updated, but
    /usr/src/include was not. Patch 175 copied /usr/include to /usr/src/include
    to synchronize things. It's unclear how many of these copies are needed
@@ -47,7 +51,7 @@ ones that are likely lost.
    reasons  still under investigation. this means that bruboot.s is in limbo
    until we can sort it out (it won't reverse apply, suggesting a local hack).
    /etc/disktab is on the list, as is GENERIC's Makefile.
- * minor edits to 2.11 install guide apparently omitted 4.t in the update, but
+ * Edits to 2.11 install guide in 123 apparently omitted 4.t in the update, but
    the master tree was updated to reflect it.
 
 123 files were recovered from 2.10.1BSD, and patched with known patches. 1 of
