@@ -1,10 +1,9 @@
-# b.0 has no patches, so we need to remove
 chmod +w $TEMP/2
-rm -f $TEMP/2/b.0
+mv $TEMP/2/b.0 $TEMP	# b.0 has no patches, so we need to remove
 
 # These don't apply
-rm -f $TEMP/2/b.1	# Makefile
-rm -f $TEMP/2/b.16	# disktab
-rm -f $TEMP/2/b.4	# bruboot.s (small tweak needed)
+# rm -f $TEMP/2/b.1	# GENERIC/Makefile -> generated!
+# rm -f $TEMP/2/b.16	# disktab
+# rm -f $TEMP/2/b.4	# bruboot.s (small tweak needed)
 
 

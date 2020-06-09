@@ -1,14 +1,5 @@
 --- ld.c.1	2020-06-01 16:27:10.734632000 -0600
 +++ ld.c	2020-06-01 16:41:27.059048000 -0600
-@@ -70,6 +70,8 @@
- 
- #define THUNKSIZ	8
- 
-+#define SARMAG 2
-+
- /*
-  * one entry for each archive member referenced;
-  * set in first pass; needs restoring for overlays
 @@ -254,6 +256,7 @@
  long	ladd();
  int	delexit();
