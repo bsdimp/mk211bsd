@@ -1,0 +1,125 @@
+ath: gmdzi!unido!fauern!ira.uka.de!sol.ctr.columbia.edu!caen!sdd.hp.com!elroy.jpl.nasa.gov!mahendo!wlbr!news
+From: s...@wlv.imsd.contel.com (Steven M. Schultz)
+Newsgroups: comp.sys.dec.micro
+Subject: 2.11BSD Release Announcement
+Message-ID: <1991Mar14.073117.24966@wlbr.imsd.contel.com>
+Date: 14 Mar 91 07:31:17 GMT
+Sender: n...@wlbr.imsd.contel.com (news)
+Organization: Contel Federal Systems
+Lines: 114
+Nntp-Posting-Host: wlv.imsd.contel.com
+
+
+      I know there was a discussion a while back about whether 11/73s
+      (93s, 83s, 53s) were "dec.micro" or not.  My (non-ECC;-) memory recalls
+      that they are, so i'm posting this announcement here as well as
+      comp.bugs.2bsd (the front panel of my 11/73 says Micro-Pdp on it
+      after all).
+
+      Steven M. Schultz
+      s...@wlv.imsd.contel.com
+---------------------------------------------------------------------------
+      Second Distribution of Berkeley PDP-11 Software for UNIX
+                             Release 2.11
+                        (Revised January 1991)
+
+
+     The USENIX Association is pleased to announce the distribution of
+a   new   release  of  the  "Second  Berkeley  Software  Distribution"
+(2.11BSD).
+
+     This release will be handled by USENIX, and is available  to  all
+V7,  System III, System V, and 2.9BSD licensees.  The Association will
+continue to maintain the non-profit price of $200.  The  release  will
+consist  of  two  2400  ft.  1600 bpi tapes or one TK50 tape cartridge
+(approximately 80M) and approximately 100 pages of documentation.
+
+     If you have questions about the distribution of the  release,  or
+require  800  bpi  tapes, please contact USENIX.  USENIX's address and
+phone number is as follows:
+
+     2.11BSD
+     USENIX Association
+     2560 Ninth St. Suite 215
+     Berkeley, CA  94710
+     +1-415-528-8649
+
+USENIX may also be contacted by electronic mail at:
+
+     {ucbvax,decvax}!usenix!office
+
+If you have technical questions  about  the  release,  please  contact
+Steven M. Schultz at:
+
+     s...@wlv.imsd.contel.com
+     wlbr!wlv!sms
+
+     This release is in celebration of the  20th  anniversary  of  the
+PDP-11!  Work has been ongoing since the release of 2.10.1BSD in Janu-
+ary 1989.  This release incorporates all fixes and changes  posted  to
+the USENET newsgroup comp.bugs.2bsd since 2.10.1BSD was released.
+
+     Present in this release are several more missing pieces from  the
+4.3BSD distribution:
+
+     o    1) the kernel logger (/dev/klog)
+
+     o    2) the  namei  cache  and  argument  encapsulation  calling
+             sequence
+
+     o    3) readv(2)/writev(2)   as   system   calls   rather   than
+             emulation/compatibility routines
+
+     o    4) shadow password file implementation (the May 1989  4.3BSD
+             update)
+
+     o    5) a TMSCP (TK50/TU81) driver with standalone support (boot-
+             block and standalone driver)
+
+     o    6) Pronet and LH/DH IMP networking support
+
+     o    7) the portable ascii archive file format (ar, ranlib)
+
+     o    8) the Unibus Mapping Register (UMR) handling of the network
+             was rewritten to avoid allocating excessive UMRs.
+
+     o    9) the necessary mods to the IP portion  of  the  networking
+             were  made to allow traceroute (which is present in 2.11BSD)
+             to run
+
+     o   10) long filenames in the file system
+
+     This last addition is the reason a coldstart  kit  is  necessary.
+The 4.3BSD on-disk directory structure has been ported (along with the
+utilities that know about on-disk directories via the raw  filesystem:
+fsck,  ncheck, icheck, dcheck, etc.) and is not compatible with previ-
+ous versions of UNIX for the PDP-11.
+
+     A limited amount of filesystem backward compatibility  with  ear-
+lier  versions of 2BSD (2.9BSD, 2.10BSD and 2.10.1BSD) is present in a
+version of dump(8) which can read old filesystems.  The disk partition
+sizes have not changed from 2.10.1BSD (the urge to standardize the
+haphazard partition sizes was suppressed in the interest of backwards
+compatibility).  The restor(8) utility automatically converts old dump 
+tapes to the new format on input.
+
+     The constant MAXNAMLEN is now 63 instead of 14.  While it is pos-
+sible the limit could be higher, with MAXPATHLEN at 256 a MAXNAMLEN of
+63 was judged sufficient.
+
+     MANY other fixes  and  changes  have  also  been  made,  see  the
+``Changes To The Kernel'' document which describes the changes made to
+both the kernel and the application programs.
+
+
+Steven M. Schultz
+Contel Federal Systems
+31717 La Tienda Drive
+Westlake Village CA 91359
+s...@wlv.imsd.contel.com
+wlbr!wlv!sms
+_________________________
+
+  DEC, PDP, Unibus and VAX are trademarks of  Digital Equipment Corporation
+
+  UNIX is a trademark of Bell Laboratories
