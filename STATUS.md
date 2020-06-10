@@ -81,7 +81,9 @@ than the new file. nm.c was moved, so we know the old and the new version. Let's
 start there.
 
 nm.c, after the patch is unapplied, has the following:
+
     static	char sccsid[] = "@(#)nm.c 4.7 5/19/86";
+
 which is a 4BSD SCCS tag. Let's see if we can find it:
 
 Rev | SCCS ID
