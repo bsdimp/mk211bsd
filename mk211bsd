@@ -251,6 +251,8 @@ extract_patches() {
 
 # helper routine to recover from 2.10.1BSD
 from2.10.1() {
+    local i
+
     for i; do
 	echo "Patch $p | $i | 2.10.1BSD | " >> $RECOVERY_LOG
 	echo "Patch $p: Recovering $i from 2.10.1BSD"
@@ -261,6 +263,8 @@ from2.10.1() {
 }
 
 from4.3() {
+    local i tb f
+
     for i; do
 	cd $TEMP
 	echo "Patch $p | $i | 4.3BSD | " >> $RECOVERY_LOG
@@ -285,6 +289,7 @@ from4.3() {
 		;;
 	esac
 	tar xvf $UCB/4.3BSD/$tb $f
+	chmod +w $f
     done
     cd $TEMP
     tar cf - usr/src | (cd $ROOT211 ; tar xvf -)

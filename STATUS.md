@@ -83,11 +83,13 @@ start there.
 nm.c, after the patch is unapplied, has the following line:
     /* static	char sccsid[] = "@(#)nm.c 4.7 5/19/86"; */
 which is a 4BSD SCCS tag. Let's see if we can find it:
+
 Rev | SCCS ID
 ----|---------
 4.3BSD | "@(#)nm.c 4.7 5/19/86"
 4.3BSD Tahoe | "@(#)nm.c 4.8 4/7/87"
 4.3BSD Reno | "@(#)nm.c	5.6 (Berkeley) 6/1/90"
+
 We can safely conclude that the nm.c in 2.11BSD came from 4.3BSD.
 
 Next, if we audit ar.c. It is identical in 4.3BSD and 4.3BSD Tahoe (apart from a

@@ -8,4 +8,4 @@ sed -n -e '/^sed.*patchfile/,/^SHAR_EOF/p' < $patch | sh -x
 cd $ROOT211
 patch -V none -R -p1 < $TEMP/patchfile
 rm -rf usr/src/usr.bin/ranlib
-from2.10.1 usr/src/usr.bin/ranlib.c
+from4.3 usr/src/usr.bin/ranlib.c
