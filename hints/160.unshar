@@ -34,6 +34,7 @@ cd $ROOT211/usr/src/bin
 zcat $TUHS/Usenet/comp.bugs.2bsd/1989-August.txt.gz | \
     sed -n -e '/^Index:.*bin\/ld.c/,/^==========/p' | patch -V none -p1
 # There were other changes. The following is enough to allow 141 to apply
+# these changes are to support portable ar format.
 patch -V none -p1 < $HINTSDIR/160.mu
 # And because ld.c was 2.11 pl 141 apply it in as well
 cd $TEMP
