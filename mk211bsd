@@ -260,6 +260,36 @@ from2.10.1() {
     done
 }
 
+from4.3() {
+    for i; do
+	cd $TEMP
+	echo "Patch $p | $i | 4.3BSD | " >> $RECOVERY_LOG
+	echo "Patch $p: Recovering $i from 4.3BSD"
+	pprint 1 "Recovering $i from 4.3BSD"
+	f=${i#/}
+	case $f in
+	    usr/src/sys/*)
+		tb=srcsys.tar.gz
+		f=${f#usr/src/sys/}
+		mkdir -p usr/src/sys
+		cd usr/src/sys
+		;;
+	    usr/src/*)
+		tb=src.tar.gz
+		f=${f#usr/src/}
+		mkdir -p usr/src
+		cd usr/src
+		;;
+	    *)
+		die Bad file $i
+		;;
+	esac
+	tar xvf $UCB/4.3BSD/$tb $f
+    done
+    cd $TEMP
+    tar cf - usr/src | (cd $ROOT211 ; tar xvf -)
+}
+
 undo_patch_level() (
     local p patch s
     p=$1

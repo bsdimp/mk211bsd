@@ -14,12 +14,15 @@ cd $TEMP
 sed -n -e '/^sed.*patchfile/,/^SHAR_EOF/p' < $patch | sh -x
 cd $ROOT211
 patch -V none -R -p1 < $TEMP/patchfile
-for i in csh/shortnames.h ar.c ld.c adb/dummy.c adb/mac.h adb/machine.h adb/mode.h; do
-    from2.10.1 usr/src/bin/$i
-done
 # need to move this AFTER because the patch patches it in the new place.
 mv $ROOT211/usr/src/bin/nm/nm.c $ROOT211/usr/src/bin/nm.c
 rm -rf $ROOT211/usr/src/bin/nm
+
+for i in csh/shortnames.h ld.c adb/dummy.c adb/mac.h adb/machine.h adb/mode.h; do
+    from2.10.1 usr/src/bin/$i
+done
+
+from4.3 usr/src/bin/ar.c
 
 # There's one known patch to ld.c that is post 2.10.1 that appeared
 # in comp.bugs.2bsd:
