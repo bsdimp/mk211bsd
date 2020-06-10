@@ -29,10 +29,8 @@ It's hard to say for sure, but my best guess is that the following files are the
 ones that are likely lost.
 
  * ld.c -- ld was written in patches 158 to 176. It was deleted in patch 160 and
-   replaced in 163. One issue here is that one of the main features of the
-   2.11BSD release was the transition to the portable archive format. ar,
-   and ranlib were rewritten. nm, ld, and make were heavily modified. ar
-   and ranlib currently come from 2.10.1BSD, and that's known to be wrong.
+   replaced in 163. ar.c, randlib.c and nm.c also were extensively reworked as
+   well.
  * MAKEDEV -- Patch 3 changes this, but it doesn't reverse apply cleanly to the
    tree we have, with 42 and 72 backed out as well. The reason for this is unknown.
  * usr/local/Makefile has decompr16 in it in 195. decompr16 was added to the tree
@@ -44,9 +42,6 @@ ones that are likely lost.
    /usr/src/include was not. Patch 175 copied /usr/include to /usr/src/include
    to synchronize things. It's unclear how many of these copies are needed
    and minor tweaks have been done to come close.
- * as -- also was rewritten. We have a number of patches from comp.bugs.2bsd
-   that we've pulled in and the reverse patch now applies. One additional patch
-   is needed to recover as0.s and as2.s as patched in 195, it's now it's identical.
  * Patches 2 and 3 are problematic. They don't reverse apply cleanly for
    reasons  still under investigation. this means that bruboot.s is in limbo
    until we can sort it out (it won't reverse apply, suggesting a local hack).
@@ -70,6 +65,56 @@ The standard I'm striving for is
  4. Patches in comp.bugs.2bsd is prima facia evidence that they changed between 2.10.1 and 2.11, absent stronger info
  5. Where possible, SCCS IDs should be checked to make sure that we don't have gaps in numbers between 2.10.1 and 2.11pl195 that might otherwise escape detection.
  6. Where the 2.11 patches mess up (and they do), document and use common sense. The bad patches haven't been documented here yet.
+
+### Toolchain details
+
+ld.c, ar.c, ranlib.c and nm.c were updated to move from the old binary archive
+format to the new portable ar format. This feature was listed in the release
+notes. The family tree shows code flowing into 2.11 from 4.3BSD and 4.3BSD
+Tahoe. 4.3BSD Reno was out by the time 2.11 was released, so we can't preclude
+code was pulled in fro there.
+
+ar.h, ar.c and ranlib.c are completely lost. All we know is they weren't derived
+from 2.10.1BSD because it didn't support the new archive. We know that the new
+code in patches 158-176 replaced them entirely, which means the diff was larger
+than the new file. nm.c was moved, so we know the old and the new version. Let's
+start there.
+
+nm.c, after the patch is unapplied, has the following line:
+    /* static	char sccsid[] = "@(#)nm.c 4.7 5/19/86"; */
+which is a 4BSD SCCS tag. Let's see if we can find it:
+    % xargs fgrep '@(#)' *nm.c
+    4.3-nm.c:static	char sccsid[] = "@(#)nm.c 4.7 5/19/86";
+    4.3-reno-nm.c:static char sccsid[] = "@(#)nm.c	5.6 (Berkeley) 6/1/90";
+    4.3-tahoe-nm.c:static	char sccsid[] = "@(#)nm.c 4.8 4/7/87";
+We can safely conclude that the nm.c in 2.11BSD came from 4.3BSD.
+
+Next, if we audit ar.c. It is identical in 4.3BSD and 4.3BSD Tahoe (apart from a
+single void cast added to quiet lint in the latter). The 4.3BSD Reno version
+adds include of pathnames.h and uses the _PATH_TMP1 define, which is not present
+even in a fully patched 2.11BSD. We can preclude 4.3BSD Reno as the source due
+to this dependency. We can select either 4.3BSD or 4.3BSD Tahoe. Since they are
+identical, and we got nm.c from 4.3BSD, we conclude that ar.c also came from
+4.3BSD, though we'd get identical binaries from the 4.3BSD Tahoe version. ar.c
+has no dependencies on a.out.h format, so we can likely just copy it.
+
+Next, turning our attention to ar.h. In 4.3BSD it's 444 bytes long. After the
+patch, it's 2588 bytes long. This is consistent with the replacement we see in
+patch 160. It's a bit acedemnic, though, as ar.h is identical in all the 4.3BSD
+variants under consideration. We can likely just copy it.
+
+ranlib.c is almost the same between 4.3BSD and 4.3BSD Tahoe. The only change is
+using a new symbol RANLIBMAG. RANLIBMAG isn't in 2.11BSD, even in the newer
+versions. This is further evidence all these were taken from 4.3BSD. This
+depends on a.out, so may need to be adjusted to work on the PDP-11 since 4.3BSD
+is VAX. The 2.10.1 ranlib may help since the .o format didn't change between
+2.10.1 and 2.11 pl < 158.
+
+TODO: Adjust where we recover these from...
+
+ld.c is more troubling. We need to adjust it somehow. It lacks a SCCS id, so
+we'll have to maybe rely on ealier diffs in 4BSD somehow, maybe between 3BSD and
+4.0BSD where portable ar was introduced.
 
 ## All the hacks
 
