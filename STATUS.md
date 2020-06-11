@@ -80,7 +80,8 @@ code in patches 158-176 replaced them entirely, which means the diff was larger
 than the new file. nm.c was moved, so we know the old and the new version. Let's
 start there.
 
-nm.c, after the patch is unapplied, has the following:
+Let's turn our attention to nm.c. After patch 160 is unapplied, nm.c has the
+following:
 
     static	char sccsid[] = "@(#)nm.c 4.7 5/19/86";
 
@@ -92,7 +93,9 @@ Rev | SCCS ID
 4.3BSD Tahoe | "@(#)nm.c 4.8 4/7/87"
 4.3BSD Reno | "@(#)nm.c	5.6 (Berkeley) 6/1/90"
 
-We can safely conclude that the nm.c in 2.11BSD came from 4.3BSD.
+We can safely conclude that the nm.c in 2.11BSD came from 4.3BSD, possibly with
+changes. A quick diff shows there are changes, but we have a good copy of nm.c
+so we can conclude that other files likely came from 4.3BSD.
 
 Next, if we audit ar.c. It is identical in 4.3BSD and 4.3BSD Tahoe (apart from a
 single void cast added to quiet lint in the latter). The 4.3BSD Reno version
@@ -101,25 +104,29 @@ even in a fully patched 2.11BSD. We can preclude 4.3BSD Reno as the source due
 to this dependency. We can select either 4.3BSD or 4.3BSD Tahoe. Since they are
 identical, and we got nm.c from 4.3BSD, we conclude that ar.c also came from
 4.3BSD, though we'd get identical binaries from the 4.3BSD Tahoe version. ar.c
-has no dependencies on a.out.h format, so we can likely just copy it.
+has no dependencies on a.out.h format, so we can likely just copy it from 4.3BSD
+and have a program that works.
 
 Next, turning our attention to ar.h. In 4.3BSD it's 444 bytes long. After the
 patch, it's 2588 bytes long. This is consistent with the replacement we see in
 patch 160. It's a bit acedemnic, though, as ar.h is identical in all the 4.3BSD
-variants under consideration. We can likely just copy it.
+variants under consideration. We can likely just copy it from 4.3BSD.
 
 ranlib.c is almost the same between 4.3BSD and 4.3BSD Tahoe. The only change is
 using a new symbol RANLIBMAG. RANLIBMAG isn't in 2.11BSD, even in the newer
 versions. This is further evidence all these were taken from 4.3BSD. This
 depends on a.out, so may need to be adjusted to work on the PDP-11 since 4.3BSD
 is VAX. The 2.10.1 ranlib may help since the .o format didn't change between
-2.10.1 and 2.11 pl < 158.
-
-TODO: Adjust where we recover these from...
+2.10.1 and 2.11 pl < 158. Ranlib appears to be created along with the portable
+archive format, though the version of ranlib in 2.10.1 operates on the old ar
+format. ranlib in 2.10.1 appears to be a hacked up version of nm.c to support
+ranlib functions, though it also appears to be a pre-4.0BSD version of ranlib.c
+now lost to history... I think it will be close to just a copy from 4.3BSD to
+make it work, but some tweaks may be necessary.
 
 ld.c is more troubling. We need to adjust it somehow. It lacks a SCCS id, so
 we'll have to maybe rely on ealier diffs in 4BSD somehow, maybe between 3BSD and
-4.0BSD where portable ar was introduced.
+4.0BSD where portable ar was introduced, though those diffs are extensive.
 
 ## All the hacks
 
