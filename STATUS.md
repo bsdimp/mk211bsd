@@ -132,14 +132,15 @@ we'll have to maybe rely on ealier diffs in 4BSD somehow, maybe between 3BSD and
 
 Status | Source | Total | %
 -------|--------|------|---
-| BAD | 2.10.1BSD | 7 | 0.093%
-| mostly | imp | 4 | 0.053%
-| mostly | 2.10.1BSD | 2 | 0.026%
-| Likely | 2.10.1BSD | 99 | 1.320%
-| Likely | 2.11BSD | 10 | 0.133%
-| GOOD | 2.10.1BSD | 21 | -
+| BAD | 4.3BSD | 2 | 0.026%
+| BAD | 2.10.1BSD | 1 | 0.013%
+| mostly | imp | 3 | 0.040%
+| mostly | 2.10.1BSD | 1 | 0.013%
+| Likely | 2.10.1BSD | 101 | 1.347%
+| Likely | 2.11BSD | 14 | 0.186%
+| GOOD | 2.10.1BSD | 23 | -
 
-Total files in usr/src and etc is about 7500. 122/7500 or 1.3% aren't confirmed, but most are likely right. 13/7500 or 0.17% are likely not quite right or have issues. 7/7500 or 0.093% are known bad.
+Total files in usr/src and etc is about 7500. 122/7500 or 1.3% aren't confirmed, but most are likely right. 7/7500 or 0.093% are likely not quite right or have issues. 3/7500 or 0.040% are known bad.
 
 Status | Patch | File | From | Comments
 -------|------|------|------|-------
@@ -155,7 +156,7 @@ Status | Patch | File | From | Comments
 | Likely | 175 | usr/src/include/ndbm.h | 2.11BSD + hack | fixup patch makes tiny hacks so this will 'unapply' so we're back to something closer to that was in 2.11BSD. It's likely, but not guaranteed to be perfect.
 | Likely | 175 | usr/src/include/setjmp.h | 2.11BSD + hack | fixup patch makes tiny hacks so this will 'unapply' so we're back to something closer to that was in 2.11BSD. It's likely, but not guaranteed to be perfect.
 | Likely | 175 | usr/src/include/syscall.h | 2.11BSD + hack | fixup patch makes tiny hacks so this will 'unapply' so we're back to something closer to that was in 2.11BSD. It's likely, but not guaranteed to be perfect.
-| Likely | 173 | usr/src/usr.bin/ranlib.c | 2.10.1BSD | Most likely contents (no 2bsd patches)
+| BAD | 173 | usr/src/usr.binf/ranlib.c | 4.3BSD | Need to update the pdp-11 specific code we have from the vax version in 4.3BSD
 | Likely | 171 | usr/src/ucb/symorder.c | 2.10.1BSD + 50 | Almost certainly correct, since the file was trivial and was patched in 50 and we have most of the text
 | Likely | 171 | usr/src/ucb/tn3270/shortnames.h | 2.10.1BSD | Most likely contents (short names)
 | Likely | 171 | usr/src/ucb/window/shortnames.h | 2.10.1BSD | Most likely contents (short names)
@@ -165,7 +166,7 @@ Status | Patch | File | From | Comments
 | Likely | 164 | usr/src/etc/talkd/shortnames.h | 2.10.1BSD | Most likely contents (short names)
 | Likely | 160 | usr/src/bin/csh/shortnames.h | 2.10.1BSD | Most likely contents (short names)
 | Likely | 160 | usr/src/bin/ar.c | 2.10.1BSD | Most likely contents (no 2bsd patches)
-| BAD | 160 | usr/src/bin/ld.c | 2.10.1BSD | Issues. changes between 2.10.1 and 2.11 and we don't have them all.
+| BAD | 160 | usr/src/bin/ld.c | 4.3BSD | Issues. Between 2.10.1 and 2.11 the new archive format came in and ld was updated. Updates for that not reconstructed yet.
 | Likely | 160 | usr/src/bin/adb/dummy.c | 2.10.1BSD | Most likely contents (no 2bsd patches)
 | Likely | 160 | usr/src/bin/adb/mac.h | 2.10.1BSD | Most likely contents (no 2bsd patches)
 | Likely | 160 | usr/src/bin/adb/machine.h | 2.10.1BSD | Most likely contents (no 2bsd patches)
@@ -283,8 +284,8 @@ Status | Patch | File | From | Comments
 | Likely | 14 | usr/src/usr.bin/lint/allo.c | 2.10.1BSD | Most likely contents, no 2bsd patches, comments that this hasn't changed in a while
 | Likely | 14 | usr/src/usr.bin/lint/Makefile | 2.10.1BSD | Most likely contents, no 2bsd patches, comments that this hasn't changed in a while
 | BAD | 3 | dev/MAKEDEV | imp | Patch doesn't work, so it's just omitted
-| BAD | 3 | usr/src/sys/GENERIC/localopts.h | imp | Patch doesn't work, so omitted... This is a generated file, so it may be OK.
-| BAD | 2 | usr/src/sys/GENERIC/Makefile | imp | Patch 2/b.1 doesn't work, need to investigate why
-| BAD | 2 | etc/disktab | imp | Patch 2/b.16 doesn't work, need to investigate why
-| BAD | 2 | usr/src/sys/mdec/bruboot.s | imp | Patch 2/b.4 doesn't unapply to this one file bruboot.s (so we don't do any others) so there's some investigation needed.
+| regen | 3 | usr/src/sys/GENERIC/localopts.h | imp | Patch doesn't work, so omitted... This is a generated file that was customized. regen is fine for the vanilla system we're recovering.
+| regen | 2 | usr/src/sys/GENERIC/Makefile | imp | Patch 2/b.1 doesn't work, may need to investigate why, but for now just regenerating.
+| GOOD | 2 | etc/disktab | imp | etc/disktab and usr/src/sys/pdpdist/disktab are out of sync. Just remove patch b.16 since that issue was corrected in patch 78, but I didn't uncorrect it there, so the right thing is to delete it there and we'll be in sync at pl0
+| GOOD | 2 | usr/src/sys/mdec/bruboot.s | imp | Patch 2/b.4 doesn't unapply to this one file bruboot.s. It looks like a hack made it into the master tree for our pl195 we started with because the Rome 11/70 didn't do the right thing. Backed that out by hand with 2.mu
 | mostly | 0 | usr/src/sys/conf/KAZOO | imp | KAZOO disappeared from 2.11 before pl 195 but after pl 84 where it was referenced. I reconstructed this by doing a diff between GENERIC and KAZOO in 2.10.1, then apply that to a copy of GENERIC to KAZOO in 2.11 and hand applied a few patches, then hacked it to be consistent with patches 42 and 84. Maybe I need a plausably speculative category.

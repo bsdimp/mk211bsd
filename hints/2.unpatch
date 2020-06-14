@@ -1,9 +1,19 @@
 chmod +w $TEMP/2
 mv $TEMP/2/b.0 $TEMP	# b.0 has no patches, so we need to remove
 
-# These don't apply
-# rm -f $TEMP/2/b.1	# GENERIC/Makefile -> generated!
-# rm -f $TEMP/2/b.16	# disktab
-# rm -f $TEMP/2/b.4	# bruboot.s (small tweak needed)
+# This patch actually makes things out of sync. Patch 78 resyncs them. Since we
+# copy the pdpdist version of disktab to etc after unpatching there, this turns
+# out to not be needed to recover back to patch 0.
+rm -f $TEMP/2/b.16	# disktab
 
+# GENERIC/Makefile is generated. There's something odd going on here, but since
+# we can regenerate GENERIC/* at pl0, don't worry about it here.
+# There's a small chance, though, that what shipped with 2.11 was something
+# hand tweaked that will mean we need to revisit this.
+rm -f $TEMP/2/b.1	# GENERIC/Makefile -> generated!
 
+# bruboot.s has 2 extra lines in it that we need to remove before this patch
+# will work. Unsure why this is the case, but apparently the 11/70 in Rome
+# didn't pass 0 in r0 or csr in r1 as expected. This removes those two
+# unexpected lines.
+(cd $ROOT211; patch -V none -p1 < $HINTSDIR/2.mu)

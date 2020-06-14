@@ -421,7 +421,7 @@ mkdir -p ${LOGS}
 rm $RECOVERY_LOG
 touch $RECOVERY_LOG
 set -e
-trap 'die undo patch $p failed' EXIT
+trap 'die undo patch $p failed; pprint 1 patch $p failed' EXIT
 export LOGS TEMP PATCHDIR ROOT211 ROOT2101 APOUT_ROOT HINTSDIR
 for p in $patches; do
     undo_patch_level $p 2>&1 > $LOGS/$p.log

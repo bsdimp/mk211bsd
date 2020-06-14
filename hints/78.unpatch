@@ -1,0 +1,11 @@
+pprint 1 "Reverse applying $PATCHDIR/$p"
+echo "Reverse applying $PATCHDIR/$p"
+patch -V none -R -p1 < $PATCHDIR/$p
+# disktab was patched, so we need to copy it to /etc. The
+# instructions say merge it in, but since there's no local
+# changes for us, cp is all we need to do.
+cp ${ROOT211}/usr/src/sys/pdpdist/disktab ${ROOT211}/etc/disktab
+# Note: patch 2 touches /etc/disktab as well. However, it
+# applies the same sort of patch included here, so that patch
+# won't reverse apply. This is OK since the goal is to get back
+# to patch level 0, and then walk forward one patch at a time.
