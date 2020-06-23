@@ -36,9 +36,9 @@ from4.3 usr/src/bin/ar.c
 cd $ROOT211/usr/src/bin
 zcat $TUHS/Usenet/comp.bugs.2bsd/1989-August.txt.gz | \
     sed -n -e '/^Index:.*bin\/ld.c/,/^==========/p' | patch -V none -p1
-# There were other changes. The following is enough to allow 141 to apply
-# these changes are to support portable ar format.
-patch -V none -p1 < $HINTSDIR/160.mu
+# ld.diff is the putative diffs between 2.10.1 and 2.11, but it's not quite
+# right because the offsets aren't quite right. It's closer, but untested.
+patch -V none -p1 < $HINTSDIR/160.ld.diff
 # And because ld.c was 2.11 pl 141 apply it in as well
 cd $TEMP
 sed -e '1,/===cut here===/d' < $PATCHDIR/141 | sed -e "s=/tmp/=$TEMP/=" | sh -x
