@@ -72,7 +72,7 @@ ld.c, ar.c, ranlib.c and nm.c were updated to move from the old binary archive
 format to the new portable ar format. This feature was listed in the release
 notes. The family tree shows code flowing into 2.11 from 4.3BSD and 4.3BSD
 Tahoe. 4.3BSD Reno was out by the time 2.11 was released, so we can't preclude
-code was pulled in fro there.
+code was pulled in from there.
 
 ar.h, ar.c and ranlib.c are completely lost. All we know is they weren't derived
 from 2.10.1BSD because it didn't support the new archive. We know that the new
@@ -126,7 +126,10 @@ make it work, but some tweaks may be necessary.
 
 ld.c is more troubling. We need to adjust it somehow. It lacks a SCCS id, so
 we'll have to maybe rely on ealier diffs in 4BSD somehow, maybe between 3BSD and
-4.0BSD where portable ar was introduced, though those diffs are extensive.
+4.0BSD where portable ar was introduced, though those diffs are extensive. Given
+that the other items were pulled in from 4.3BSD, I think a lot of archive
+support code can be pulled in from there, but tweaked to work on the PDP-11
+instead of the vax.
 
 ## All the hacks
 
