@@ -1,5 +1,5 @@
---- /usr/src/bin/ld.c.old	1988-08-14 02:09:04.000000000 -0600
-+++ /usr/src/bin/ld.c	2020-06-22 14:56:24.230734000 -0600
+--- /usr/src/bin/ld.c-	1988-08-14 02:09:04.000000000 -0600
++++ /usr/src/bin/ld.c	2020-06-24 01:18:05.760873000 -0600
 @@ -254,6 +254,7 @@
  long	ladd();
  int	delexit();
@@ -21,41 +21,26 @@
  		break;
  
  	/*
-@@ -555,15 +557,25 @@
+@@ -555,15 +557,14 @@
  	 * when there is a table of contents!)
  	 */
  	case 2:
 -		tnum = archdr.ar_size / sizeof(struct tab);
--		if (tnum >= TABSZ)
--			error(1, "toc buffer too small");
--		lseek(infil, (long)(sizeof(filhdr.a_magic) + sizeof(archdr)), 0);
--		read(infil, (char *)tab, tnum * sizeof(struct tab));
-+		nloc = SARMAG + sizeof (archdr);
-+		dseek(&text, nloc, sizeof (tnum));
-+		mget((char *)&tnum, sizeof (tnum), &text);
-+		nloc += sizeof (tnum);
-+		tab = (struct ranlib *)malloc(tnum);
-+		if (tab == 0)
-+			error(1, "ran out of memory (toc)");
-+		dseek(&text, nloc, tnum);
-+		mget((char *)tab, tnum, &text);
-+		nloc += tnum;
-+		tnum /= sizeof (struct ranlib);
-+		dseek(&text, nloc, sizeof (ssiz));
-+		mget((char *)&ssiz, sizeof (ssiz), &text);
-+		nloc += sizeof (ssiz);
++		tnum = atol(archdr.ar_size) / sizeof(struct tab);
+ 		if (tnum >= TABSZ)
+ 			error(1, "toc buffer too small");
+ 		lseek(infil, (long)(sizeof(filhdr.a_magic) + sizeof(archdr)), 0);
+ 		read(infil, (char *)tab, tnum * sizeof(struct tab));
  		while (ldrand())
 -			;
 -		libp->loc = -1;
 -		libp++;
 +			continue;
-+		free((char *)tab);
-+		free(tabstr);
 +		nextlibp(-1);
  		break;
  
  	/*
-@@ -573,9 +585,10 @@
+@@ -573,9 +574,10 @@
  	case 3:
  		error(-1,
  "warning: table of contents for archive is out of date; rerun ranlib(1)");
@@ -69,7 +54,7 @@
  		break;
  	}
  	close(infil);
-@@ -590,37 +603,66 @@
+@@ -590,37 +592,66 @@
  step(nloc)
  	off_t nloc;
  {
@@ -154,121 +139,7 @@
  }
  
  /*
-@@ -629,10 +671,12 @@
- load1(libflg, loc)
- 	off_t loc;
- {
--	register SYMBOL *sp;
--	int savindex;
--	int ndef, type, mtype;
--	long nlocal;
-+	register struct nlist *sp;
-+	struct nlist *savnext;
-+	int ndef, nlocal, type, size, nsymt;
-+	register int i;
-+	off_t maxoff;
-+	struct stat stb;
- 
- 	readhdr(loc);
- 	if (filhdr.a_syms == 0) {
-@@ -640,27 +684,39 @@
- 			return (0);
- 		error(1, "no namelist");
- 	}
-+	if (libflg)
-+		maxoff = atol(archdr.ar_size);
-+	else {
-+		fstat(infil, &stb);
-+		maxoff = stb.st_size;
-+	}
-+	if (N_STROFF(filhdr) + sizeof (off_t) >= maxoff)
-+		error(1, "too small (old format .o?)");
- 	ctrel = tsize; cdrel += dsize; cbrel += bsize;
- 	ndef = 0;
--	nlocal = sizeof cursym;
--	savindex = symindex;
--	if ((filhdr.a_flag&RELFLG)==1) {
--		error(1, "No relocation bits");
--		return(0);
--	}
--	loc += (sizeof filhdr)/2 + filhdr.a_text + filhdr.a_data;
--	dseek(&text, loc, (int)filhdr.a_syms);
-+	nlocal = sizeof(cursym);
-+	savnext = nextsym;
-+	loc += N_SYMOFF(filhdr);
-+	dseek(&text, loc, filhdr.a_syms);
-+	dseek(&reloc, loc + filhdr.a_syms, sizeof(off_t));
-+	mget(&size, sizeof (size), &reloc);
-+	dseek(&reloc, loc + filhdr.a_syms+sizeof (off_t), size-sizeof (off_t));
-+	curstr = (char *)malloc(size);
-+	if (curstr == NULL)
-+		error(1, "no space for string table");
-+	mget(curstr+sizeof(off_t), size-sizeof(off_t), &reloc);
- 	while (text.size > 0) {
--		mget((int *)&cursym, sizeof cursym);
--		type = cursym.n_type;
--		if (Sflag) {
--			mtype = type&037;
--			if (mtype==1 || mtype>4) {
--				continue;
--			}
-+		mget((char *)&cursym, sizeof(struct nlist), &text);
-+		if (cursym.n_un.n_strx) {
-+			if (cursym.n_un.n_strx<sizeof(size) ||
-+			    cursym.n_un.n_strx>=size)
-+				error(1, "bad string table index (pass 1)");
-+			cursym.n_un.n_name = curstr + cursym.n_un.n_strx;
- 		}
-+		type = cursym.n_type;
- 		if ((type&N_EXT)==0) {
--			if (Xflag==0 || cursym.n_name[0]!='L')
-+			if (Xflag==0 || cursym.n_un.n_name[0]!='L' ||
-+			    type & N_STAB)
- 				nlocal += sizeof cursym;
- 			continue;
- 		}
-@@ -679,24 +735,30 @@
- 		ndef++;
- 		sp->n_type = cursym.n_type;
- 		sp->n_value = cursym.n_value;
--		sp->sovly = ((sp->n_type &~ N_EXT) == N_TEXT) ? curov : 0;
--		if (trace)
--			printf("%8.8s type 0%o in overlay %u at %u\n",
--			    sp->n_name, sp->n_type, sp->sovly, sp->n_value);
- 	}
- 	if (libflg==0 || ndef) {
--		tsize = add(tsize,filhdr.a_text,"text overflow");
--		dsize = add(dsize,filhdr.a_data,"data overflow");
--		bsize = add(bsize,filhdr.a_bss,"bss overflow");
--		ssize = ladd(ssize,nlocal,"symbol table overflow");
-+		tsize += filhdr.a_text;
-+		dsize += round(filhdr.a_data, sizeof (long));
-+		bsize += round(filhdr.a_bss, sizeof (long));
-+		ssize += nlocal;
-+		trsize += filhdr.a_trsize;
-+		drsize += filhdr.a_drsize;
-+		if (funding)
-+			textbase = (*slookup("_end"))->n_value;
-+		nsymt = symx(nextsym);
-+		for (i = symx(savnext); i < nsymt; i++) {
-+			sp = xsym(i);
-+			sp->n_un.n_name = savestr(sp->n_un.n_name);
-+		}
-+		free(curstr);
- 		return (1);
- 	}
- 	/*
- 	 * No symbols defined by this library member.
- 	 * Rip out the hash table entries and reset the symbol table.
- 	 */
--	while (symindex>savindex)
--		*symhash[--symindex]=0;
-+	symfree(savnext);
-+	free(curstr);
- 	return(0);
- }
- 
-@@ -913,7 +975,7 @@
+@@ -913,7 +944,7 @@
  	} else {	/* scan archive members referenced */
  		for (lp = libp; lp->loc != -1; lp++) {
  			dseek(&text, lp->loc, sizeof archdr);
@@ -277,7 +148,7 @@
  			mkfsym(archdr.ar_name);
  			load2(lp->loc + (sizeof archdr) / 2);
  		}
-@@ -1091,7 +1153,8 @@
+@@ -1091,7 +1122,8 @@
  {
  	register u_int n, *p;
  	register SYMBOL *sp, *symp;
@@ -287,7 +158,7 @@
  	if (numov) {
  		/* int aovno = adrof("__ovno");		XXX KB */
  		int aovhndlr[NOVL+1];
-@@ -1127,6 +1190,9 @@
+@@ -1127,6 +1159,9 @@
  		copy(&troutb);
  		copy(&droutb);
  	}
@@ -297,7 +168,7 @@
  	if (sflag==0) {
  		if (xflag==0)
  			copy(&soutb);
-@@ -1146,7 +1212,27 @@
+@@ -1146,7 +1181,27 @@
  			p++;
  		}
  	}
@@ -325,7 +196,7 @@
  	close(toutb.fildes);
  	if (!ofilfnd) {
  		unlink("a.out");
-@@ -1171,6 +1257,18 @@
+@@ -1171,6 +1226,18 @@
  
  }
  
@@ -333,7 +204,7 @@
 +{
 +	register char *cp;
 +
-+	mget((char *)&archdr, sizeof archdr, &text);
++	mget((char *)&archdr, sizeof archdr);
 +	for (cp=archdr.ar_name; cp<&archdr.ar_name[sizeof(archdr.ar_name)];)
 +		if (*cp++ == ' ') {
 +			cp[-1] = 0;
@@ -344,7 +215,7 @@
  mget(aloc, an)
  int *aloc;
  {
-@@ -1251,6 +1349,7 @@
+@@ -1251,6 +1318,7 @@
  getfile(acp)
  char *acp;
  {
@@ -352,7 +223,7 @@
  	struct stat stb;
  
  	archdr.ar_name[0] = '\0';
-@@ -1266,18 +1365,20 @@
+@@ -1266,18 +1334,20 @@
  	page[0].nuser = page[1].nuser = 0;
  	text.pno = reloc.pno = (PAGE *)&fpage;
  	fpage.nuser = 2;
