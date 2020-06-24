@@ -127,9 +127,13 @@ make it work, but some tweaks may be necessary.
 ld.c is more troubling. We need to adjust it somehow. It lacks a SCCS id, so
 we'll have to maybe rely on ealier diffs in 4BSD somehow, maybe between 3BSD and
 4.0BSD where portable ar was introduced, though those diffs are extensive. Given
-that the other items were pulled in from 4.3BSD, I think a lot of archive
-support code can be pulled in from there, but tweaked to work on the PDP-11
-instead of the vax.
+that the other items were pulled in from 4.3BSD, I have pulled the code from
+there, being mindful of three things: (1) the ranlib stuff may be a weird hybrid
+of the old/new since we still have the short symbol name length; (2) the vax has
+various changes to get away from 16-bit ints; and (3) the vax has more extensive
+reloc info than the pdp-11. Currently I have a patch that applies, but has an
+extra 29 lines still. This also suggests that ranlib may need similar
+considerations.
 
 ## All the hacks
 
