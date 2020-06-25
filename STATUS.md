@@ -130,9 +130,8 @@ that the other items were pulled in from 4.3BSD, I have pulled the code from
 there, being mindful of three things: (1) the ranlib stuff may be a weird hybrid
 of the old/new since we still have the short symbol name length; (2) the vax has
 various changes to get away from 16-bit ints; and (3) the vax has more extensive
-reloc info than the pdp-11. Currently I have a patch that applies, but has an
-extra 29 lines still. This also suggests that ranlib may need similar
-considerations.
+reloc info than the pdp-11. After careful selection of what came from 2.10.1
+and what came from 4.3BSD's ld.c, I think I have a good ld.c.
 
 ## All the hacks
 
@@ -307,34 +306,12 @@ patch | Fuzz / offset | why
 84|Hunk #1 succeeded at 215 (offset -156 lines). | VAX
 89|Hunk #2 succeeded at 403 with fuzz 1 (offset -3 lines). | usr/src/new/crash/route.c
 107|Hunk #1 succeeded at 53 with fuzz 1 (offset -6 lines). | usr/src/bin/sh/mac.h
-141|Hunk #17 succeeded at 927 (offset 29 lines). | ld.c
-141|Hunk #18 succeeded at 1122 (offset 29 lines). | ld.c
-141|Hunk #19 succeeded at 1204 (offset 29 lines). | ld.c
-141|Hunk #20 succeeded at 1307 (offset 29 lines). | ld.c
-141|Hunk #21 succeeded at 1315 (offset 29 lines). | ld.c
-141|Hunk #22 succeeded at 1327 (offset 29 lines). | ld.c
-141|Hunk #23 succeeded at 1336 (offset 29 lines). | ld.c
-141|Hunk #24 succeeded at 1361 (offset 29 lines). | ld.c
-141|Hunk #25 succeeded at 1522 (offset 29 lines). | ld.c
-141|Hunk #26 succeeded at 1611 (offset 29 lines). | ld.c
-141|Hunk #27 succeeded at 1647 (offset 29 lines). | ld.c
 152|Hunk #1 succeeded at 265 (offset 1 line). | as19.s
 152|Hunk #2 succeeded at 313 (offset 1 line). | as19.s
 152|Hunk #3 succeeded at 354 (offset 1 line). | as19.s
 152|Hunk #1 succeeded at 230 (offset 1 line). | as29.s
 152|Hunk #2 succeeded at 265 (offset 1 line). | as29.s
 152|Hunk #3 succeeded at 284 (offset 1 line). | as29.s
-160|Hunk #17 succeeded at 900 (offset 29 lines). | ld.c
-160|Hunk #18 succeeded at 1102 (offset 29 lines). | ld.c
-160|Hunk #19 succeeded at 1185 (offset 29 lines). | ld.c
-160|Hunk #20 succeeded at 1335 (offset 29 lines). | ld.c
-160|Hunk #21 succeeded at 1343 (offset 29 lines). | ld.c
-160|Hunk #22 succeeded at 1356 (offset 29 lines). | ld.c
-160|Hunk #23 succeeded at 1368 (offset 29 lines). | ld.c
-160|Hunk #24 succeeded at 1393 (offset 29 lines). | ld.c
-160|Hunk #25 succeeded at 1555 (offset 29 lines). | ld.c
-160|Hunk #26 succeeded at 1643 (offset 29 lines). | ld.c
-160|Hunk #27 succeeded at 1669 (offset 29 lines). | ld.c
 179|Hunk #14 succeeded at 1018 with fuzz 1 (offset -8 lines). | usr/src/ucb/ctag.c
 
 So now we need to discover if we're seeing these issues due actual issues, or if
@@ -346,8 +323,6 @@ and/or local changes that deletes those 155 lines.
 
 sh, mac, tags are likely local tweaks since none of those are reconstructed, nor
 should any have any information loss.
-
-ld.c is well documented: it's 29 extra lines.
 
 bruboot.s is a know out-of-sync file that had 2 lines added as a hack somewhere long the way.
 
