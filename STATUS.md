@@ -111,18 +111,6 @@ patch, it's 2588 bytes long. This is consistent with the replacement we see in
 patch 160. It's a bit acedemnic, though, as ar.h is identical in all the 4.3BSD
 variants under consideration. We can likely just copy it from 4.3BSD.
 
-ranlib.c is almost the same between 4.3BSD and 4.3BSD Tahoe. The only change is
-using a new symbol RANLIBMAG. RANLIBMAG isn't in 2.11BSD, even in the newer
-versions. This is further evidence all these were taken from 4.3BSD. This
-depends on a.out, so may need to be adjusted to work on the PDP-11 since 4.3BSD
-is VAX. The 2.10.1 ranlib may help since the .o format didn't change between
-2.10.1 and 2.11 pl < 158. Ranlib appears to be created along with the portable
-archive format, though the version of ranlib in 2.10.1 operates on the old ar
-format. ranlib in 2.10.1 appears to be a hacked up version of nm.c to support
-ranlib functions, though it also appears to be a pre-4.0BSD version of ranlib.c
-now lost to history... I think it will be close to just a copy from 4.3BSD to
-make it work, but some tweaks may be necessary.
-
 ld.c is more troubling. We need to adjust it somehow. It lacks a SCCS id, so
 we'll have to maybe rely on ealier diffs in 4BSD somehow, maybe between 3BSD and
 4.0BSD where portable ar was introduced, though those diffs are extensive. Given
@@ -133,19 +121,24 @@ various changes to get away from 16-bit ints; and (3) the vax has more extensive
 reloc info than the pdp-11. After careful selection of what came from 2.10.1
 and what came from 4.3BSD's ld.c, I think I have a good ld.c.
 
+We learned from ld.c that ranlib must be producing the oldformat, but inside the
+new portable ar format. It's is believd that this was accomplished by copying a
+few lines in main that validates the magic number, the nextel, fixsize and
+fixdate. There's no patches to validate this against, though. Given the evidence
+of function copied from 4.3BSD in ld.c, it's safe to assume that's true here.
+
 ## All the hacks
 
 Status | Source | Total | %
 -------|--------|------|---
-| BAD | 4.3BSD | 2 | 0.026%
 | BAD | 2.10.1BSD | 1 | 0.013%
 | mostly | imp | 3 | 0.040%
 | mostly | 2.10.1BSD | 1 | 0.013%
-| Likely | 2.10.1BSD | 101 | 1.347%
+| Likely | 2.10.1BSD | 103 | 1.347%
 | Likely | 2.11BSD | 14 | 0.186%
 | GOOD | 2.10.1BSD | 23 | -
 
-Total files in usr/src and etc is about 7500. 122/7500 or 1.3% aren't confirmed, but most are likely right. 7/7500 or 0.093% are likely not quite right or have issues. 3/7500 or 0.040% are known bad.
+Total files in usr/src and etc is about 7500. At this point, only 1 file is known bad. 4 are mostly right, but there's something likely amiss. 117 are likely right, but haven't verified. 23 are known good via other means.
 
 Status | Patch | File | From | Comments
 -------|------|------|------|-------
@@ -161,7 +154,7 @@ Status | Patch | File | From | Comments
 | Likely | 175 | usr/src/include/ndbm.h | 2.11BSD + hack | fixup patch makes tiny hacks so this will 'unapply' so we're back to something closer to that was in 2.11BSD. It's likely, but not guaranteed to be perfect.
 | Likely | 175 | usr/src/include/setjmp.h | 2.11BSD + hack | fixup patch makes tiny hacks so this will 'unapply' so we're back to something closer to that was in 2.11BSD. It's likely, but not guaranteed to be perfect.
 | Likely | 175 | usr/src/include/syscall.h | 2.11BSD + hack | fixup patch makes tiny hacks so this will 'unapply' so we're back to something closer to that was in 2.11BSD. It's likely, but not guaranteed to be perfect.
-| BAD | 173 | usr/src/usr.binf/ranlib.c | 4.3BSD | Need to update the pdp-11 specific code we have from the vax version in 4.3BSD
+| Likely | 173 | usr/src/usr.binf/ranlib.c | 2.10.1BSD + 4.3BSD | Need to update the pdp-11 specific code we have from the vax version in 4.3BSD
 | Likely | 171 | usr/src/ucb/symorder.c | 2.10.1BSD + 50 | Almost certainly correct, since the file was trivial and was patched in 50 and we have most of the text
 | Likely | 171 | usr/src/ucb/tn3270/shortnames.h | 2.10.1BSD | Most likely contents (short names)
 | Likely | 171 | usr/src/ucb/window/shortnames.h | 2.10.1BSD | Most likely contents (short names)
@@ -171,7 +164,7 @@ Status | Patch | File | From | Comments
 | Likely | 164 | usr/src/etc/talkd/shortnames.h | 2.10.1BSD | Most likely contents (short names)
 | Likely | 160 | usr/src/bin/csh/shortnames.h | 2.10.1BSD | Most likely contents (short names)
 | Likely | 160 | usr/src/bin/ar.c | 2.10.1BSD | Most likely contents (no 2bsd patches)
-| BAD | 160 | usr/src/bin/ld.c | 4.3BSD | Issues. Between 2.10.1 and 2.11 the new archive format came in and ld was updated. Updates for that not reconstructed yet.
+| Likely | 160 | usr/src/bin/ld.c | 2.10.1BSD + some 4.3BSD | Issues. Between 2.10.1 and 2.11 the new archive format came in and ld was updated. Updates for that not reconstructed yet.
 | Likely | 160 | usr/src/bin/adb/dummy.c | 2.10.1BSD | Most likely contents (no 2bsd patches)
 | Likely | 160 | usr/src/bin/adb/mac.h | 2.10.1BSD | Most likely contents (no 2bsd patches)
 | Likely | 160 | usr/src/bin/adb/machine.h | 2.10.1BSD | Most likely contents (no 2bsd patches)
