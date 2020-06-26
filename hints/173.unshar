@@ -7,5 +7,11 @@ cd $TEMP
 sed -n -e '/^sed.*patchfile/,/^SHAR_EOF/p' < $patch | sh -x
 cd $ROOT211
 patch -V none -R -p1 < $TEMP/patchfile
+
+# ranlib is a hybrid of the 2.10.1 and the 4.3BSD one. ranlib still produced
+# old-style tables, so pull it from 2.10.1 and apply hand crafted patch which
+# replaces a few lines in main and the entire nextel, fixsize and fixdate
+# functions.
 rm -rf usr/src/usr.bin/ranlib
-from4.3 usr/src/usr.bin/ranlib.c
+from2.10.1 usr/src/usr.bin/ranlib.c
+patch -V none -p1 < $HINTSDIR/173.ranlib.diff
