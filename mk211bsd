@@ -320,7 +320,7 @@ undo_patch_level() (
 	    else
 		pprint 1 nothing
 	    fi
-	    for i in *; do
+	    for i in b.*; do
 		( cd ${ROOT211}
 		  echo patch -V none -R -p1 ${cwd}/$i
 		  patch -V none -R -p1 < ${cwd}/$i
