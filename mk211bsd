@@ -25,6 +25,7 @@ export SAVE=${TOP}/saveit
 # here to the end of pprint stolen from nanobsd.
 export PPLEVEL=1
 export STARTTIME=`date +%s`
+export APOUT_ROOT
 # File descriptor 3 is used for logging output
 exec 3>&1
 # Progress Print
@@ -206,6 +207,7 @@ unpack_2101() {
 	mkdir $TAPE2101
 	cd $TAPE2101
 	tar xvf ${UCB}/2.10.1bsd.tar
+	rm -f tape1/file4
 	gunzip tape1/file4.gz		# root.dump file
     )
 
@@ -216,7 +218,7 @@ unpack_2101() {
     (
 	mkdir $ROOT2101
 	cd $ROOT2101
-	extract_dump ../tape2.10.1/tape1/file4
+	extract_dump ../tape-2.10.1/tape1/file4
 	# symlinks don't work, so fix all known ones. Thankfully, all of them
 	# extract with a file containing a path to the target. There's others in
 	# the system, but tar gets them right.
