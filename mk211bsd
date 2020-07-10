@@ -235,6 +235,23 @@ unpack_2101() {
     )
 }
 
+# Unpack just enough of V7 to assemble the putative 2.11 assembler since
+# newer assemblers barf on assembling it.
+unpack_v7() {
+    rm -rf $V7
+    mkdir $V7
+    mkdir $V7/tmp
+    cd $V7
+    tar xvf ${TUHS}/Distributions/Research/Henry_Spencer_v7/v7.tar.gz bin/as bin/ld lib
+}
+
+# Proof of concept:
+# env APOUT_ROOT=$HOME/v7 tools/apout/apout ~/v7/bin/as - -V root-2.11/usr/src/bin/as/as1?.s
+# env APOUT_ROOT=$HOME/v7 tools/apout/apout ~/v7/bin/ld -n -s a.out -o as -lc
+# env APOUT_ROOT=$HOME/v7 tools/apout/apout ~/v7/bin/as - -V root-2.11/usr/src/bin/as/as2?.s
+# env APOUT_ROOT=$HOME/v7 tools/apout/apout ~/v7/bin/ld -n -s a.out -o as2 -lc
+
+
 extract_patches() {
     [ -d $PATCHDIR ] || (
 	mkdir $PATCHDIR
