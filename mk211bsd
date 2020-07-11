@@ -247,7 +247,7 @@ unpack_v7() {
     mkdir $ROOTV7
     mkdir $ROOTV7/tmp
     cd $ROOTV7
-    tar xvf $TAPEV7 bin/as bin/ld lib
+    tar xvf $TAPEV7 bin/as bin/ld bin/nm bin/ar lib
 }
 
 extract_patches() {
@@ -477,7 +477,8 @@ bootstrap_as $ROOTV7
     sudo tar cf ../src.tar .
 )
 # Make the tape to xfer to the 2.11pl195 system
-perl mktape.pl
+# src.tar -> src.tap is hard coded, alas.
+perl 2tape.pl
 
 # And we're done: fireworks
 pprint 1 "Welcome to ur2.11BSD"
