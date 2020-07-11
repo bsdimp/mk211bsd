@@ -12,6 +12,8 @@ TAPE211=${TOP}/tape-2.11
 ROOT211=${TOP}/root-2.11
 TAPE2101=${TOP}/tape-2.10.1
 ROOT2101=${TOP}/root-2.10.1
+TAPEV7=${TUHS}/Distributions/Research/Henry_Spencer_v7/v7.tar.gz
+ROOTV7=${TOP}/root-v7
 PATCHSRC=${UCB}/2.11BSD/Patches
 PATCHDIR=${TOP}/patches
 HINTSDIR=${TOP}/hints
@@ -240,19 +242,13 @@ unpack_2101() {
 # Unpack just enough of V7 to assemble the putative 2.11 assembler since
 # newer assemblers barf on assembling it.
 unpack_v7() {
-    rm -rf $V7
-    mkdir $V7
-    mkdir $V7/tmp
-    cd $V7
-    tar xvf ${TUHS}/Distributions/Research/Henry_Spencer_v7/v7.tar.gz bin/as bin/ld lib
+    pprint 1 "Extracting minimal v7 to boostrap as"
+    rm -rf $ROOTV7
+    mkdir $ROOTV7
+    mkdir $ROOTV7/tmp
+    cd $ROOTV7
+    tar xvf $TAPEV7 bin/as bin/ld lib
 }
-
-# Proof of concept:
-# env APOUT_ROOT=$HOME/v7 tools/apout/apout ~/v7/bin/as - -V root-2.11/usr/src/bin/as/as1?.s
-# env APOUT_ROOT=$HOME/v7 tools/apout/apout ~/v7/bin/ld -n -s a.out -o as -lc
-# env APOUT_ROOT=$HOME/v7 tools/apout/apout ~/v7/bin/as - -V root-2.11/usr/src/bin/as/as2?.s
-# env APOUT_ROOT=$HOME/v7 tools/apout/apout ~/v7/bin/ld -n -s a.out -o as2 -lc
-
 
 extract_patches() {
     [ -d $PATCHDIR ] || (
@@ -393,11 +389,29 @@ undo_patch_level() (
     esac
 )
 
+# We have to bootstrap the 2.11 as using v7 assembler on the host.
+# apout doesn't support the 2.10.1 as binary, but does the v7
+# one. This will get us a binary that uses v7 system calls, which
+# I think is still good, but I'll have to confirm.
+bootstrap_as() (
+    local v7=$1
+
+    pprint 1 "Bootstrapping as"
+    cd $ROOT211/usr/src/bin/as
+    export APOUT_ROOT=$ROOT2101
+    chmod 777 $ROOT2101/usr/tmp
+    $APOUT $v7/bin/as - -V as1?.s
+    $APOUT $v7/bin/ld -n -s a.out -o as -lc
+    $APOUT $v7/bin/as - -V as2?.s
+    $APOUT $v7/bin/ld -n -s a.out -o as2 -lc
+)
+
 # Set the stage
 [ -n "$FORCE_CLEAN" ] && cleanup
 [ -d $TOOLS ] || mktools
 unpack_211
 [ -d $ROOT2101 ] || unpack_2101
+[ -d $ROOTV7 ] || unpack_v7
 [ -d $PATCHDIR ] || extract_patches
 
 #
@@ -445,5 +459,25 @@ export LOGS TEMP PATCHDIR ROOT211 ROOT2101 APOUT_ROOT HINTSDIR
 for p in $patches; do
     undo_patch_level $p 2>&1 > $LOGS/$p.log
 done
+# The 2.11 pl 195 as can't assemble the pl0 as, but the 2.10.1
+# can, so start there...
 trap - EXIT
+pprint 1 "Bootstrapping"
+bootstrap_as $ROOTV7
+(
+    cd $ROOT211
+    for i in bin etc usr/bin lib; do
+	chmod +x $i/*
+    done
+)
+
+# Make the src.tar
+(
+    cd $ROOT211
+    sudo tar cf ../src.tar .
+)
+# Make the tape to xfer to the 2.11pl195 system
+perl mktape.pl
+
+# And we're done: fireworks
 pprint 1 "Welcome to ur2.11BSD"
