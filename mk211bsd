@@ -432,8 +432,9 @@ EOF
 	mv a.out signal.o
 	rm -f x.s
 	rm -f bootstrap.o
-	$APOUT $v7/bin/ld -x -r *.o
-	mv a.out bootstrap.o
+	# ld doesn't exit cleanly here for some reason
+	# Both v7 and 2.11 Makefiles for libc ignore the status.
+	$APOUT $v7/bin/ld -x -r -o bootstrap.o *.o || true
 	cp bootstrap.o $ROOT211/usr/src/bin/as
     )
     $APOUT $v7/bin/ld -n -s as1.o bootstrap.o -o as
@@ -497,6 +498,7 @@ done
 trap - EXIT
 pprint 1 "Bootstrapping"
 bootstrap_as $ROOTV7
+pprint 1 "Fixing permissions and prepping tape"
 (
     cd $ROOT211
     for i in bin etc usr/bin lib; do
