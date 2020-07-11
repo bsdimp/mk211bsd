@@ -392,7 +392,7 @@ undo_patch_level() (
 # We have to bootstrap the 2.11 as using v7 assembler on the host.
 # apout doesn't support the 2.10.1 as binary, but does the v7
 # one. This will get us a binary that uses v7 system calls, which
-# I think is still good, but I'll have to confirm.
+# sadly is badly broken, even linking the 2.10.1 libc.
 bootstrap_as() (
     local v7=$1
 
