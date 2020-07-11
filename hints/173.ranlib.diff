@@ -1,5 +1,5 @@
 --- /usr/src/usr.bin/ranlib.c-	1987-03-11 20:41:22.000000000 -0700
-+++ /usr/src/usr.bin/ranlib.c	2020-06-25 22:04:14.587076000 -0600
++++ /usr/src/usr.bin/ranlib.c	2020-07-11 15:29:14.686131000 -0600
 @@ -19,11 +19,17 @@ int new;
  char	tempnm[] = "__.SYMDEF";
  char	firstname[17];
@@ -63,7 +63,7 @@
  	return(1);
  }
  
-@@ -127,34 +142,47 @@ stash(s) struct nlist *s;
+@@ -127,34 +142,38 @@ stash(s) struct nlist *s;
  }
  
  fixsize()
@@ -72,22 +72,12 @@
 -	off = sizeof(MAGIC);
 +{
 +	int i;
-+	off_t offdelta;
-+	register struct tabsegment *ptab;
 +
-+	if (tssiz&1)
-+		tssiz++;
-+	offdelta = sizeof(archdr) + sizeof (tnum) + tnum * sizeof(struct ranlib) +
-+	    sizeof (tssiz) + tssiz;
 +	off = SARMAG;
  	nextel(fi);
 -	if(strncmp(arp.ar_name, tempnm, 14) == 0)
 -	{	new = 0;
 -		offdelta -= sizeof(arp) + arp.ar_size;
--	}
--	else
--	{	new = 1;
--		strncpy(firstname, arp.ar_name, 14);
 +	if(strncmp(archdr.ar_name, tempnm, sizeof (archdr.ar_name)) == 0) {
 +		new = 0;
 +		offdelta -= sizeof(archdr) + arsize;
@@ -95,13 +85,13 @@
 +		new = 1;
 +		strncpy(firstname, archdr.ar_name, sizeof(archdr.ar_name));
  	}
+-	else
+-	{	new = 1;
+-		strncpy(firstname, arp.ar_name, 14);
+-	}
 -	for(i=0; i<tnum; i++)
--		tab[i].cloc += offdelta;
-+	ptab = &tabbase;
-+	do {
-+		for (i = 0; i < ptab->nelem; i++)
-+			ptab->tab[i].ran_off += offdelta;
-+	} while (ptab = ptab->pnext);
++	for (i = 0; i < tnum; i++)
+ 		tab[i].cloc += offdelta;
  	return(new);
  }
  
