@@ -4,7 +4,7 @@ Almost all of the BSD releases survive to the present. Except one major on: 2.11
 
 But wait, 2.11BSD is everywhere today. That's true. But it's 2.11BSD pl 470 or
 some other patched version. The original release has been lost in the sands of
-time.
+time. We have all the patches? what gives?
 
 Why? Well, the 2BSD series was released for the PDP-11. It only ran on the
 PDP-11 (until modern times when RetroBSD used it to run on MIPS-based PIC
@@ -19,6 +19,11 @@ surviving 2.11BSD. We have 2.10BSD and 2.10.1BSD, but nothing until the
 2.11BSDpl195. A big reason for this is that in the 160s or so in the patch
 stream the compiler was modernized and nobody wanted the older version because
 the amount of software that could be compiled was diminishing year by year.
+
+So the goal is to recreate a git repo with all the patches from 2.11BSD as
+released (or as close as we can get) to 2.11BSD pl 470 (or whatever the latest
+is). It would be nice to produce boot tapes for 2.11BSD as released, even if
+they are a bit speculative in places (more on that later)
 
 ## Why?
 
