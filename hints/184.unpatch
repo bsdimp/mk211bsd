@@ -8,12 +8,20 @@
 # com-4.1 to compat-2.9 and compat-4.1 respectively so we have to jump through
 # some hoops for that to still have proper tracking of the recovery.
 #
+# So we need to create the compat-4.1 directory, add the SYS.h symlink, add the
+# profiled directory. Then we need to change DEFS.h to SYS.h in the files we
+# snagged from 2.10.1BSD to reflect the differences between 2.10.1 and 2.11.
+#
 cd $ROOT211
 patch -V none -p1 -R < $patch
 pdp=usr/src/lib/libc/pdp
 mkdir $pdp/com-4.1
 from2.10.1 $pdp/com-4.1/Makefile $pdp/com-4.1/reset.s
 mv $pdp/com-4.1 $pdp/compat-4.1
+mkdir $pdp/compat-4.1/profiled
+ln -s ../sys/SYS.h $pdp/compat-4.1
+sed -I.bak -e"s/DEFS.h/SYS.h/g" $pdp/compat-4.1/Makefile $pdp/compat-4.1/reset.s
+rm $pdp/compat-4.1/*.bak
 mkdir $pdp/com-2.9
 from2.10.1 $pdp/com-2.9/HEADER
 mv $pdp/com-2.9/HEADER $pdp/compat-2.9
