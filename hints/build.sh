@@ -36,7 +36,7 @@ make ld nm CFLAGS="-O -I$R/usr/include"
 cp ld nm $R/bin
 rm -f ld nm
 rm $R/usr/bin/ranlib
-cp $R/bin/true $R/usr/bin/ranlub
+cp $R/bin/true $R/usr/bin/ranlib
 
 #
 # Note: we didn't replace cc yet. It generates .s files, so what binaries result
