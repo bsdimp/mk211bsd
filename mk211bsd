@@ -436,6 +436,9 @@ EOF
 	# Both v7 and 2.11 Makefiles for libc ignore the status.
 	$APOUT $v7/bin/ld -x -r -o bootstrap.o *.o || true
 	cp bootstrap.o $ROOT211/usr/src/bin/as
+	# We need to cleanup the .o's that we created. Otherwise builds
+	# can fail due to permission issues and time issues.
+	rm *.o
     )
     $APOUT $v7/bin/ld -n -s as1.o bootstrap.o -o as
     $APOUT $v7/bin/ld -n -s as2.o bootstrap.o -o as2
