@@ -1,0 +1,20 @@
+#
+# Patch 184 replaces the temporary files with a shell pipeline for
+# all assembler files in the tree. Pretty straight forward, but it
+# also deletes a few things. These are compat / low-churn items, so
+# it's pretty safe to get them from 2.10.1.
+#
+# However, the directories we're getting them from were renamed from com-2.9 and
+# com-4.1 to compat-2.9 and compat-4.1 respectively so we have to jump through
+# some hoops for that to still have proper tracking of the recovery.
+#
+cd $ROOT211
+patch -V none -p1 -R < $patch
+pdp=usr/src/lib/libc/pdp
+mkdir $pdp/com-4.1
+from2.10.1 $pdp/com-4.1/Makefile $pdp/com-4.1/reset.s
+mv $pdp/com-4.1 $pdp/compat-4.1
+mkdir $pdp/com-2.9
+from2.10.1 $pdp/com-2.9/HEADER
+mv $pdp/com-2.9/HEADER $pdp/compat-2.9
+rmdir $pdp/com-2.9
