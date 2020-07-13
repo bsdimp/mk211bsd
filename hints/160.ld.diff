@@ -13,11 +13,11 @@
  		error(-1,
  "warning: archive has no table of contents; add one using ranlib(1)");
 -		nloc = 1;
-+		nloc = SARMAG;
++		nloc = SARMAG >> 1;
  		while (step(nloc))
 -			nloc += (archdr.ar_size + sizeof(archdr) + 1) >> 1;
-+			nloc += sizeof(archdr) +
-+			    (atol(archdr.ar_size) + 1) >> 1;
++			nloc += (sizeof(archdr) +
++			    atol(archdr.ar_size) + 1) >> 1;
  		break;
  
  	/*
@@ -48,7 +48,7 @@
 -		for (nloc = 1 + ((archdr.ar_size + sizeof(archdr) + 1) >> 1);
 -		    step(nloc);
 -			nloc += (archdr.ar_size + sizeof(archdr) + 1) >> 1);
-+		nloc = SARMAG;
++		nloc = SARMAG >> 1;
 +		do
 +			nloc += (sizeof(archdr) + atol(archdr.ar_size)) >> 1;
 +		while (step(nloc));
