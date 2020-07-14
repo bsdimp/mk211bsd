@@ -6,16 +6,33 @@
 # rather not have to reconfigure it all the time.
 #
 
+S=/usr/src
+
 #
 # Time to build libc
 #
+echo Bootstrapping libc
 cd $S/lib/libc
-make CFLAGS="-O -I$R/usr/include"
+make clean
+make
+make install
+make clean
 
-# Then what?
-# reinstall libc and all the .o's from the csu.
-# rebuild as, ld, nm and ranlib and reinstall
-# build the whole thing?
-# make a new kernel
-# profit
+#
+# Now we can build new binaries. We build ranlib now because in the 2.11pl195
+# system, has inconsistent include files that lead to two struct nlist being
+# defined. Once we have ranlib built, then all the tools we need for the next
+# stage of bootstrapping are there.
+#
+echo Bootstrapping a real ranlib
+cd $S/usr.bin
+cc -O -i -o ranlib ranlib.c -lc
+cp ranlib /usr/bin
+rm -f ranlib
+ranlib /lib/libc.a
 
+#
+# Well, let's go for broke, eh?
+#
+cd $s
+make build
