@@ -154,7 +154,7 @@
 +	arcmag[SARMAG] = 0;
 +	if (strcmp(arcmag, ARMAG))
 +		return (0);
-+	dseek(&text, SARMAG, sizeof archdr);
++	dseek(&text, (long)SARMAG>>1, sizeof archdr); /* word addressing */
  	if (text.size <= 0)
 -		return (1);			/* regular archive */
 -	mget((int *)&archdr, sizeof archdr);
