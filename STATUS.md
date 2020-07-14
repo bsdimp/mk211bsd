@@ -325,3 +325,30 @@ why there's any offset at all. There's nothing obvious from quick inspection.
 
 More data on how to interpret these results will be obtained when we try to roll
 forward all the way to the most current patch 469.
+
+## Rebuild Status
+
+Bootstrap process
+
+ 1. run mk211bsd
+ 1. move the src.tap tape to a 2.11pl195 system
+ 1. extract into /scratch
+ 1. copy /scratch/usr/src/bin/as/as to /scratch/bin
+ 1. copy /scratch/usr/src/bin/as/as2 to /scratch/lib
+ 1. cd /scratch/usr/src/bin
+ 1. make ld nm CFLAGS="-O -I/scratch/usr/include"
+ 1. chroot /scratch
+ 1. cd /usr/src/bin
+ 1. cp nm ld /bin
+ 1. cp /bin/true /usr/bin/ranlib
+ 1. cd /usr/src/lib/libc
+ 1. make
+ 1. cp liba.c crt0.o /lib
+ 1. cd /usr/src/usr.bin
+ 1. cc -O -i -o ranlib ranlib.c -lc
+    a. Note: you have to do this by hand otherwise the circular depends in libc will cause undefined symbols.
+ 1. cp ranlib /usr/bin
+ 1. ranlib /lib/libc.a
+
+And here's where we die. Current status is that the next step of testing things
+by rebuilding ar fails with a boatload of undefines from libc. This is likely due to a mismatch between ranlib and ld as to what the table of contents means.
