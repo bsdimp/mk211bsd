@@ -1,5 +1,5 @@
 --- /usr/src/usr.bin/ranlib.c-	1987-03-11 20:41:22.000000000 -0700
-+++ /usr/src/usr.bin/ranlib.c	2020-07-13 20:08:40.997862000 -0600
++++ /usr/src/usr.bin/ranlib.c	2020-07-14 05:38:03.523560000 -0600
 @@ -19,11 +19,17 @@
  char	tempnm[] = "__.SYMDEF";
  char	firstname[17];
@@ -85,3 +85,31 @@
  	}
  	for(i=0; i<tnum; i++)
  		tab[i].cloc += offdelta;
+@@ -145,16 +160,20 @@
+ }
+ 
+ /* patch time */
+-fixdate(s) char *s;
+-{	long timex, time();
++fixdate(s)
++	char *s;
++{
++	long time();
++	char buf[24];
+ 	int fd;
++
+ 	fd = open(s, 1);
+-	if(fd < 0)
+-	{	fprintf(stderr, "can't reopen %s\n", s);
++	if(fd < 0) {
++		fprintf(stderr, "ranlib: can't reopen %s\n", s);
+ 		return;
+ 	}
+-	timex = time(NULL) + 5; /* should be enough time */
+-	lseek(fd, (long)sizeof(exp.a_magic) + ((char *)&arp.ar_date-(char *)&arp), 0);
+-	write(fd, (char *)&timex, sizeof(timex));
++	sprintf(buf, "%-*ld", sizeof(arp.ar_date), time((long *)NULL)+5);
++	lseek(fd, (long)SARMAG + ((char *)arp.ar_date-(char *)&arp), 0);
++	write(fd, buf, sizeof(arp.ar_date));
+ 	close(fd);
+ }
