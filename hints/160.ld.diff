@@ -29,7 +29,8 @@
 +		tnum = atol(archdr.ar_size) / sizeof(struct tab);
  		if (tnum >= TABSZ)
  			error(1, "toc buffer too small");
- 		lseek(infil, (long)(sizeof(filhdr.a_magic) + sizeof(archdr)), 0);
+-		lseek(infil, (long)(sizeof(filhdr.a_magic) + sizeof(archdr)), 0);
++		lseek(infil, (long)(SARMAG + sizeof(archdr)), 0);
  		read(infil, (char *)tab, tnum * sizeof(struct tab));
  		while (ldrand())
 -			;
