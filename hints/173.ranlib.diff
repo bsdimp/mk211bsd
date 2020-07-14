@@ -1,12 +1,12 @@
 --- /usr/src/usr.bin/ranlib.c-	1987-03-11 20:41:22.000000000 -0700
-+++ /usr/src/usr.bin/ranlib.c	2020-07-11 15:29:14.686131000 -0600
-@@ -19,11 +19,17 @@ int new;
++++ /usr/src/usr.bin/ranlib.c	2020-07-13 20:08:40.997862000 -0600
+@@ -19,11 +19,17 @@
  char	tempnm[] = "__.SYMDEF";
  char	firstname[17];
  long	offdelta;
-+struct	ar_hdr	archdr;
-+#define	OARMAG 0177545
 +long	arsize;
++long	atol();
++#define       OARMAG 0177545
  
  main(argc, argv)
  char **argv;
@@ -18,7 +18,7 @@
  
  	--argc;
  	while(argc--) {
-@@ -32,10 +38,14 @@ char **argv;
+@@ -32,13 +38,17 @@
  			fprintf(stderr, "nm: cannot open %s\n", *argv);
  			continue;
  		}
@@ -36,87 +36,52 @@
 +			fprintf(stderr, "archive: %s\n", *argv);
  			continue;
  		}
- 		fseek(fi, 0L, 0);
-@@ -102,15 +112,20 @@ nextel(af)
+-		fseek(fi, 0L, 0);
++		fseek(fi, (long)SARMAG, 0);
+ 		new = tnum = 0;
+ 		if(nextel(fi) == 0)
+ 		{	fclose(fi);
+@@ -102,15 +112,20 @@
  FILE *af;
  {
  	register r;
-+	register char *cp;
++	char *cp;
  
  	oldoff = off;
  	fseek(af, off, 0);
--	r = fread((char *)&arp, 1, sizeof(struct ar_hdr), af);  /* read archive header */
--	if (r <= 0)
-+	r = fread((char *)&archdr, 1, sizeof(struct ar_hdr), af);
-+	if (r != sizeof(struct ar_hdr))
+ 	r = fread((char *)&arp, 1, sizeof(struct ar_hdr), af);  /* read archive header */
+ 	if (r <= 0)
  		return(0);
 -	if (arp.ar_size & 1)
 -		++arp.ar_size;
 -	off = ftell(af) + arp.ar_size;	/* offset to next element */
-+	for (cp=archdr.ar_name; cp < & archdr.ar_name[sizeof(archdr.ar_name)]; cp++)
++	for (cp=arp.ar_name; cp < & arp.ar_name[sizeof(arp.ar_name)]; cp++)
 +		if (*cp == ' ')
 +			*cp = '\0';
-+	arsize = atol(archdr.ar_size);
++	arsize = atol(arp.ar_size);
 +	if (arsize & 1)
-+		arsize++;
-+	off = ftell(af) + arsize;
++		++arsize;
++	off = ftell(af) + arsize;	/* offset to next element */
  	return(1);
  }
  
-@@ -127,34 +142,38 @@ stash(s) struct nlist *s;
- }
- 
+@@ -129,15 +144,15 @@
  fixsize()
--{	int i;
--	offdelta = tnum * sizeof(struct tab) + sizeof(arp);
+ {	int i;
+ 	offdelta = tnum * sizeof(struct tab) + sizeof(arp);
 -	off = sizeof(MAGIC);
-+{
-+	int i;
-+
 +	off = SARMAG;
  	nextel(fi);
 -	if(strncmp(arp.ar_name, tempnm, 14) == 0)
--	{	new = 0;
++	if(strncmp(arp.ar_name, tempnm, sizeof(arp.ar_name)) == 0)
+ 	{	new = 0;
 -		offdelta -= sizeof(arp) + arp.ar_size;
-+	if(strncmp(archdr.ar_name, tempnm, sizeof (archdr.ar_name)) == 0) {
-+		new = 0;
-+		offdelta -= sizeof(archdr) + arsize;
-+	} else {
-+		new = 1;
-+		strncpy(firstname, archdr.ar_name, sizeof(archdr.ar_name));
++		offdelta -= sizeof(arp) + arsize;
  	}
--	else
--	{	new = 1;
+ 	else
+ 	{	new = 1;
 -		strncpy(firstname, arp.ar_name, 14);
--	}
--	for(i=0; i<tnum; i++)
-+	for (i = 0; i < tnum; i++)
- 		tab[i].cloc += offdelta;
- 	return(new);
- }
- 
- /* patch time */
--fixdate(s) char *s;
--{	long timex, time();
-+fixdate(s)
-+	char *s;
-+{
-+	long time();
-+	char buf[24];
- 	int fd;
-+
- 	fd = open(s, 1);
--	if(fd < 0)
--	{	fprintf(stderr, "can't reopen %s\n", s);
-+	if(fd < 0) {
-+		fprintf(stderr, "ranlib: can't reopen %s\n", s);
- 		return;
++		strncpy(firstname, arp.ar_name, sizeof(arp.ar_name));
  	}
--	timex = time(NULL) + 5; /* should be enough time */
--	lseek(fd, (long)sizeof(exp.a_magic) + ((char *)&arp.ar_date-(char *)&arp), 0);
--	write(fd, (char *)&timex, sizeof(timex));
-+	sprintf(buf, "%-*ld", sizeof(archdr.ar_date), time((long *)NULL)+5);
-+	lseek(fd, (long)SARMAG + ((char *)archdr.ar_date-(char *)&archdr), 0);
-+	write(fd, buf, sizeof(archdr.ar_date));
- 	close(fd);
- }
+ 	for(i=0; i<tnum; i++)
+ 		tab[i].cloc += offdelta;
