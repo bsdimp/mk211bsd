@@ -20,7 +20,7 @@ from2.10.1 $pdp/com-4.1/Makefile $pdp/com-4.1/reset.s
 mv $pdp/com-4.1 $pdp/compat-4.1
 mkdir $pdp/compat-4.1/profiled
 ln -s ../sys/SYS.h $pdp/compat-4.1
-sed -I.bak -e"s/DEFS.h/SYS.h/g" $pdp/compat-4.1/Makefile $pdp/compat-4.1/reset.s
+sed -I.bak -e"s/DEFS.h/SYS.h/g;s/com-4.1/compat-4.1/g" $pdp/compat-4.1/Makefile $pdp/compat-4.1/reset.s
 rm $pdp/compat-4.1/*.bak
 mkdir $pdp/com-2.9
 from2.10.1 $pdp/com-2.9/HEADER
