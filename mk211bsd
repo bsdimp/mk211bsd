@@ -509,6 +509,8 @@ pprint 1 "Fixing permissions and prepping tape"
     for i in bin etc usr/bin lib; do
 	chmod +x $i/*
     done
+    # rm libraries that are useless
+    find lib usr/lib -name \*.a | xargs rm -f
 )
 
 # Make the src.tar
