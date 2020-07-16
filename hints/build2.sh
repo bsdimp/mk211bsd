@@ -51,9 +51,11 @@ cp $R/bin/true $R/usr/bin/ranlib
 echo Bootstrapping libc
 cd $S/lib/libc
 make clean
-# sometimes this gets skipped, so build it first
+# sometimes this gets skipped, so build it first, unsure why
+# but maybe related to recursion and multiple things named
+# compat-4.1
 (cd pdp/compat-4.1; make)
-make all
+make
 make install
 make clean
 
@@ -107,15 +109,33 @@ cd $S/sys/conf
 #
 cd $S
 make clean
-cd lib
-for i in ccom cpp c2 libc ccom cpp c2; do
-    (cd $i; make all; make install; make clean)
-done
-cd ../usr.lib
-for i in lib*; do
-    (cd $i; make all; make install; make clean)
-done
-cd ..
+(
+    cd lib
+    for i in ccom cpp c2; do
+	(cd $i; make; make install; make clean)
+    done
+    (
+	cd libc
+	# Sometimes we fail to descend for reasons as
+	# yet unknown -- same name or time of dir? idk
+	cd pdp/compat-4.1
+	make
+	cd ../..
+	make
+	make install
+	make clean
+    )
+    for i in ccom cpp c2; do
+	(cd $i; make; make install; make clean)
+    done
+)
+(
+    cd usr.lib
+    for i in lib*; do
+	(cd $i; make; make install; make clean)
+    done
+)
+# Build it all again now that we've done the above dance
 make all
 make install
 make clean
