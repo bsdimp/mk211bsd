@@ -1,5 +1,10 @@
 #!/bin/sh
 
+dir() (
+    echo $*
+    exit 1
+)
+
 #
 # Build script meant to be kicked off in the chroot to do all the building w/o
 # contaminating the 2.11pl195 host. We'll need to use that host *A*LOT* and I'd
@@ -34,6 +39,7 @@ rm -f as as2 *.o
 # actually link things multiple times, though, since it only gets .o's that
 # were missed in the first pass.
 #
+cd ..
 cp nm ld $R/bin
 rm -f ld nm
 rm $R/usr/bin/ranlib
@@ -45,9 +51,13 @@ cp $R/bin/true $R/usr/bin/ranlib
 echo Bootstrapping libc
 cd $S/lib/libc
 make clean
+# sometimes this gets skipped, so build it first
+(cd pdp/compat-4.1; make)
 make all
 make install
 make clean
+
+[ -r /lib/libc.a ] || die no libc.a
 
 #
 # Now we can build new binaries. We build ranlib now because in the 2.11pl195
