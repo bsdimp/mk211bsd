@@ -1,10 +1,5 @@
 #!/bin/sh
 
-dir() (
-    echo $*
-    exit 1
-)
-
 #
 # Build script meant to be kicked off in the chroot to do all the building w/o
 # contaminating the 2.11pl195 host. We'll need to use that host *A*LOT* and I'd
@@ -59,7 +54,7 @@ make
 make install
 make clean
 
-[ -r /lib/libc.a ] || die no libc.a
+[ -r /lib/libc.a ] || (echo no libc.a && exit 1)
 
 #
 # Now we can build new binaries. We build ranlib now because in the 2.11pl195
@@ -88,6 +83,8 @@ rm ar strip
 # place where /sys is inconsistent. This restores consistency.  Or at least
 # generates a better sys/h/localdefs.h for building everything else.
 #
+cd $S/sys
+mv GENERIC GENERIC-
 cd $S/sys/conf
 ./config GENERIC
 
