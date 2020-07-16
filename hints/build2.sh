@@ -50,6 +50,7 @@ make clean
 # but maybe related to recursion and multiple things named
 # compat-4.1
 (cd pdp/compat-4.1; make)
+(cd pdp; make)
 make
 make install
 make clean
@@ -117,7 +118,9 @@ make clean
 	# yet unknown -- same name or time of dir? idk
 	cd pdp/compat-4.1
 	make
-	cd ../..
+	cd ..
+	make
+	cd ..
 	make
 	make install
 	make clean
@@ -129,7 +132,9 @@ make clean
 (
     cd usr.lib
     for i in lib*; do
-	[ -d $i ] && (cd $i; make; make install; make clean)
+	if [ -d $i ]; then
+	    (cd $i; make; make install; make clean)
+	fi
     done
 )
 # Build it all again now that we've done the above dance
