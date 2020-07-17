@@ -149,6 +149,12 @@ make clean
     for i in lib[0-9A-Za-z]*; do
 	(cd $i; make; make install; make clean)
     done
+    # usr.lib's install does this, since we're bypassing
+    # that, we need to do the link here. Otherwise things
+    # fail later.
+    rm -f /usr/lib/libm.a /usr/lib/libm_p.a
+    ln /usr/lib/libom.a /usr/lib/libm.a
+    ln /usr/lib/libom_p.a /usr/lib/libm_p.a
 )
 # Build it all again now that we've done the above dance
 make all
