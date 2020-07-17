@@ -131,10 +131,8 @@ make clean
 )
 (
     cd usr.lib
-    for i in lib*; do
-	if [ -d $i ]; then
-	    (cd $i; make; make install; make clean)
-	fi
+    for i in lib[A-Za-z]*; do
+	(cd $i; make; make install; make clean)
     done
 )
 # Build it all again now that we've done the above dance
