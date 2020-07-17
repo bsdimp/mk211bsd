@@ -18,6 +18,8 @@ echo Bootstrapping ld and nm and faking ranlib
 cd $S/bin
 cc -o ld -O -i -I$R/usr/include ld.c -lc
 cc -o nm -O -i -I$R/usr/include nm.c -lc
+mkdir -p $R/bs
+cp ld nm as/as as/as2 $R/bs
 
 # OK, now it's time to jump into the chroot.
 echo Launching the chroot build

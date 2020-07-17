@@ -17,10 +17,13 @@ S=/usr/src
 # given the turn around time.
 #
 echo Copying bootstrapped as...
-cd $S/bin/as
-cp as /bin
+# cd $S/bin/as
+# cp as /bin
+# cp as2 /lib
+# rm -f as as2 *.o
+cd /bs
+cp as ld nm /bin
 cp as2 /lib
-rm -f as as2 *.o
 
 #
 # Copy over the bootstrapped nm and ld.
@@ -34,9 +37,9 @@ rm -f as as2 *.o
 # actually link things multiple times, though, since it only gets .o's that
 # were missed in the first pass.
 #
-cd ..
-cp nm ld $R/bin
-rm -f ld nm
+# cd ..
+# cp nm ld $R/bin 		# see above
+# rm -f ld nm
 rm $R/usr/bin/ranlib
 cp $R/bin/true $R/usr/bin/ranlib
 
@@ -80,10 +83,20 @@ cp ar strip /bin
 rm ar strip
 
 #
+# Install(1) knows about the format that changed, and so needs to be installed
+# before we use 'install -s' or that will fail.
+#
+echo Bootstrapping install
+cd $S/usr.bin
+make xinstall
+cp xinstall /usr/bin
+
+#
 # Now we need to bootstrap the kernel config. The undo process leads us to a
 # place where /sys is inconsistent. This restores consistency.  Or at least
 # generates a better sys/h/localdefs.h for building everything else.
 #
+echo Reconfiguring GENERIC kernel
 cd $S/sys
 mv GENERIC GENERIC-
 cd $S/sys/conf
@@ -131,7 +144,9 @@ make clean
 )
 (
     cd usr.lib
-    for i in lib[A-Za-z]*; do
+    # We need to only build real libraries here and lib.b
+    # gets in the way of using the simple lib* here.
+    for i in lib[0-9A-Za-z]*; do
 	(cd $i; make; make install; make clean)
     done
 )
