@@ -1,0 +1,43 @@
+simh>
+boot ts0
+;
+ts(0,1)
+ra(0,0)
+15884
+
+
+:
+ts(0,2)
+ts(0,4)
+ra(0,0)
+
+:
+ra(0,0)unix
+#
+dd if=/mdec/rauboot of=/dev/ra0a count=1
+disk=ra
+part=c
+name=${disk}0${part}
+cd /dev
+rm *mt*
+./MAKEDEV ts0
+sync
+newfs $name rd54
+mount /dev/$name /usr
+cd /usr
+mt rew
+mt fsf 5
+tar xpbf 20 /dev/rmt12
+mt -f /dev/rmt12 fsf
+mkdir src
+cd src
+tar xpbf 20 /dev/rmt12
+cd /
+chmod 755 / /usr /usr/src /usr/src/sys
+rm -f sys
+ln -s usr/src/sys sys
+cd /usr/src
+tar xpbf 20 /dev/rmt12
+vi /etc/netstart		# fill in hostname, etc
+vi /etc/networks		# add local network
+mv /usr/lib/sendmail /usr/lib/sendmail.off
