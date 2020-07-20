@@ -1,0 +1,46 @@
+#!/bin/sh
+
+# one time only fetch of the artifacts from TUHS needed for this to run will at
+# least get everything locally, may need to hack mk211bsd to point to a
+# different TUHS. Takes ~75MB of space, so please be kind to the tuhs mirror and
+# don't constantly fetch.
+
+TUHS=https://www.tuhs.org/Archive/
+UCB=Distributions/UCB
+
+fetchone() (
+	file=$1
+	dir=$(dirname $1)
+	mkdir -p $dir
+	chdir $dir
+	wget ${TUHS}/$file
+)
+
+fetchdir() (
+	dir=$1
+	mkdir -p $dir
+	chdir $dir
+	wget ${TUHS}/$dir/*
+)
+
+mkdir tuhs
+cd tuhs
+fetchone Distributions/Research/Henry_Spencer_v7/v7.tar.gz
+fetchone Distributions/Research/Dennis_v1/svntree-20081216.tar.gz
+fetchone $UCB/2.11BSD/root.afio.gz
+fetchone $UCB/2.11BSD-pl195.tar
+fetchone $UCB/2.10.1bsd.tar
+fetchone $UCB/4.3BSD/srcsys.tar.gz
+fetchone $UCB/4.3BSD/src.tar.gz
+( # Official 2.11 Patches
+	mkdir -p $UCB/2.11BSD/Patches
+	cd $UCB/2.11BSD/Patches
+	wget -L --mirror -nH --cut-dirs=5 https://www.tuhs.org/Archive/Distributions/UCB/2.11BSD/Patches/ -A '[0-9]*'
+)
+( # Usenet 2.10.1 patches for a few things
+	mkdir -p Usenet/comp.bugs.2bsd
+	cd Usenet/comp.bugs.2bsd
+	fetch https://people.freebsd.org/~imp/comp.bugs.2bsd/1989-August.txt.gz
+	fetch https://people.freebsd.org/~imp/comp.bugs.2bsd/1989-October.txt.gz
+	fetch https://people.freebsd.org/~imp/comp.bugs.2bsd/1989-December.txt.gz
+)
