@@ -14,4 +14,17 @@ patch -V none -R -p1 < $TEMP/patchfile
 # functions.
 rm -rf usr/src/usr.bin/ranlib
 from2.10.1 usr/src/usr.bin/ranlib.c
+# Before we start to recover using the changes post 2.11, we need to do the ones between 2.10.1
+# and 2.11. These were posted in comp.bugs.2bsd (which the release notes say were applied to
+# 2.11).
+#
+(
+    # Bug from 24 Oct 89 Message-ID: <38871@wlbr.IMSD.CONTEL.COM>
+    cd usr/src/usr.bin
+    zcat $TUHS/Usenet/comp.bugs.2bsd/1989-October.txt.gz | \
+	sed -n -e '/Index:.*usr.bin/ranlib.c 2.10BSD/,/^From /p' | \
+	patch -V none -p0
+)
+
+# Now apply the reconstruction patch
 patch -V none -p1 < $HINTSDIR/173.ranlib.diff
