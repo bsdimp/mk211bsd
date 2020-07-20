@@ -89,7 +89,7 @@ rm ar strip
 echo Bootstrapping install
 cd $S/usr.bin
 make xinstall
-cp xinstall /usr/bin
+cp xinstall /usr/bin/install
 
 #
 # Now we need to bootstrap the kernel config. The undo process leads us to a
