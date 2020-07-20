@@ -89,7 +89,8 @@ mktools() {
 	rm -rf $APOUT_SRC
 	mkdir -p $APOUT_SRC
 	cd $APOUT_SRC
-	cp ${TUHS}/Distributions/Research/Dennis_v1/unix72/tools/apout/* .
+	tar -xv -f ${TUHS}/Distributions/Research/Dennis_v1/svntree-20081216.tar.gz \
+	    --strip-components 3 unix72/tools/apout
 	# fixes to make it happier with restor
 	patch -p1 < $TOP/apout.patch
 	make clean
