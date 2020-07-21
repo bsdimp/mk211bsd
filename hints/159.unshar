@@ -11,3 +11,56 @@ uncompress patchfile2.Z
 cd $ROOT211
 patch -V none -R -p1 < $TEMP/patchfile1
 patch -V none -R -p1 < $TEMP/patchfile2
+#
+# Patch 159 has the following instructions:
+#
+#	5) Several of the files are examples, you need to update any
+#	   local files:
+#
+#		/sys/YOUR_KERNELS/Makefile
+#		/sys/YOUR_KERNELS/SPLFIX
+#		/sys/YOUR_KERNELS/NETSPLFIX
+#
+#	   Use the patches in the patchfile{1,2} as guides (you will probably
+#	   be able to use them directly).
+#
+#	   The changes to the kernel Makefile are to run the 'symorder',
+#	   'symcompact' and 'strcompact' programs after linking the kernel.
+#
+#	   The changes to the SPLFIX and NETSPLFIX scripts deal with the
+#	   longer symbol names ('splclock' was previously truncated to
+#	   'splcloc' for example).  If you do not edit the SPL scripts
+#	   you will have undefined symbols during a kernel recompile.
+#
+#	   The change to the GENERIC kernel config file was to increase
+#	   the number of MSCP controllers from 1 to 2.  Very useful for
+#	   disaster recovery if more than one MSCP controller is present.
+#
+#	   Of course it is possible to simply delete your current kernel
+#	   build directory and re-run the 'config' script again.  This
+#	   will set up the Makefile and SPL scripts for you.
+#
+# Which is a long way of saying that we need to copy over Make.bdp, patch Makefile
+# and update SPLFIX and NETSPLFIX. The SMS and QT kernels use the same thing, so
+# we hack it a bit.
+cd usr/src/sys
+# Copy Make.pdp
+for i in [A-Z]*; do
+    case $i in
+    OTHER) continue ;;
+    GENERIC) continue ;;
+    esac
+    cp conf/Make.pdp $i/Make.pdp
+    cp conf/spl/:splfix.movb+mfps $i/NETSPLFIX
+    cp conf/spl/:splfix.mfps $i/SPLFIX
+done
+# And now patch the Makefile, generic already done above
+for i in [A-Z]*; do
+    case $i in
+    OTHER) continue ;;
+    GENERIC) continue ;;
+    esac
+    [ -f $i/Makefile ] || continue
+    echo Patching $i/Makefile
+    (cd $i; sed -ne '/Makefile/,/FRC/p' < $TMP/16 | patch -V none -R)
+done
