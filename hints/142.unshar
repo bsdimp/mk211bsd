@@ -10,3 +10,42 @@ patch -V none -R -p1 < $TEMP/10
 patch -V none -R -p1 < $TEMP/11
 patch -V none -R -p1 < $TEMP/16
 rm $ROOT211/sys/pdp/libc_uldiv.s $ROOT211/sys/pdp/libc_ulsh.s
+#
+# The patch 142 instructions included:
+#
+#	Then for *each* kernel you have configured on your system
+#	(/sys/GENERIC is one, you probably have others such as
+#	/sys/KNASE, /sys/FOO, and so on):
+#
+#		cp /sys/conf/Make.pdp /sys/FOO/Make.pdp
+#		...
+#		cp /sys/conf/Make.pdp /sys/GENERIC/Make.pdp
+#
+#	Next you need to update the main 'Makefile' in each configured
+#	kernel.  See the file '16' below - that patch updates the
+#	GENERIC 'Makefile', you need to do something similar to the
+#	Makefile in /sys/FOO.  You very likely can use the same patch
+#	(cd /sys/FOO; patch < /tmp/16), all that you need to do is
+#	add the line:
+#		libc_uldiv.o libc_ulsh.o \
+#	after the line with 'libc_remque.o' in it.
+#
+# So we have to undo all that here...
+cd usr/src/sys
+# Copy Make.pdp
+for i in [A-Z]*; do
+    case $i in
+    OTHER) continue ;;
+    esac
+    cp conf/Make.pdp $i/Make.pdp
+done
+# And now patch the Makefile, generic already done above
+for i in [A-Z]*; do
+    case $i in
+    OTHER) continue ;;
+    GENERIC) continue ;;
+    esac
+    [ -f $i/Makefile ] || continue
+    echo Patching $i/Makefile
+    (cd $i; patch -V none -R < $TEMP/16)
+done
