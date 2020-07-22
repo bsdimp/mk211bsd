@@ -3,6 +3,9 @@
 # the tools from 2.10.1. The patch describes them as ancient, and 2.10.1 qualifies.
 #
 sed -e '1,/===cut here===/d' < $patch | sh -x
+uudecode c.tar.Z.uu
+rm c.tar.Z.uu
+uncompress c.tar.Z
 cd $ROOT211
 patch -V none -R -p1 < $TEMP/c.patch
 find usr/src/etc/named/tools -type f | xargs rm
