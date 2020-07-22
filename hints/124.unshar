@@ -20,3 +20,16 @@ done
 # Tweak name
 cp $ROOT2101/usr/src/lib/libc/pdp/com-2.9/rtp.s usr/src/lib/libc/pdp/compat-2.9/rtp.s
 echo "Recovering usr/src/lib/libc/pdp/com-2.9/rtp.s to usr/src/lib/libc/pdp/compat-2.9/rtp.sfrom 2.10.1BSD" >> $RECOVERY_LOG
+
+# Changes to the config / kernel need to be hand applied -- this duplicates what config
+# would have done, had we run it. We don't due to the overlay issues.
+# Add back the CGL_RTP line to the SMS config file
+sed -n -e '/conf.VAX/,/config.old/p;s=VAX=SMS=g' < $TEMP/patch.conf | patch -V none -p1 -R
+# Need to update Make.sys and param.c in GENERIC and SMS
+cp usr/src/sys/conf/Make.sys usr/src/sys/conf/param.c usr/src/sys/GENERIC
+cp usr/src/sys/conf/Make.sys usr/src/sys/conf/param.c usr/src/sys/SMS
+# Need to un-mix-in the changes to Make.nsunix, which is only relevant to SMS
+sed -n -e '/Make.nsunix/,/Make.sunix/p' < $TEMP/patch.conf | sed -e 's=/conf/Make.nsunix=/SMS/Makefile='  | patch -V none -p1 -R
+# Need to un-mix-in the changes to Make.sunix, which is only relevant to GENERIC
+sed -n -e '/Make.sunix/,/Make.sys/p' < $TEMP/patch.conf | sed -e 's=/conf/Make.sunix=/GENERIC/Makefile='  | patch -V none -p1 -R
+# Make.unix also changed, but nothing uses it
