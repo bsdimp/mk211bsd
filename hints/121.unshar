@@ -3,6 +3,18 @@
 chdir $ROOT211
 rm $ROOT211/usr/src/sys/pdpif/if_qt.c
 rm $ROOT211/usr/src/sys/pdpif/if_qtreg.h
+
+#
 # Snag the files that this reapplaces from patch 98, which was a beta version of
 # this driver
+#
 sed -n -e'/\*\*\* .*if_qt.c.old/,/*\*\* .*\/if_uba.c.old/p' < $PATCHDIR/98 | patch -V none -p1
+
+#
+# While a placeholder qt driver was introduced in patch 98, it didn't work. I am
+# going to arbitrarily say the QT kernel config made no sense before here. This stops
+# us back-patching it and makes things a little easier.
+# XXX going forward, though, we might need to hack this to save off the current state
+# XXX so we can recover it since there doesn't appear to be any patches for this.
+#
+rm -rf usr/src/sys/QT usr/src/sys/conf/QT
