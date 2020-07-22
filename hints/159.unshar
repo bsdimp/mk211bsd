@@ -5,8 +5,10 @@
 cd $TEMP
 sed -e '1,/================cut here/d' < $patch | sh -x
 uudecode patchfile1.Z.uu
+rm patchfile1.Z.uu
 uncompress patchfile1.Z
 uudecode patchfile2.Z.uu
+rm patchfile2.Z.uu
 uncompress patchfile2.Z
 cd $ROOT211
 patch -V none -R -p1 < $TEMP/patchfile1
