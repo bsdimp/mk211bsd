@@ -18,7 +18,7 @@ PATCHSRC=${UCB}/2.11BSD/Patches
 PATCHDIR=${TOP}/patches
 HINTSDIR=${TOP}/hints
 APOUT_ROOT=/
-TEMP=${TOP}/tmp
+TEMPDIR=${TOP}/tmp
 LOGS=${TOP}/log
 RECOVERY_LOG=${LOGS}/recovery.log
 ROOT211TAR=$TOP/root-2.11.tar.xz
@@ -316,8 +316,9 @@ undo_patch_level() (
     p=$1
     patch=$PATCHDIR/$p
 
-    clean_tree $TEMP
-    mkdir $TEMP
+#    clean_tree $TEMP
+    export TEMP=$TEMPDIR/$p
+    mkdir -p $TEMP
     cd $TEMP
     case $p in
 	*.tar)
@@ -451,6 +452,8 @@ EOF
 unpack_211
 [ -d $ROOT2101 ] || unpack_2101
 [ -d $ROOTV7 ] || unpack_v7
+[ -z $TEMPDIR ] && die oh no
+clean_tree $TEMPDIR
 [ -d $PATCHDIR ] || extract_patches
 #
 # OK. Now we have a good root for both 2.10.1BSD and 2.11pl195BSD with patches
