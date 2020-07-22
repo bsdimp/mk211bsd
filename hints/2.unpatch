@@ -6,10 +6,10 @@ mv $TEMP/2/b.0 $TEMP	# b.0 has no patches, so we need to remove
 # out to not be needed to recover back to patch 0.
 rm -f $TEMP/2/b.16	# disktab
 
-# GENERIC/Makefile is generated. There's something odd going on here, but since
-# we can regenerate GENERIC/* at pl0, don't worry about it here.
-# There's a small chance, though, that what shipped with 2.11 was something
-# hand tweaked that will mean we need to revisit this.
+# Although GENERIC/Makefile is generated, it can be hand-tweaked to get a better
+# overlay setup (so that it actually fits). So this is a big bogus, but lets us
+# get on with things. Eventually, though, this should go away, once we get the
+# unwinding of GENERIC/Makefile through all the weird patches in hand.
 rm -f $TEMP/2/b.1	# GENERIC/Makefile -> generated!
 
 # bruboot.s has 2 extra lines in it that we need to remove before this patch
