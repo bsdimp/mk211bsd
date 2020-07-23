@@ -1,0 +1,25 @@
+# un-Apply patch
+patch -V none -p1 -R < $patch
+
+# We have to undo these instructions:
+#	First, move the OTHERS/dhv modules to the right place and remove
+#	the OTHERS/dhv directory.
+#
+#		mv /sys/OTHERS/dhv/dhv.c /sys/pdpuba/dhv.c
+#		mv /sys/OTHERS/dhv/dhvreg.h /sys/pdpuba/dhvreg.h
+#		mv /sys/OTHERS/dhv/dhvauto.c /sys/autoconfig/dhvauto.c
+#		rm -r /sys/OTHERS/dhv
+cd $ROOT211
+cd usr/src/sys
+mkdir OTHERS/dhv
+mv pdpuba/dhv.c OTHERS/dhv
+mv pdpuba/dhvreg.h OTHERS/dhv
+mv autoconfig/dhvauto.c OTHERS/dhv
+
+# And then we have to update Make.pdpuba and KAZOO/Makefile
+# to cope with Make.nsunix changing and GENERIC/Makefile to
+# cope with Make.sunix changing.
+cd $ROOT211
+sed -n -e '/Make.nsunix/,/Make.pdpuba/p' < $patch | sed -e 's=/conf/Make.nsunix=/KAZOO/Makefile=' | patch -V none -p1 -R
+sed -n -e '/Make.sunix/,/Make.unix/p' < $patch | sed -e 's=/conf/Make.sunix=/GENERIC/Makefile=' | patch -V none -p1 -R
+
