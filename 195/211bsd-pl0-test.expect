@@ -1,0 +1,40 @@
+#!/usr/local/bin/expect
+
+# expect script for 2.11p195 install. Newer versions need a diffferent script.
+
+set startTime [clock seconds]
+puts "Started : [clock format $startTime]\n"
+
+set prompt "root--> "
+set timeout 500
+
+spawn pdp11 211bsd-195-run.ini
+
+# Bring up multi-user and login as root
+expect "93Boot"
+expect ": "					{send "ra(0,0)unix\r"}
+expect "# "					{send "\004"}
+expect "login: "				{send "root\r"}
+expect "$prompt"				{send "newfs ra1a rd54\r"}
+expect "$prompt"				{send "newfs ra1g rd54\r"}
+expect "$prompt"				{send "mkdir -p /scratch\r"}
+expect "$prompt"				{send "mount /dev/ra1a /scratch\r"}
+expect "$prompt"				{send "mkdir -p /scratch/usr\r"}
+expect "$prompt"				{send "mount /dev/ra1g /scratch/usr\r"}
+expect "$prompt"				{send "cd /scratch\r"}
+expect "$prompt"				{send "mt -f /dev/rmt12 rew\r"}
+expect "$prompt"				{send "tar xv\r"}
+expect "$prompt"				{send "sh -ex ./build.sh\r"}
+set timeout 3600
+expect "$prompt"				{send "chroot /scratch sh -ex build2.sh\r"}
+# Should do something smart on timeout...
+
+# And we're done...
+expect "$prompt"				{send "sync\r"}
+expect "$prompt"				{send "sync\r"}
+expect "$prompt"				{send "sync\r"}
+expect "$prompt"				{send "halt\r"}
+expect "sim> "					{send "quit\r"}
+
+set endTime [clock seconds]
+puts "Ended : [clock format $endTime]\n"
