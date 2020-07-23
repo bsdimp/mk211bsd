@@ -6,12 +6,6 @@ mv $TEMP/2/b.0 $TEMP	# b.0 has no patches, so we need to remove
 # out to not be needed to recover back to patch 0.
 rm -f $TEMP/2/b.16	# disktab
 
-# Although GENERIC/Makefile is generated, it can be hand-tweaked to get a better
-# overlay setup (so that it actually fits). So this is a big bogus, but lets us
-# get on with things. Eventually, though, this should go away, once we get the
-# unwinding of GENERIC/Makefile through all the weird patches in hand.
-rm -f $TEMP/2/b.1	# GENERIC/Makefile -> generated!
-
 # bruboot.s has 2 extra lines in it that we need to remove before this patch
 # will work. Unsure why this is the case, but apparently the 11/70 in Rome
 # didn't pass 0 in r0 or csr in r1 as expected. This removes those two
