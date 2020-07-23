@@ -1,0 +1,31 @@
+--- /usr/src/sys/GENERIC/Makefile~	2020-07-22 22:26:06.049375000 -0600
++++ /usr/src/sys/GENERIC/Makefile	2020-07-23 11:39:01.442472000 -0600
+@@ -47,19 +47,20 @@
+ 
+ BASE=	br.o dh.o dhu.o dkbad.o dr.o dz.o hk.o init_sysent.o kern_clock.o \
+ 	kern_descrip.o kern_mman.o kern_proc.o kern_sig.o kern_subr.o \
+-	kern_synch.o lp.o machdep.o ra.o ram.o rk.o rl.o rx.o si.o \
++	kern_synch.o lp.o ram.o rk.o rl.o rx.o si.o \
+ 	subr_rmap.o subr_xxx.o sys_inode.o sys_pipe.o trap.o tty.o \
+ 	tty_conf.o tty_subr.o tty_tb.o tty_tty.o ufs_alloc.o ufs_bio.o \
+ 	ufs_bmap.o ufs_dsort.o ufs_fio.o ufs_inode.o ufs_namei.o \
+-	ufs_subr.o vm_proc.o vm_sched.o vm_swap.o vm_swp.o vm_text.o xp.o
+-OV1=	kern_prot.o sys_generic.o ufs_syscalls.o mem.o
++	ufs_subr.o vm_proc.o vm_sched.o vm_swap.o vm_text.o xp.o
++OV1=	sys_generic.o ufs_syscalls.o mem.o
+ OV2=	kern_acct.o kern_exec.o kern_exit.o kern_fork.o kern_resource.o
+-OV3=	clock.o cons.o init_main.o kern_pdp.o kern_rtp.o kern_time.o \
+-	kern_xxx.o machdep2.o quota_sys.o subr_prf.o sys_process.o \
+-	syscalls.o ufs_mount.o
+-OV4=	tty_pty.o quota_kern.o quota_subr.o quota_ufs.o subr_log.o
++OV3=	clock.o init_main.o kern_pdp.o kern_rtp.o kern_time.o \
++	kern_xxx.o quota_sys.o subr_prf.o sys_process.o \
++	syscalls.o ufs_mount.o subr_log.o vm_swp.o
++OV4=	tty_pty.o quota_kern.o quota_subr.o quota_ufs.o machdep2.o \
++	ra.o kern_prot.o machdep.o
+ OV5=	ht.o tm.o ts.o
+-OV6=	tmscp.o
++OV6=	tmscp.o cons.o
+ 
+ KERNOBJ=${CONF} ${BASE} ${OV1} ${OV2} ${OV3} ${OV4} ${OV5} \
+ 	${OV6} ${OV7} ${OV8} ${OV9} ${OV10} ${OV11} ${OV12} \

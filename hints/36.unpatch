@@ -1,0 +1,20 @@
+# un-Apply patch
+patch -V none -p1 -R < $patch
+
+# change  GENERIC/Makefile to cope with Make.sunix changing.
+cd $ROOT211
+sed -n -e '/Make.sunix/,/README/p' < $patch | sed -e 's=/conf/Make.sunix=/GENERIC/Makefile=' | patch -V none -p1 -R
+# However, there's a note in the patch:
+#	The GENERIC kernel wouldn't fit using the distributed Make.sunix
+#	file - this was annoying since the dist kit obviously has a
+#	GENERIC kernel on it.   Also, a reminder is added to both
+#	the pdpstand/README and the pdpstand/Makefile to install a
+#	'generic' version of /etc/dtab when building a GENERIC boot tape.
+# So 2 things. (1) do we need to copy the un-patched dtab to /etc now?
+# and (2) GENERIC makefile was afu, hence the need for this change, so apply
+# our best guess as to how it was AFU'd based on the data we have from patch
+# 2 b.1 file. We can't say for sure what BASE, OV1, OV2 and the first line of OV3
+# are, so we'll have to test this reconstruction.  We can make close guesses,
+# though, which is what this patch enshrines.
+patch -V none -p1 < $HINTSDIR/36.GENERIC-Makefile.diff
+
