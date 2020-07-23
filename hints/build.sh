@@ -6,6 +6,11 @@
 R=/scratch
 S=$R/usr/src
 
+# The build requires /dev/null to work, so create it.
+echo Creating devices
+cd $R/dev
+sh ./MAKEDEV std
+
 #
 # Once we have the .o files, we need to link them into binaries. We also need to
 # create libraries. ld(1) is what turns .o files into other .o files as well as
