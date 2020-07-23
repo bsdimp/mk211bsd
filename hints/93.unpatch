@@ -1,0 +1,8 @@
+patch -V none -p1 -R < $patch
+cd $ROOT211
+cd usr/src/sys
+# Move from SMS -> KAZOO with this break
+rm -rf GENERIC SMS
+cd conf
+./config KAZOO
+./config GENERIC
