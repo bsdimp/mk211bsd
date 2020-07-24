@@ -191,3 +191,9 @@ dd if=/mdec/rauboot of=/dev/ra1a count=1
 # ra0c according to the man page... Need to check the
 # actual driver if this doesn't work.
 echo /dev/ra0c:/usr:rw:1:2 >> /etc/fstab
+
+# To boot, though, we have to neuter sendmail
+mv /usr/lib/sendmail /usr/lib/sendmail.off
+
+# And let's just copy the right kernel to unix
+cp /raunix /unix
