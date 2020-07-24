@@ -159,8 +159,8 @@ make install
 make clean
 
 #
-# Now build and install the kernel. Oh, wait that's broken still.
-# So we won't do that, won't try to build the stand programs nor
-# create a tape image (or at least set of TAPE files). That's
-# later on the hit parade.
+# Now build and install the kernel. If all went well, then we're good to go
+# here.
 #
+cd /usr/src/sys/GENERIC
+make && make install && (cd / ; sh -x /GENALLSYS)
