@@ -179,6 +179,7 @@ make install
 cd /usr/src/sys/autoconfig
 make clean
 make
+mv ../pdpuba/autoconfig . || true
 make install
 
 #
