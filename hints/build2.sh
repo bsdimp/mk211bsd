@@ -92,17 +92,6 @@ make xinstall
 cp xinstall /usr/bin/install
 
 #
-# Now we need to bootstrap the kernel config. The undo process leads us to a
-# place where /sys is inconsistent. This restores consistency.  Or at least
-# generates a better sys/h/localdefs.h for building everything else.
-#
-echo Reconfiguring GENERIC kernel
-cd $S/sys
-mv GENERIC GENERIC-
-cd $S/sys/conf
-./config GENERIC
-
-#
 # Build and install the C compiler. Rebuild and install
 # the C library. Rebuild and reinstall the C compiler.
 # (likely overkill).
@@ -147,7 +136,7 @@ make clean
     # We need to only build real libraries here and lib.b
     # gets in the way of using the simple lib* here.
     for i in lib[0-9A-Za-z]*; do
-	(cd $i; make; make install; make clean)
+	(cd $i; make; make install)
     done
     # usr.lib's install does this, since we're bypassing
     # that, we need to do the link here. Otherwise things
@@ -155,6 +144,14 @@ make clean
     rm -f /usr/lib/libm.a /usr/lib/libm_p.a
     ln /usr/lib/libom.a /usr/lib/libm.a
     ln /usr/lib/libom_p.a /usr/lib/libm_p.a
+    #
+    # Rebuild these now too, while we're here
+    #
+    for i in lpr me sendmail; do
+	(cd $i; make clean; make ; make install)
+    done
+    make getNAME
+    make makekey
 )
 # Build it all again now that we've done the above dance
 make all
