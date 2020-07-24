@@ -163,4 +163,4 @@ make clean
 # here.
 #
 cd /usr/src/sys/GENERIC
-make && make install && (cd / ; sh -x /GENALLSYS)
+make && make install && (cd / ; cp unix genunix; sh -x /GENALLSYS)
