@@ -22,4 +22,7 @@ mv autoconfig/dhvauto.c OTHERS/dhv
 cd $ROOT211
 sed -n -e '/Make.nsunix/,/Make.pdpuba/p' < $patch | sed -e 's=/conf/Make.nsunix=/KAZOO/Makefile=' | patch -V none -p1 -R
 sed -n -e '/Make.sunix/,/Make.unix/p' < $patch | sed -e 's=/conf/Make.sunix=/GENERIC/Makefile=' | patch -V none -p1 -R
-
+# Make.pdpuba changed, we need to copy that into the config areas...
+for i in KAZOO GENERIC; do
+    cp sys/conf/Make.pdpuba sys/$i
+done
