@@ -10,7 +10,7 @@ S=$R/usr/src
 # and create all the devices we'll need.
 echo Creating devices
 cd $R/dev
-sh ./MAKEDEV std local hk0 hk1 ra0 ra1 ra2 ra3 mt0 mt1 nmt0 nmt1 xp0 xp1 rl0 rl1 pty0 dz0 lp0
+sh ./MAKEDEV std hk0 hk1 ra0 ra1 ra2 ra3 mt0 mt1 nmt0 nmt1 xp0 xp1 rl0 rl1 pty0 dz0 lp0 local
 
 #
 # Once we have the .o files, we need to link them into binaries. We also need to
