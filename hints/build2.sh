@@ -164,3 +164,30 @@ make clean
 #
 cd /usr/src/sys/GENERIC
 make && make install && (cd / ; cp unix genunix; sh -x /GENALLSYS)
+
+#
+# Need to build mdec
+#
+cd /usr/src/sys/mdec
+make clean
+make
+make install
+
+#
+# Ditto autoconfig...
+#
+cd /usr/src/sys/autoconfig
+make clean
+make
+make install
+
+#
+# Hacks for making things bootable
+#
+# Assume ra device for bootstrap we're ra1 still!
+dd if=/mdec/rauboot of=/dev/ra1a count=1
+# Try to mount /usr, but it's broken for reasons unknown
+# newer 2.11BSD want ra0g, but as released 2.11 wants
+# ra0c according to the man page... Need to check the
+# actual driver if this doesn't work.
+echo /dev/ra0c:/usr:rw:1:2 >> /etc/fstab

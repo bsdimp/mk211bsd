@@ -18,3 +18,14 @@ sed -n -e '/Make.sunix/,/README/p' < $patch | sed -e 's=/conf/Make.sunix=/GENERI
 # though, which is what this patch enshrines.
 patch -V none -p1 < $HINTSDIR/36.GENERIC-Makefile.diff
 
+# And then, we need to fix autoconfig after we've unpatched
+#	Move the autoconfig routines into the /sys/autoconfig directory:
+#		cd /sys/autoconfig
+#		mv ../pdpuba/*auto* .
+#		mv ../pdp/cnauto.c .
+#		make tags
+# So do the reverse and skip the make tags... With the files moved, make
+# automatically adds the -I lines we need to rebuild autoconfig.
+cd sys/autoconfig
+mv cnauto.c ../pdp
+mv *auto* ../pdpuba
