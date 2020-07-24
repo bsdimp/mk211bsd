@@ -474,6 +474,10 @@ clean_tree $TEMPDIR
 rm $ROOT211/usr/src/sys/pdp/net_csv.s
 cp $ROOT211/usr/src/sys/pdp/mch_csv.s $ROOT211/usr/src/sys/pdp/net_csv.s
 
+# There's .o detritits in /usr/src/sys/autoconfig that gets in the way, so
+# remove it.
+find $ROOT211/usr/src -name \*.o | xargs rm -f
+
 #
 # Also, the KAZOO config was included through some unknown rev. It's not in
 # the 195 patchlevel image we have, but patches 84 and 42 reference it. I
