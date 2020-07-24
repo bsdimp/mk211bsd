@@ -7,3 +7,5 @@ cd conf
 # KAZOO is best effort... we have not a lot to go on and may not work
 ./config KAZOO
 ./config GENERIC
+# This is as good a place as any to snag this...
+from2.10.1 GENALLSYS
