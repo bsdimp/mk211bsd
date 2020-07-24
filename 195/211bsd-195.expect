@@ -16,7 +16,8 @@ expect "sim> "					{send "boot ts0\r"}
 # create root file system
 expect "$tsprompt"				{send "ts(0,1)\r"}
 expect "file system: "				{send "${disk}(0,0)\r"}
-expect "file sys size: "			{send "15884\r"}
+# This is in 1k blocks, disktab is in 512 blocks, so it is pa / 2
+expect "file sys size: "			{send "7942\r"}
 expect "interleaving factor (m; 5 default): "	{send "\r"}
 expect "interleaving modulus (n; 100 default): " {send "\r"}
 
@@ -68,6 +69,8 @@ expect "# "					{send "chmod 755 / /usr /usr/src /usr/src/sys\r"}
 # Add /usr to fstab
 expect "# "					{send "echo /dev/${name}:/usr:rw:1:2 >> /etc/fstab\r"}
 expect "# "					{send "\r"}
+# OK, build and install the SMS kernel
+expect "# "					{send "cd /sys/SMS && make clean && make && make install\r"}
 # And we're done...
 expect "# "					{send "sync\r"}
 expect "# "					{send "sync\r"}
