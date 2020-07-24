@@ -1,0 +1,7 @@
+# un-Apply patch
+patch -V none -p1 -R < $patch
+
+cd $ROOT211
+# This patch removed the TMSCP_VEC from the config files. We need to add it back.
+grep TMSCP_VEC sys/conf/GENERIC | awk '{printf "#define\tTMSCP_VEC\t%s\n", $2;}' >> sys/GENERIC/tms.h
+grep TMSCP_VEC sys/conf/KAZOO | awk '{printf "#define\tTMSCP_VEC\t%s\n", $2;}' >> sys/KAZOO/tms.h
