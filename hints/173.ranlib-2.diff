@@ -1,0 +1,47 @@
+--- /usr/src/usr.bin/ranlib.c~	2020-07-24 22:08:53.237794000 -0600
++++ /usr/src/usr.bin/ranlib.c	2020-07-24 22:15:37.349736000 -0600
+@@ -27,10 +27,18 @@
+ char **argv;
+ {
+ 	char buf[256];
++	register int just_touch = 0;
+ 	/* magbuf must be an int array so it is aligned on an int-ish
+ 	   boundary, so that we may access its first word as an int! */
+ 	int magbuf[(SARMAG+sizeof(int))/sizeof(int)];
+ 
++	/* check for the "-t" flag */
++	if (argc > 1 && strcmp(argv[1], "-t") == 0) {
++		just_touch++;
++		argc--;
++		argv++;
++	}
++
+ 	--argc;
+ 	while(argc--) {
+ 		fi = fopen(*++argv,"r");
+@@ -48,6 +56,25 @@
+ 			fprintf(stderr, "archive: %s\n", *argv);
+ 			continue;
+ 		}
++ 		if (just_touch) {
++			register int len;
++
++			fseek(fi, (long) sizeof (exp.a_magic), 0);
++			if (fread(buf, sizeof arp.ar_name, 1, fi) != 1) {
++				fprintf(stderr, "malformed archive: %s\n",
++					*argv);
++				continue;
++			}
++			len = strlen(tempnm);
++			if (bcmp(buf, tempnm, len) != 0 ||
++				buf[len] != '\0') {
++				fprintf(stderr, "no symbol table: %s\n", *argv);
++				continue;
++			}
++			fclose(fi);
++			fixdate(*argv);
++			continue;
++		}
+ 		fseek(fi, (long)SARMAG, 0);
+ 		new = tnum = 0;
+ 		if(nextel(fi) == 0)
