@@ -14,7 +14,7 @@ spawn pdp11 211bsd-195.ini
 expect "sim> "					{send "boot ts0\r"}
 
 # create root file system
-expect "$tsprompt"				{send "ts(0,1)\r"}
+expect "$tsprompt"				{send "tms(0,1)\r"}
 expect "file system: "				{send "${disk}(0,0)\r"}
 # This is in 1k blocks, disktab is in 512 blocks, so it is pa / 2
 expect "file sys size: "			{send "7942\r"}
@@ -22,8 +22,8 @@ expect "interleaving factor (m; 5 default): "	{send "\r"}
 expect "interleaving modulus (n; 100 default): " {send "\r"}
 
 # Restore root filesystem from file 4
-expect "$tsprompt"				{send "ts(0,2)\r"}
-expect "Tape? "					{send "ts(0,4)\r"}
+expect "$tsprompt"				{send "tms(0,2)\r"}
+expect "Tape? "					{send "tms(0,4)\r"}
 expect "Disk? "					{send "${disk}(0,0)\r"}
 expect "Last chance before scribbling on disk. " {send "\r"}
 
@@ -34,7 +34,7 @@ expect "# "					{send "dd if=/mdec/rauboot of=/dev/ra0a count=1\r"}
 # Fix mt dev nodes to match the ts drive we have
 expect "# "					{send "cd /dev\r"}
 expect "# "					{send "rm *mt*\r"}
-expect "# "					{send "./MAKEDEV ts0\r"}
+expect "# "					{send "./MAKEDEV tu0\r"}
 expect "# "					{send "sync\r"}
 expect "# "					{send "cd /\r"}
 # newfs /usr
