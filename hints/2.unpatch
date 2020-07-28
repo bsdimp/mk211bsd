@@ -11,3 +11,25 @@ rm -f $TEMP/2/b.16	# disktab
 # didn't pass 0 in r0 or csr in r1 as expected. This removes those two
 # unexpected lines.
 (cd $ROOT211; patch -V none -p1 < $HINTSDIR/2.mu)
+
+# b.2 has this
+#		NOTE: Remove 'tmscpboot.s' and 'tmscptape.data' from
+#		/sys/pdpstand, they are no longer needed.
+# so we need to reconstruct these. this is a bit tricky since they were not in
+# 2.10.1 at all. However, from hints in the 2.11BSD mtboot.s after this patch,
+# it's clear that this code was derived from the ULTRIX-11 bootloader. By
+# chance, that's in the tree as /sys/OTHERS/tk/pdpstand/tkboot.s and it almost
+# compiles out of box. We apply a patch to it that moves it's load location to
+# be consistent with mtboot.s in 2.11BSD pl 0 and makes a couple of other minor
+# tweaks to allow it to compile and work. There's a number of ways one could
+# speculatively reconstruct this (eg taking mtboot.s and putting the tkstart,
+# tkrew and tkread functions into it after ripping out everything
+# else). However, that's what patch b.2 does to squeeze it all into 512 bytes,
+# so I've opted for minimal likely changes instead.
+#
+# Plus we need a tweaked maketape.data file for the tmscptape.data which I think
+# is the same with tmscpboot replacing mtboot.
+#
+cp $ROOT211/sys/OTHERS/tk/pdpstand/tkboot.s $ROOT211/sys/pdpstand/tmscpboot.s
+(cd $ROOT211; patch -V none -p1 < $HINTSDIR/2.tmscpboot.diff)
+sed -e s/mtboot/tmscpboot/g < $ROOT211/sys/pdpstand/maketape.data > $ROOT211/sys/pdpstand/tmscpboot.data

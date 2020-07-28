@@ -1,0 +1,102 @@
+--- /usr/src/sys/pdpstand/tmscpboot.s-	1991-03-14 00:31:17.000000000 -0700
++++ /usr/src/sys/pdpstand/tmscpboot.s	2020-07-28 02:14:40.793055000 -0600
+@@ -1,58 +1,44 @@
+-/
+-//////////////////////////////////////////////////////////////////////
+-/   Copyright (c) Digital Equipment Corporation 1984, 1985, 1986.    /
+-/   All Rights Reserved. 					     /
+-/   Reference "/usr/src/COPYRIGHT" for applicable restrictions.      /
+-//////////////////////////////////////////////////////////////////////
+-/
+-/ ULTRIX-11 Block Zero Bootstrap for TMSCP Magtape
+-/
+-/ SCCSID: @(#)tkboot.s	3.0	4/21/86
+-/
+-/ On entry boot leaves:
+-/	r0 = unit #
+-/	r1 = aip register address
+-/
+-/ magtape boot program to load and transfer
+-/ to a unix entry
+-/
+-/ Chung_wu Lee		2/8/85
+-/
++	/* Reconstructed tmscpboot.s from tkboot.s, lightly edited to work */
++/*
++ * Copyright (c) Digital Equipment Corporation 1984, 1985, 1986.
++ * All Rights Reserved.
++ * Reference "/usr/src/COPYRIGHT" for applicable restrictions.
++ *
++ * ULTRIX-11 Block Zero Bootstrap for TMSCP Magtape
++ *
++ * SCCSID: @(#)tkboot.s	3.0	4/21/86
++ *
++ * Chung_wu Lee		2/8/85
++ *
++ * Steven M. Schultz (sms@wlv.imsd.contel.com) Aug 20 1990.  Port to 2.11BSD
++*/
++
++NEWLOC	= [48.*1024.]			/ we relocate ourselves to this address
++OURSIZE=512
+ 
+ nop	= 240
+ s1	= 4000
+ go	= 1
+ 
+-core = 28.
+-.. = [core*2048.]-512.
++.. = NEWLOC
+ 
+ / establish sp and check if running below
+ / intended origin, if so, copy
+-/ program up to 'core' K words.
+ start:
+-	nop		/ DEC boot block standard
+-	br	1f	/ "
++	nop				/ DEC boot block standard
++	br	1f			/ "   "    "     "
+ 1:
+-	mov	$..,sp
++	mov	$NEWLOC,sp		/ give ourselves a stack to work with
+ 	clr	r4
+ 	mov	sp,r5
+-	cmp	pc,r5
+-	bhis	2f
+-	cmp	(r4),$407
+-	bne	1f
+-	mov	$20,r4
+-1:
+-	mov	(r4)+,(r5)+
+-	cmp	r5,$end
+-	blo	1b
+-	jmp	(sp)
+-
+-/ Clear core to make things clean,
++	mov	$OURSIZE\/2,r3		/ primary boot size in words
+ 2:
+-	clr	(r4)+
+-	cmp	r4,sp
+-	blo	2b
+-
++	clr	OURSIZE(r5)		/ clear work area (major & TS/MSCP area)
++	mov	(r4)+,(r5)+		/ move primary boot to just above
++	sob	r3,2b			/   the stack
++	jmp	*$3f			/ bypass the relocation code
++3:
++	
+ / TK initialization
+ 
+ 	mov	r0,bdunit	/ save unit # booted from
+@@ -104,10 +90,10 @@
+ 	jsr	pc,tkrew
+ 	clr	r1
+ 	mov	$2,bc
+-	jsr	pc,tkread	/* skip the first two blocks
++	jsr	pc,tkread	/ skip the first two blocks
+ 	clr	r1
+ 	mov	$1,bc
+-	jsr	pc,tkread	/* read the first block
++	jsr	pc,tkread	/ read the first block
+ 
+ / Find out how big boot is
+ 	mov	*$2,r0		/ text segment size
