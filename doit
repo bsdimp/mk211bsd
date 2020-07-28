@@ -1,0 +1,11 @@
+#!/bin/sh
+
+
+sh mk211bsd
+cp src.tap 195
+cd 195
+# Make a pristine 195 system... then bootstrap pl0
+expect 211bsd-195.expect && expect 211bsd-pl0-test.expect
+# Boot 2.11pl0 to make the tape
+# automated 2.11pl0 install
+
