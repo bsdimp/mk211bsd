@@ -11,7 +11,7 @@ set timeout 500
 
 spawn pdp11 211bsd-195.ini
 
-expect "sim> "					{send "boot ts0\r"}
+expect "sim> "					{send "boot tq0\r"}
 
 # create root file system
 expect "$tsprompt"				{send "tms(0,1)\r"}
