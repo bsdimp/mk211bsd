@@ -32,4 +32,4 @@ rm -f $TEMP/2/b.16	# disktab
 #
 cp $ROOT211/sys/OTHERS/tk/pdpstand/tkboot.s $ROOT211/sys/pdpstand/tmscpboot.s
 (cd $ROOT211; patch -V none -p1 < $HINTSDIR/2.tmscpboot.diff)
-sed -e s/mtboot/tmscpboot/g < $ROOT211/sys/pdpstand/maketape.data > $ROOT211/sys/pdpstand/tmscpboot.data
+sed -e s/mtboot/tmscpboot/g < $ROOT211/sys/pdpstand/maketape.data > $ROOT211/sys/pdpstand/tmscptape.data
