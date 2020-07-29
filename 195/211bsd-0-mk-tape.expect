@@ -1,0 +1,65 @@
+#!/usr/local/bin/expect
+
+# expect script for 2.11p195 install. Newer versions need a diffferent script.
+
+set tsprompt ": " 
+set prompt "# "
+set disk "ra"
+set part "g"
+set name "${disk}0${part}"
+
+set timeout -1
+
+proc hitreturn {prompt} {
+    set timeout 1
+    for {set tries 0} {$tries <= 5} {incr tries} {
+	expect {
+	    "$prompt"		{
+		set timeout -1
+		return 0
+	    }
+	    timeout		{
+		send "\r"
+	    }
+	}
+    }
+    
+}
+
+spawn pdp11 211bsd-0.ini
+
+# create root file system
+#nn Boot unix and configure
+expect "3Boot"
+expect "$tsprompt"				{send "${disk}(0,0)unix\r"}
+expect "$prompt"				{send "fsck -y /dev/ra0a\r"}
+expect {
+    "REBOOT UNIX*# "			{
+	send "/etc/halt\r"
+	expect "sim> "
+	send "quit\r"
+	exit 1
+    }
+    "$prompt"				{ send "\r" }
+}
+expect "$prompt"				{send "fsck -t xxx -y /dev/ra0c\r"}
+expect "$prompt"				{send "mount /dev/ra0c /usr\r"}
+expect "$prompt"				{send "cd /dev\r"}
+expect "$prompt"				{send "rm *mt*\r"}
+expect "$prompt"				{send "sh ./MAKEDEV tu0\r"}
+expect "$prompt"				{send "/etc/dump 0f /usr/root.dump /dev/ra0a\r"}
+expect "$prompt"				{send "cd /sys/pdpstand\r"}
+expect "$prompt"				{send "make\r"}
+expect "$prompt"				{send "make distribution\r"}
+expect "Switch tapes.  Hit CR when second tape is mounted." {send "\005"}
+expect "sim> "					{send "ATTACH TQ0 ./211bsd-pl0-tape2.tap\r"}
+expect "sim> "					{send "cont\r"}
+hitreturn "cd /usr/src;"
+expect "$prompt"				{send "\005"}
+expect "sim> "					{send "ATTACH TQ0 ./211bsd-pl0-tq.tap\r"}
+expect "sim> "					{send "cont\r"}
+hitreturn "$prompt"
+send "\r"
+expect "$prompt"				{send "make tmscptape\r"}
+expect "$prompt"				{send "/etc/halt\r"}
+expect "sim> "					{send "quit\r"}

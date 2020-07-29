@@ -1,6 +1,6 @@
 #!/usr/local/bin/expect
 
-# expect script for 2.11p195 install. Newer versions need a diffferent script.
+# expect script for using 2.11p195 to bootstrap a 2.11pl0 system
 
 set startTime [clock seconds]
 puts "Started : [clock format $startTime]\n"
