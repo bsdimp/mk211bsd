@@ -183,6 +183,14 @@ mv ../pdpuba/autoconfig . || true
 make install
 
 #
+# Ditto boot
+#
+cd /usr/src/sys/pdpstand
+make clean
+make
+make install
+
+#
 # Hacks for making things bootable
 #
 # Assume ra device for bootstrap we're ra1 still!
