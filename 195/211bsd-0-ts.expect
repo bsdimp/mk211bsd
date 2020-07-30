@@ -1,0 +1,98 @@
+#!/usr/local/bin/expect
+
+# expect script for 2.11BSD pl 0 install. Newer versions need a diffferent script.
+
+set tsprompt ": " 
+set disk "ra"
+set part "c"
+set name "${disk}0${part}"
+
+set timeout -1
+
+proc hitreturn {prompt} {
+    set timeout 1
+    for {set tries 0} {$tries <= 5} {incr tries} {
+	expect {
+	    "$prompt"		{
+		set timeout -1
+		return 0
+	    }
+	    timeout		{
+		send "\r"
+	    }
+	}
+    }
+    
+}
+
+spawn pdp11 211bsd-0-test-ts.ini
+
+expect "sim> "					{send "boot ts0\r"}
+
+# create root file system
+expect "$tsprompt"				{send "ts(0,1)\r"}
+expect "file system: "				{send "${disk}(0,0)\r"}
+# This is in 1k blocks, disktab is in 512 blocks, so it is pa / 2
+expect "file sys size: "			{send "7942\r"}
+expect "interleaving factor (m; 5 default): "	{send "\r"}
+expect "interleaving modulus (n; 100 default): " {send "\r"}
+
+# Restore root filesystem from file 4
+expect "$tsprompt"				{send "ts(0,2)\r"}
+expect "Tape? "					{send "ts(0,4)\r"}
+expect "Disk? "					{send "${disk}(0,0)\r"}
+expect "Last chance before scribbling on disk. " {send "\r"}
+
+# Boot unix and configure
+expect "$tsprompt"				{send "${disk}(0,0)unix\r"}
+# install boot loader
+expect "# "					{send "dd if=/mdec/rauboot of=/dev/ra0a count=1\r"}
+# Fix mt dev nodes to match the ts drive we have
+expect "# "					{send "cd /dev\r"}
+expect "# "					{send "rm *mt*\r"}
+expect "# "					{send "sh ./MAKEDEV ts0\r"}
+expect "# "					{send "sync\r"}
+expect "# "					{send "cd /\r"}
+# newfs /usr
+expect "# "					{send "newfs ${name} rd54-rqdx3 93\r"}
+expect "# "					{send "mount /dev/${name} /usr\r"}
+expect "# "					{send "cd /usr\r"}
+expect "# "					{send "mt -f /dev/rmt12 rew\r"}
+expect "# "					{send "mt -f /dev/rmt12 fsf 5\r"}
+expect "# "					{send "echo extracting /usr\r"}
+expect "# "					{send "tar xpbf 20 /dev/rmt12\r"}
+# fixup permissions before extracting src tarballs
+expect "# "					{send "cd /\r"}
+expect "# "					{send "rm -f sys\r"}
+expect "# "					{send "ln -s usr/src/sys sys\r"}
+expect "# "					{send "cd /usr\r"}
+expect "# "					{send "mkdir src\r"}
+expect "# "					{send "cd src\r"}
+# Extract /usr/src/{include,sys}
+expect "# "					{send "echo extracting /usr/src/{sys,include}\r"}
+expect "# "					{send "mt -f /dev/rmt12 rew\r"}
+expect "# "					{send "mt -f /dev/rmt12 fsf 6\r"}
+expect "# "					{send "tar xpbf 20 /dev/rmt12\r"}
+expect "# "					{send "mt -f /dev/rmt12 rew\r"}
+expect "# "					{send "mt -f /dev/rmt12 fsf 7\r"}
+# Extracting the rest of /us/rsrc
+expect "# "					{send "echo extracting /usr/src\r"}
+expect "# "					{send "\005"}
+expect "sim> "					{send "ATTACH TS0 ./211bsd-pl0-tape2.tap\r"}
+expect "sim> "					{send "cont\r"}
+hitreturn "# "
+send "\r"
+expect "# "					{send "mt -f /dev/rmt12 status\r"}
+expect "# "					{send "mt -f /dev/rmt12 rew\r"}
+expect "# "					{send "tar xpbf 20 /dev/rmt12\r"}
+# Fix some more permissions
+expect "# "					{send "chmod 755 / /usr /usr/src /usr/src/sys\r"}
+# Add /usr to fstab
+expect "# "					{send "echo /dev/${name}:/usr:rw:1:2 >> /etc/fstab\r"}
+expect "# "					{send "\r"}
+# And we're done...
+expect "# "					{send "sync\r"}
+expect "# "					{send "sync\r"}
+expect "# "					{send "sync\r"}
+expect "# "					{send "halt\r"}
+expect "sim> "					{send "quit\r"}
