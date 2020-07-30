@@ -160,8 +160,10 @@ make clean
 
 #
 # Now build and install the kernel. If all went well, then we're good to go
-# here.
+# here. Set the hostname to the name in the example kernel output from the
+# 2.11 setup docs.
 #
+hostname wlonex.imsd.contel.com
 cd /usr/src/sys/GENERIC
 make && make install && (cd / ; cp unix genunix; sh -x /GENALLSYS)
 
