@@ -64,5 +64,5 @@ for i in [A-Z]*; do
     esac
     [ -f $i/Makefile ] || continue
     echo Patching $i/Makefile
-    (cd $i; sed -ne '/Makefile/,/FRC/p' < $TMP/16 | patch -V none -R)
+    (cd $i; sed -ne '/Makefile/,/FRC/p' < $TEMP/patchfile2 | patch -V none -R)
 done
