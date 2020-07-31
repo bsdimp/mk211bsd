@@ -13,6 +13,14 @@ spawn pdp11 211bsd-195-run.ini
 # Bring up multi-user and login as root
 expect "93Boot"
 expect ": "					{send "ra(0,0)unix\r"}
+#
+# set the time to 3:15pm on March 15th, 1991
+# We set the time for all the src files to March 14th at 7:31am when the announcement
+# was sent out. This would be a build that happened the next day...  The date
+# information has been lost, and was likely sometime in late Feb or early March
+# but this is as good as we can get and enshrines at least one known date.
+#
+expect "# "					{send "date 9103151515\r"}
 expect "# "					{send "\004"}
 expect "login: "				{send "root\r"}
 expect "$prompt"				{send "newfs ra1a rd54\r"}
