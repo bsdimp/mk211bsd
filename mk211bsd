@@ -537,11 +537,15 @@ pprint 1 "Fixing permissions and prepping tape"
     done
     # rm libraries that are useless
     find lib usr/lib -name \*.a | xargs rm -f
+
+    # Need to convert these to relative paths
+    ln -sf ../../ucb/ftp/glob.c usr/src/etc/ftpd/glob.c
+
     # push the date of the sources back to something approximately
     # correct: use the date of the announcement, which was posted at
     # Date: 14 Mar 91 07:31:17 GMT
     # So use Z for Zulu aka UTC/GMT.
-    find usr/src -type f | xargs touch -d 1991-03-14T07:31:17Z
+    find usr/src | xargs touch -d 1991-03-14T07:31:17Z
 )
 
 # Make the src.tar
