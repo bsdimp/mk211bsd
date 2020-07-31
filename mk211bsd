@@ -485,7 +485,6 @@ find $ROOT211/usr/src -name \*.o -o -name lib\*.a | xargs rm -f
 	sys/pdpuba/autoconfig sys/pdpstand/boot sys/pdpstand/mkfs \
 	sys/pdpstand/restor sys/pdpstand/icheck sys/pdpstand/maketape \
 	sys/pdpstand/toyset games/hack/crypt ucb/w \
-	new/m11/m11.x new/m11/l11.x \
 	usr.lib/libF77/profiled/Version usr.lib/libF77/mkindx \
 	usr.lib/libF77/mkvers usr.lib/libI77/profiled/Version \
 	usr.lib/libI77/mkindx usr.lib/libI77/mkvers \
