@@ -546,6 +546,16 @@ pprint 1 "Fixing permissions and prepping tape"
     # Date: 14 Mar 91 07:31:17 GMT
     # So use Z for Zulu aka UTC/GMT.
     find usr/src | xargs touch -d 1991-03-14T07:31:17Z
+
+    # remove executables in etc, usr/new and usr/lcoal since most of
+    # them were introduced after initial release. There's a number of
+    # of them that could be built in the iniitial release, but don't
+    # install properly...
+    file etc/* | grep -v chown | grep PDP-11 | awk -F: '{print $1;}' | xargs rm
+    rm -rf usr/new
+    mkdir -p usr/new/lib usr/new/man
+    rm -rf usr/local
+    mkdir -p usr/local/lib usr/local/man
 )
 
 # Make the src.tar
