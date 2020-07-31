@@ -1,12 +1,31 @@
 #!/bin/sh
 
+# Note: has to run in 2.11BSDpl195
+
 #
 # Build script meant to be kicked off in the chroot to do all the building w/o
 # contaminating the 2.11pl195 host. We'll need to use that host *A*LOT* and I'd
 # rather not have to reconfigure it all the time.
 #
-
 S=/usr/src
+
+#
+# These files historically have been owned by root as well
+#
+chown -R root $S
+
+#
+# This is real ugly, but there's a bug in make that has issues with directories
+# in the future... so we hack around that by touching all the directories...
+# except touch doesn't work on 2.11 on directories, and there's no xargs
+# on this system. This is a big hammer, I know, but there's too many date
+# issues. The build orchestration scripts will set the date to something
+# historically accuate, and this will allow things to work in the face
+# of make not descending into a directory that's in the future.
+#
+for i in `find $S -type d -print` ; do
+    touch $i/__fred__ && rm $i/__fred__
+done
 
 #
 # Bootstap as to make .s -> .o. That's done in the recovery script due to the
@@ -49,11 +68,6 @@ cp $R/bin/true $R/usr/bin/ranlib
 echo Bootstrapping libc
 cd $S/lib/libc
 make clean
-# sometimes this gets skipped, so build it first, unsure why
-# but maybe related to recursion and multiple things named
-# compat-4.1
-(cd pdp/compat-4.1; make)
-(cd pdp; make)
 make
 make install
 make clean
