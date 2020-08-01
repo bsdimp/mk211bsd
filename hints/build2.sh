@@ -167,6 +167,21 @@ make clean
     make getNAME
     make makekey
 )
+# Build some man pages that aren't otherwise built
+# These all have dependencies in their Makefiles...
+# still need to work out how best to regenerate all the
+# man pages for the release.
+(cd bin/chpass; /usr/man/manroff chpass.1 > chpass.0)
+(cd bin/passwd; /usr/man/manroff passwd.1 > passwd.0)
+(cd etc/chroot; /usr/man/manroff chroot.8 > chroot.0)
+(cd etc/fingerd; /usr/man/manroff fingerd.8 > fingerd.0)
+(cd etc/ftpd; /usr/man/manroff ftpd.8 > ftpd.0)
+(cd etc/mkpasswd; /usr/man/manroff mkpasswd.8 > mkpasswd.0)
+(cd etc/vipw; /usr/man/manroff vipw.8 > vipw.0)
+(cd ucb/ftp; /usr/man/manroff ftp.1 > ftp.0)
+(cd ucb/lock; /usr/man/manroff lock.1 > lock.0)
+(cd new/patch; /usr/man/manroff patch.man > patch.0)
+
 # Build it all again now that we've done the above dance
 make all
 make install
