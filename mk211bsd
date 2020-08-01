@@ -311,6 +311,12 @@ from4.3() {
     tar cf - usr/src | (cd $ROOT211 ; tar xvf -)
 }
 
+bail() {
+    pprint 1 $*
+    echo $*
+    exit 1
+}
+
 undo_patch_level() (
     local p patch s
     p=$1
@@ -345,14 +351,14 @@ undo_patch_level() (
 	    done
 	    ;;
 	*)
-	    if grep -q '^#! */bin/sh' $PATCHDIR/$p; then
+	    if ! [ -f $PATCHDIR/$p ] || grep -q '^#! */bin/sh' $PATCHDIR/$p; then
 		# shar file were always complex, though in a few
 		# degenerate cases were just extract a patch file
 		# of varying names and apply it. Other times one
 		# had to do more. The unshar script is expected
 		# to undo all that.
 		s=$HINTSDIR/${p}.unshar
-		[ -r $s ] || die $p.unshar not found
+		[ -r $s ] || bail $p.unshar not found
 		pprint 1 "patch $p: undoing shar with $s"
 		echo "patch $p: undoing shar with $s"
 		. $s
@@ -522,6 +528,9 @@ touch $ROOT211/start-time
 for p in $patches; do
     undo_patch_level $p 2>&1 > $LOGS/$p.log
 done
+# convenient place to put all the fixups that we need to do.
+undo_patch_level 0 2>&1 > $LOGS/0.log
+
 # The 2.11 pl 195 as can't assemble the pl0 as, but the 2.10.1
 # can, so start there...
 trap - EXIT
@@ -547,9 +556,9 @@ pprint 1 "Fixing permissions and prepping tape"
     # So use Z for Zulu aka UTC/GMT.
     # Except don't. For all the files newer than the start time, reset them all to
     # Jan 15th, the newest date I could find in the 2.11BSDpl195 tree.
-    find usr/src -newer start-time | xargs touch -d 1991-01-15T15:00:00Z
+#    find usr/src -newer start-time | xargs touch -d 1991-01-15T15:00:00Z
 
-    # remove executables in etc, usr/new and usr/lcoal since most of
+    # remove executables in etc, usr/new and usr/local since most of
     # them were introduced after initial release. There's a number of
     # of them that could be built in the iniitial release, but don't
     # install properly...
