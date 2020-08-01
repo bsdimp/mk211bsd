@@ -193,9 +193,10 @@ make install
 # Ditto autoconfig...
 #
 cd /usr/src/sys/autoconfig
+(set +e; rm -f ../pdpuba/autoconfig || true)
 make clean
 make
-mv ../pdpuba/autoconfig . || true
+# (set +e; mv ../pdpuba/autoconfig . || true)
 make install
 
 #
