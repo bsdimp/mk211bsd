@@ -6,5 +6,14 @@ cd $ROOT211
 # not in 2.10.1).  Newest tapes have this: Apr 20 20:22:25 1989 copyh
 touch -d 1989-04-20T20:22:25Z $ROOT211/bin/copyh
 
+# Awk has a temporal abnormality as well. Though the files aren't different
+# than 2.10.1, the 195 tape has dates in 1994 on them. Reset them back to
+# the 2.10.1BSD dates. It's unclear why they changed on this date, but
+# these are the more likely dates that 2.11 shipped with.
+# 4 -r--r--r--   1 imp  imp   1119 Dec 10 20:13:12 1988 Makefile
+# 4 -rw-r--r--   1 imp  imp   1305 Mar 13 08:24:32 1987 token.c
+touch -d 1988-12-10T20:13:12Z usr/src/bin/awk/Makefile
+touch -d 1987-03-13T08:24:32Z usr/src/bin/awk/token.c
+
 # The ftpd daemon has an absolute link, we need to convert it to relative
 ln -sf ../../ucb/ftp/glob.c usr/src/etc/ftpd/glob.c
