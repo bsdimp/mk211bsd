@@ -488,7 +488,7 @@ cp $ROOT211/usr/src/sys/pdp/mch_csv.s $ROOT211/usr/src/sys/pdp/net_csv.s
 find $ROOT211/usr/src -name \*.o -o -name lib\*.a | xargs rm -f
 (
     for i in \
-	sys/pdpuba/autoconfig sys/pdpstand/boot sys/pdpstand/mkfs \
+	sys/autoconfig/autoconfig sys/pdpstand/boot sys/pdpstand/mkfs \
 	sys/pdpstand/restor sys/pdpstand/icheck sys/pdpstand/maketape \
 	sys/pdpstand/toyset games/hack/crypt ucb/w \
 	usr.lib/libF77/profiled/Version usr.lib/libF77/mkindx \
@@ -567,6 +567,12 @@ pprint 1 "Fixing permissions and prepping tape"
     mkdir -p usr/new/lib usr/new/man
     rm -rf usr/local
     mkdir -p usr/local/lib usr/local/man
+
+    # Remove some binaries that shouldn't be there. tcsh was added later
+    # and ns* utilities didn't build in pl0 (though maybe I'll need to add
+    # a hack to get them)...
+    rm -f bin/tcsh
+    rm -f usr/bin/ns*
 )
 
 # Make the src.tar

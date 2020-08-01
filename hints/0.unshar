@@ -1,4 +1,10 @@
-echo Hide the bodies
-
 # touch some files to get the dates more correct,
 # though this is fraught.
+
+cd $ROOT211
+# We know that there's a bin/copyh that's been in the system a long time (but
+# not in 2.10.1).  Newest tapes have this: Apr 20 20:22:25 1989 copyh
+touch -d 1989-04-20T20:22:25Z $ROOT211/bin/copyh
+
+# The ftpd daemon has an absolute link, we need to convert it to relative
+ln -sf ../../ucb/ftp/glob.c usr/src/etc/ftpd/glob.c
