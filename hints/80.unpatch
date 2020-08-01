@@ -1,4 +1,30 @@
 # 80
+#
+# Patch 80 didn't exist, except it did... usr.update.tar.Z was part of this big patch-kit.
+#
+# And instead of there being no other patches, it turns out that a number of things were included.
+# In email with Steve, prior to patch 195, /usr/src/new and /usr/src/local were unofficial parts
+# of the release (included, but not closely tracked), so there's no real patches for this stuff
+# so I have to match things up as best I can.
+#
+# /usr/src/new and /usr/src/local had been unofficial add-ons for various bits of Usenet
+# code that had been accumulated. The patchkit resyncrhonized these adding a number of things
+# so that proper patches never were generated (the silent replacement issues, which is why
+# we need to have a fixup patch here).
+
 rm $ROOT211/usr/src/local/decompr16.c
+rm -rf $ROOT211/usr/src/local/cxref
+rm -rf $ROOT211/usr/src/local/mtools
+rm -rf $ROOT211/usr/src/local/zmodem
+rm -rf $ROOT211/usr/src/new/tcsh
+
+# Now kermit5.181 wasn't mentioned here (and isn't in the patchkit catchup
+# files). However, it popped into the tree at some point. It's only a few weeks
+# too early for it (released 23 Nov 92 vs this likely dropping in Sep 92).
+# it fits better here, even if there's a bit of a temopral anomaly.
+# XXX need to record this with from2.10.1 somehow? fromtree maybe?
+rm -rf $ROOT211/usr/src/new/kermit5.188
+(cd $ROOT2101/usr/src/new ; tar cf - kermit) | (cd $ROOT211/usr/src/new ; tar xvf -)
+
 cd $ROOT211
 patch -V none -p1 < $HINTSDIR/80.fixup
