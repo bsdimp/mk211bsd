@@ -565,14 +565,22 @@ pprint 1 "Fixing permissions and prepping tape"
     file etc/* | grep -v chown | grep PDP-11 | awk -F: '{print $1;}' | xargs rm
     rm -rf usr/new
     mkdir -p usr/new/lib usr/new/man
-    rm -rf usr/local
-    mkdir -p usr/local/lib usr/local/man
+    rm -rf usr/local # New around patch 80...
 
     # Remove some binaries that shouldn't be there. tcsh was added later
     # and ns* utilities didn't build in pl0 (though maybe I'll need to add
-    # a hack to get them)...
-    rm -f bin/tcsh
-    rm -f usr/bin/ns*
+    # a hack to get them). lint was broken in the release, and fixed in
+    # patches starting with patch 14 where the 4.3 lint was ported over.
+    # strcompact, symcompact and symdump were part of the binary format
+    # in 159.
+    # warp.old is due to an old install.
+    rm -f bin/tcsh usr/bin/ns* usr/lib/nslookup.help usr/bin/lint
+    rm -f usr/ucb/strcompact usr/ucb/symcompact usr/ucb/symdump
+    rm -f usr/games/warp.old
+
+    # Sendmail detritis that needs to be removed (alias kept around,
+    # though it has a too-new date
+    rm -f usr/lib/sendmail.cf usr/lib/sendmail.sr
 )
 
 # Make the src.tar
