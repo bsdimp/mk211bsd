@@ -45,6 +45,8 @@ expect "Last chance before scribbling on disk. " {send "\r"}
 
 # Boot unix and configure
 expect "$tsprompt"				{send "${disk}(0,0)unix\r"}
+# Set the time, toy clock isn't working yet: April 10, 1991 at 11:12am
+expect "# "					{send "date 9104101112\r"}
 # install boot loader
 expect "# "					{send "dd if=/mdec/rauboot of=/dev/ra0a count=1\r"}
 # Fix mt dev nodes to match the ts drive we have
