@@ -182,6 +182,36 @@ make clean
 (cd ucb/lock; /usr/man/manroff lock.1 > lock.0)
 (cd new/patch; /usr/man/manroff patch.man > patch.0)
 
+# Now we need to clean out /usr/man/cat?/* and rebuild it
+# but the normal way of doing that freaks make out (line too
+# long). so we use the helper function to do all that. It
+# create the man page directly in /usr/man and then greps
+# through the Makefiles to create the hard links.
+(
+    find /usr/man/cat* -name "*.0" -exec rm {} \;
+    cd /usr/src/man
+    DESTDIR=
+    export DESTDIR
+    for i in man[1-9]; do
+	cd /usr/src/man/$i
+	MDIR=`grep MDIR= Makefile | awk '{print $2;}'`
+	export MDIR
+	for j in *.[1-9]; do
+	    c=`echo $j | sed -e 's=\.[1-9]$=.0='`
+	    case $j in
+		eqn.1)
+		    eqn < $j | nroff -man -h > $MDIR/$c
+		    ;;
+		*)
+		    nroff -man -h < $j > $MDIR/$c
+		    ;;
+	    esac
+	done
+	grep "ln " Makefile | sh -x
+    done
+    cd /usr/src
+)
+
 # Build it all again now that we've done the above dance
 make all
 make install
