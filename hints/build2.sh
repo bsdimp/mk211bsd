@@ -218,6 +218,13 @@ make install
 make clean
 
 #
+# usr/adm needs some blank files created so logging, etc works.
+#
+cd /usr/adm
+rm -f lpd-errs acct shutdownlog usracct savacct daemonlog debuglog
+touch lpd-errs acct shutdownlog usracct savacct daemonlog debuglog
+
+#
 # Now build and install the kernel. If all went well, then we're good to go
 # here. Set the hostname to the name in the example kernel output from the
 # 2.11 setup docs.
