@@ -1,5 +1,8 @@
 #!/bin/sh
 
+set -e
+
+date
 
 sh mk211bsd
 cp src.tap 195
@@ -11,3 +14,5 @@ expect 211bsd-pl0-test.expect
 expect 211bsd-0-mk-tape.expect
 # automated 2.11pl0 install
 expect 211bsd-0-ts.expect
+
+date

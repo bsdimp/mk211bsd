@@ -252,7 +252,7 @@ unpack_v7() {
 }
 
 extract_patches() {
-    (
+    ( set -x
 	mkdir $PATCHDIR
 	cd $PATCHDIR
 	for i in $(jot 19 1); do
@@ -262,14 +262,29 @@ extract_patches() {
 	tar xf $PATCHSRC/001-009.tar.bz2
 	# we're at patch 195, so remove the rest
 	rm -f 196 197 198 199
-	#
-	# Recover patch 18a csh size reduction...
-	#
+	# the catchup patch to 80 shows some patches were missing, regen
 	mkdir -p $TEMPDIR/catch-up
 	chdir $TEMPDIR/catch-up
 	tar xvf $PATCHSRC/usr_update.tar.bz2
 	tar xvf patches.tar.bz2
+	#
+	# pcc changes .. haven't closely evaluated these
+	#
+	sed -ne '/\/old\/src\/lib\/pcc\/Makefile/,$p' < xab > $PATCHDIR/17a
+	cat /dune/imp/tuhs/Distributions/UCB/2.11BSD/Patches/ud/xae >> $PATCHDIR/17a
+	cat /dune/imp/tuhs/Distributions/UCB/2.11BSD/Patches/ud/xaf >> $PATCHDIR/17a
+	#
+	# Recover patch 18a csh size reduction...
+	#
 	sed -ne '/\/old\/src\/bin\/csh\/alloc\.c/,/\/old\/src\/bin\/dd\.c/p' < xab > $PATCHDIR/18a
+	#
+	# changes to warp
+	#
+	sed -ne '/\/old\/src\/games\/warp\/Makefile/,/\/old\/src\/games\/words\/Makefile/p' < xac > $PATCHDIR/42a
+	#
+	# Patch 78 had an update to rn, so create it as 78a
+	#
+	sed -ne '/\/old\/src\/new\/rn\/addng\.c/,$p' < xab > $PATCHDIR/78a
     )
 }
 
@@ -330,7 +345,6 @@ undo_patch_level() (
     p=$1
     patch=$PATCHDIR/$p
 
-#    clean_tree $TEMP
     export TEMP=$TEMPDIR/$p
     mkdir -p $TEMP
     cd $TEMP
