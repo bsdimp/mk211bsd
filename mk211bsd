@@ -267,6 +267,8 @@ extract_patches() {
 	chdir $TEMPDIR/catch-up
 	tar xvf $PATCHSRC/usr_update.tar.bz2
 	tar xvf patches.tar.bz2
+#	mkdir usr
+#	( cd usr; tar xvf ../usr.update.tar.Z )
 	#
 	# pcc changes .. haven't closely evaluated these
 	#
@@ -284,7 +286,18 @@ extract_patches() {
 	#
 	# Patch 78 had an update to rn, so create it as 78a
 	#
-	sed -ne '/\/old\/src\/new\/rn\/addng\.c/,$p' < xab > $PATCHDIR/78a
+	sed -ne '/\/old\/src\/new\/rn\/addng\.c/,$p' < xas > $PATCHDIR/78a
+	#
+	# And now the trickiest one... the tftp changes. These were made a few
+	# days after patch 1 (May 4, 1991) on May 15th, but do not appear in the
+	# official patch lists from sms. But they are in the catch up patch in
+	# several parts. Plus, the catch-up replaces the man pages rather than
+	# patches them. I've opted, instead, to patch them so I generate
+	# patches from the extracted files against 2.10.1, but with the
+	# source moved.
+	#
+	sed -ne '/\/old\/src\/etc\/tftpd\/tftpd\.c/,/\/old\/src\/etc\/tunefs\.c/p' < xac > $PATCHDIR/1a
+	sed -ne '/\/old\/src\/ucb\/tftp\/main\.c/,/\/old\/src\/ucb\/vlp\/vlp\.c/p' < xas >> $PATCHDIR/1a
     )
 }
 
@@ -296,7 +309,7 @@ from2.10.1() {
 	echo "Patch $p | $i | 2.10.1BSD | " >> $RECOVERY_LOG
 	echo "Patch $p: Recovering $i from 2.10.1BSD"
 	pprint 1 "Recovering $i from 2.10.1BSD"
-	cp $ROOT2101/$i $ROOT211/$i
+	cp -p $ROOT2101/$i $ROOT211/$i
 	chmod +w $ROOT211/$i
     done
 }
@@ -500,7 +513,7 @@ clean_tree $TEMPDIR
 # appear to be the same to both files in 96. Why are they hard linked? Who knows.
 # They were separate files in 2.10.1.
 rm $ROOT211/usr/src/sys/pdp/net_csv.s
-cp $ROOT211/usr/src/sys/pdp/mch_csv.s $ROOT211/usr/src/sys/pdp/net_csv.s
+cp -p $ROOT211/usr/src/sys/pdp/mch_csv.s $ROOT211/usr/src/sys/pdp/net_csv.s
 
 # There's .o detritits in /usr/src/sys/autoconfig that gets in the way, so
 # remove it. Also remove any libraries in the source tree as well as a known
@@ -568,9 +581,6 @@ pprint 1 "Fixing permissions and prepping tape"
     done
     # rm libraries that are useless
     find lib usr/lib -name \*.a | xargs rm -f
-
-    # Need to convert these to relative paths
-    ln -sf ../../ucb/ftp/glob.c usr/src/etc/ftpd/glob.c
 
     # push the date of the sources back to something approximately
     # correct: use the date of the announcement, which was posted at

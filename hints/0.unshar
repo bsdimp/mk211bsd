@@ -14,6 +14,3 @@ touch -d 1989-04-20T20:22:25Z $ROOT211/bin/copyh
 # 4 -rw-r--r--   1 imp  imp   1305 Mar 13 08:24:32 1987 token.c
 touch -d 1988-12-10T20:13:12Z usr/src/bin/awk/Makefile
 touch -d 1987-03-13T08:24:32Z usr/src/bin/awk/token.c
-
-# The ftpd daemon has an absolute link, we need to convert it to relative
-ln -sf ../../ucb/ftp/glob.c usr/src/etc/ftpd/glob.c

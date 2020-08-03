@@ -1,0 +1,14 @@
+# first, apply the patch
+cd $ROOT211
+patch -V none -p1 -R < $patch
+
+# This patch moves the man page, so we have to remove the old man pages and
+# popualte the new... this movement isn't in the patch.
+from2.10.1 usr/src/man/man1/tftp.1
+from2.10.1 usr/src/man/man8/tftpd.8
+rm usr/src/etc/tftpd/tftpd.8
+rm usr/src/ucb/tftp/tftp.1
+
+# This wasn't a symlink originally...
+rm usr/src/etc/tftpd/tftpsubs.c
+cp -p usr/src/ucb/tftp/tftpsubs.c usr/src/etc/tftpd/tftpsubs.c
