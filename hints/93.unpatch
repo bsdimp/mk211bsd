@@ -4,6 +4,7 @@ cd usr/src/sys
 # Move from SMS -> KAZOO with this break
 rm -rf GENERIC SMS
 cd conf
+rm SMS
 # KAZOO is best effort... we have not a lot to go on and may not work
 ./config KAZOO
 ./config GENERIC
