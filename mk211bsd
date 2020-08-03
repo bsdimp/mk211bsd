@@ -18,7 +18,7 @@ PATCHSRC=${UCB}/2.11BSD/Patches
 PATCHDIR=${TOP}/patches
 HINTSDIR=${TOP}/hints
 APOUT_ROOT=/
-TEMPDIR=${TOP}/tmp
+export TEMPDIR=${TOP}/tmp
 LOGS=${TOP}/log
 RECOVERY_LOG=${LOGS}/recovery.log
 ROOT211TAR=$TOP/root-2.11.tar.xz
@@ -252,7 +252,7 @@ unpack_v7() {
 }
 
 extract_patches() {
-    [ -d $PATCHDIR ] || (
+    (
 	mkdir $PATCHDIR
 	cd $PATCHDIR
 	for i in $(jot 19 1); do
@@ -262,6 +262,14 @@ extract_patches() {
 	tar xf $PATCHSRC/001-009.tar.bz2
 	# we're at patch 195, so remove the rest
 	rm -f 196 197 198 199
+	#
+	# Recover patch 18a csh size reduction...
+	#
+	mkdir -p $TEMPDIR/catch-up
+	chdir $TEMPDIR/catch-up
+	tar xvf $PATCHSRC/usr_update.tar.bz2
+	tar xvf patches.tar.bz2
+	sed -ne '/\/old\/src\/bin\/csh\/alloc\.c/,/\/old\/src\/bin\/dd\.c/p' < xab > $PATCHDIR/18a
     )
 }
 
