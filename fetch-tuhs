@@ -44,3 +44,9 @@ fetchone $UCB/4.3BSD/src.tar.gz
 	fetch https://people.freebsd.org/~imp/comp.bugs.2bsd/1989-October.txt.gz
 	fetch https://people.freebsd.org/~imp/comp.bugs.2bsd/1989-December.txt.gz
 )
+( # Not tuhs, but internet archive, to get a few missing bits
+	mkdir -p archive.org
+	cd archive.org
+	fetch https://archive.org/download/usenet-comp/comp.bugs.2bsd.mbox.zip
+	tar xvf comp.bugs.2bsd.mbox.zip
+)
