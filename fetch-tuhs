@@ -16,13 +16,6 @@ fetchone() (
 	wget ${TUHS}/$file
 )
 
-fetchdir() (
-	dir=$1
-	mkdir -p $dir
-	chdir $dir
-	wget ${TUHS}/$dir/*
-)
-
 mkdir tuhs
 cd tuhs
 fetchone Distributions/Research/Henry_Spencer_v7/v7.tar.gz
@@ -32,10 +25,12 @@ fetchone $UCB/2.11BSD-pl195.tar
 fetchone $UCB/2.10.1bsd.tar
 fetchone $UCB/4.3BSD/srcsys.tar.gz
 fetchone $UCB/4.3BSD/src.tar.gz
+fetchone $UCB/2.11BSD/root.afio.gz
 ( # Official 2.11 Patches
 	mkdir -p $UCB/2.11BSD/Patches
 	cd $UCB/2.11BSD/Patches
 	wget -L --mirror -nH --cut-dirs=5 https://www.tuhs.org/Archive/Distributions/UCB/2.11BSD/Patches/ -A '[0-9]*'
+	wget https://www.tuhs.org/Archive/Distributions/UCB/2.11BSD/Patches/usr_update.tar.bz2
 )
 ( # Usenet 2.10.1 patches for a few things
 	mkdir -p Usenet/comp.bugs.2bsd
