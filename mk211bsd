@@ -20,6 +20,18 @@ pprint ( ) (
     fi
 )
 
+die() {
+    echo $*
+    exit 1
+}
+
+clean_tree() (
+    if [ -d $1 ]; then
+	chmod -R +w $1
+	rm -rf $1
+    fi
+)
+
 extract_dump() {
     # Even with this icky code, this is imperfect: symlinks don't work
     local r fn inode
@@ -123,10 +135,10 @@ unpack_211() {
 	    # so fix all known ones. Thankfully, all of them extract with a file
 	    # containing a path to the target. There's others in the system, but
 	    # tar gets them right.
-	    for i in vmunix sys etc/termcap etc/crash bin/sort; do
+	    for i in vmunix sys etc/crash bin/sort; do
 		ln -sf $(cat $i) $i
 	    done
-	    mkdir usr
+	    mkdir -p usr
 	    (
 		cd usr
 		tar xvf $TAPE211/usr.tar.gz	# restore /usr
@@ -145,7 +157,7 @@ unpack_211() {
 	    chmod -R +w $ROOT211
 	)
 	if [ ! -r $ROOT211TAR ]; then
-	    (cd $TOP ; sudo tar xf $ROOT211TAR $ROOT211)
+	    (cd $TOP ; sudo tar cyf $ROOT211TAR root-2.11)
 	fi
     fi
 }
@@ -194,10 +206,9 @@ unpack_2101() {
 	# symlinks don't work, so fix all known ones. Thankfully, all of them
 	# extract with a file containing a path to the target. There's others in
 	# the system, but tar gets them right.
-	for i in vmunix sys etc/termcap etc/crash bin/sort; do
+	for i in vmunix sys etc/crash bin/sort; do
 	    ln -sf $(cat $i) $i
 	done
-	mkdir usr
 	(
 	    cd usr
 	    tar xvf $TAPE2101/tape1/file5.gz	# restore /usr
@@ -224,6 +235,9 @@ extract_patches() {
     ( set -x
 	mkdir $PATCHDIR
 	cd $PATCHDIR
+	if ! [ -d $PATCHSRC ]; then
+	    die Cannot find $PATCHSRC
+	fi
 	for i in $(jot 19 1); do
 	    j=$(printf %02d $i)
 	    tar xf $PATCHSRC/${j}0-${j}9.tar.bz2
@@ -238,6 +252,12 @@ extract_patches() {
 	tar xvf patches.tar.bz2
 #	mkdir usr
 #	( cd usr; tar xvf ../usr.update.tar.Z )
+	#
+	# pcc changes .. haven't closely evaluated these
+	#
+	sed -ne '/\/old\/src\/lib\/pcc\/Makefile/,$p' < xab > $PATCHDIR/17a
+	cat xae >> $PATCHDIR/17a
+	cat xaf >> $PATCHDIR/17a
 	#
 	# Recover patch 18a csh size reduction...
 	#
@@ -537,7 +557,7 @@ patches=$(cd $PATCHDIR; ls | sort -rn)
 
 mkdir -p  ${SAVE}
 mkdir -p ${LOGS}
-rm $RECOVERY_LOG
+rm -f $RECOVERY_LOG
 touch $RECOVERY_LOG
 set -e
 trap 'die undo patch $p failed; pprint 1 patch $p failed' EXIT
