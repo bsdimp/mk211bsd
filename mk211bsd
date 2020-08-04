@@ -1,8 +1,13 @@
 #!/bin/sh
 
+set -e
 # Vars
 TOP=$(pwd)
-TUHS=$HOME/tuhs
+if [ -d $HOME/tuhs ]; then
+    TUHS=$HOME/tuhs
+else
+    TUHS=$TOP/tuhs
+fi
 UCB=$TUHS/Distributions/UCB
 TOOLS=${TOP}/tools
 TOOLBIN=$TOOLS/bin
