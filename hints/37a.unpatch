@@ -1,0 +1,11 @@
+#	
+# Small message change to backgammon was overlooked. Which is kinda
+# stupid because all it changes is the date it was last updated...
+#
+# This also means that when the time comes for going forward to 195,
+# this will also be wrong there :(.
+#
+cd $ROOT211
+sed -I.bak -e "s/Sunday, January 16, 1994/Tuesday, June 5, 1990/g" usr/src/games/backgammon/message.c
+rm usr/src/games/backgammon/message.c.bak
+

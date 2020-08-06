@@ -14,6 +14,7 @@ for i in INDEX :rofix fort.h.vax; do
     from2.10.1 usr/src/lib/pcc/$i
 done
 cd usr/src/lib/pcc/
+patch -V none -p1 -R </$TEMP/patchfile
 rm localdefs.h DEBUGS INFO stab.c
 mv macdefs.h macdefs
 mv mac2defs.h mac2defs

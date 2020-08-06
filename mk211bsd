@@ -249,12 +249,6 @@ extract_patches() {
 #	mkdir usr
 #	( cd usr; tar xvf ../usr.update.tar.Z )
 	#
-	# pcc changes .. haven't closely evaluated these
-	#
-	sed -ne '/\/old\/src\/lib\/pcc\/Makefile/,$p' < xab > $PATCHDIR/17a
-	cat /dune/imp/tuhs/Distributions/UCB/2.11BSD/Patches/ud/xae >> $PATCHDIR/17a
-	cat /dune/imp/tuhs/Distributions/UCB/2.11BSD/Patches/ud/xaf >> $PATCHDIR/17a
-	#
 	# Recover patch 18a csh size reduction...
 	#
 	sed -ne '/\/old\/src\/bin\/csh\/alloc\.c/,/\/old\/src\/bin\/dd\.c/p' < xab > $PATCHDIR/18a
@@ -277,10 +271,13 @@ extract_patches() {
 	#
 	sed -ne '/\/old\/src\/etc\/tftpd\/tftpd\.c/,/\/old\/src\/etc\/tunefs\.c/p' < xac > $PATCHDIR/1a
 	sed -ne '/\/old\/src\/ucb\/tftp\/main\.c/,/\/old\/src\/ucb\/vlp\/vlp\.c/p' < xas >> $PATCHDIR/1a
-
+	#
 	# lib/uucp/USERFILE was changed just after the release to remove
 	# local hacks
+	#
 	sed -ne '/\/old\/lib\/uucp\/USERFILE/,/\/old\/src\/bin\/adb\/opset\.c/p' < xaa > $PATCHDIR/1b
+	# Small hack to get the 37a.unpatch script to run.
+	touch $PATCHDIR/37a
     )
 }
 
