@@ -7,5 +7,4 @@
 sed -n -e '/^sed.*\/tmp\/187/,/^SHAR_EOF/p' < $patch | sed -e "s=/tmp/=$TEMP/=" | sh -x
 cd $ROOT211
 patch -V none -R -p1 < $TEMP/187
-# patch -V none -p1 < $HINTSDIR/187.extra
 rm usr/src/lib/libc/pdp/sys/fchdir.s
