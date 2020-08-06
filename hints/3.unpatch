@@ -1,11 +1,8 @@
-# 3 has two issues
+# 3 has one issues
 # 1, MAKEDEV doesn't apply, so don't reverse
 #    however, it looks like the copy in usr/src/sys/pdpdist/MAKEDEV
 #    hasn't changed, so assume it is the one that should be in /dev
-# 2, it patches localopts.h, which is a generated file
-#    Kinda a small risk, since it looks like things may have been tweaked
-#    after config :(.
 chmod +wx $TEMP/3
-sed -e '88,193d;901,$d' < $TEMP/3/b.2 > $TEMP/3/new.b.2
+sed -e '88,193d' < $TEMP/3/b.2 > $TEMP/3/new.b.2
 cp $TEMP/3/new.b.2 $TEMP/3/b.2
 cp $ROOT211/usr/src/sys/pdpdist/MAKEDEV $ROOT211/dev/MAKEDEV

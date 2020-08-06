@@ -1,0 +1,12 @@
+--- /dune/imp/localopts.h~	2020-08-06 14:53:51.059851000 -0600
++++ /dune/imp/localopts.h	2020-08-06 14:54:12.738637000 -0600
+@@ -17,8 +17,8 @@
+ #define LINEHZ	60
+ #ifdef KERNEL
+ #define NBUF	32
++#define	Q22	1
+ #define UNIBUS_MAP 1
+-#define Q22 1
+ #define VIRUS_VFORK 1
+ #define UCB_RUSAGE 1
+ #endif /* KERNEL */
