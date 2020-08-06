@@ -1,0 +1,28 @@
+# Vars
+TOP=$(pwd)
+if [ -d $HOME/tuhs ]; then
+    TUHS=$HOME/tuhs
+else
+    TUHS=$TOP/tuhs
+fi
+UCB=$TUHS/Distributions/UCB
+TOOLS=${TOP}/tools
+TOOLBIN=$TOOLS/bin
+APOUT_SRC=${TOOLS}/apout
+APOUT=${APOUT_SRC}/apout
+TAPE211=${TOP}/tape-2.11
+ROOT211=${TOP}/root-2.11
+TAPE2101=${TOP}/tape-2.10.1
+ROOT2101=${TOP}/root-2.10.1
+TAPEV7=${TUHS}/Distributions/Research/Henry_Spencer_v7/v7.tar.gz
+ROOTV7=${TOP}/root-v7
+PATCHSRC=${UCB}/2.11BSD/Patches
+PATCHDIR=${TOP}/patches
+HINTSDIR=${TOP}/hints
+APOUT_ROOT=/
+export TEMPDIR=${TOP}/tmp
+LOGS=${TOP}/log
+RECOVERY_LOG=${LOGS}/recovery.log
+ROOT211TAR=$TOP/root-2.11.tar.xz
+export SAVE=${TOP}/saveit
+P80TESTDIR=${TOP}/p80-test

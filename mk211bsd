@@ -1,33 +1,7 @@
 #!/bin/sh
 
 set -e
-# Vars
-TOP=$(pwd)
-if [ -d $HOME/tuhs ]; then
-    TUHS=$HOME/tuhs
-else
-    TUHS=$TOP/tuhs
-fi
-UCB=$TUHS/Distributions/UCB
-TOOLS=${TOP}/tools
-TOOLBIN=$TOOLS/bin
-APOUT_SRC=${TOOLS}/apout
-APOUT=${APOUT_SRC}/apout
-TAPE211=${TOP}/tape-2.11
-ROOT211=${TOP}/root-2.11
-TAPE2101=${TOP}/tape-2.10.1
-ROOT2101=${TOP}/root-2.10.1
-TAPEV7=${TUHS}/Distributions/Research/Henry_Spencer_v7/v7.tar.gz
-ROOTV7=${TOP}/root-v7
-PATCHSRC=${UCB}/2.11BSD/Patches
-PATCHDIR=${TOP}/patches
-HINTSDIR=${TOP}/hints
-APOUT_ROOT=/
-export TEMPDIR=${TOP}/tmp
-LOGS=${TOP}/log
-RECOVERY_LOG=${LOGS}/recovery.log
-ROOT211TAR=$TOP/root-2.11.tar.xz
-export SAVE=${TOP}/saveit
+. vars
 
 # here to the end of pprint stolen from nanobsd.
 export PPLEVEL=1
@@ -303,6 +277,10 @@ extract_patches() {
 	#
 	sed -ne '/\/old\/src\/etc\/tftpd\/tftpd\.c/,/\/old\/src\/etc\/tunefs\.c/p' < xac > $PATCHDIR/1a
 	sed -ne '/\/old\/src\/ucb\/tftp\/main\.c/,/\/old\/src\/ucb\/vlp\/vlp\.c/p' < xas >> $PATCHDIR/1a
+
+	# lib/uucp/USERFILE was changed just after the release to remove
+	# local hacks
+	sed -ne '/\/old\/lib\/uucp\/USERFILE/,/\/old\/src\/bin\/adb\/opset\.c/p' < xaa > $PATCHDIR/1b
     )
 }
 
