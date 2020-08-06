@@ -12,3 +12,5 @@ rm spl/:splfix.mfps
 rm spl/:splfix.movb+mfps
 rm spl_3com/:splfix.mfps
 rm spl_3com/:splfix.movb+mfps
+# Now we need to apply it to our kernels (just GENERIC?)
+cp spl/:splfix.movb ../GENERIC/SPLFIX
