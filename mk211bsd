@@ -278,6 +278,12 @@ extract_patches() {
 	sed -ne '/\/old\/lib\/uucp\/USERFILE/,/\/old\/src\/bin\/adb\/opset\.c/p' < xaa > $PATCHDIR/1b
 	# Small hack to get the 37a.unpatch script to run.
 	touch $PATCHDIR/37a
+	#
+	# There was an update to kern_acct.c to stop writting accounting logs when the
+	# free space got too low.
+	#
+	sed -ne '/\/old\/src\/sys\/h\/acct\.h/,/\/old\/src\//p' < xai > $PATCHDIR/53a
+	sed -ne '/\/old\/src\/sys\/sys\/kern_acct\.c/,/\/old\/src\//p' < xaq >> $PATCHDIR/53a
     )
 }
 
