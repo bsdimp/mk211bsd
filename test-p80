@@ -1,0 +1,97 @@
+#!/bin/sh
+
+__p() {
+    case "$1" in
+	/*) echo "$TSRC/$1" ;;
+	*)  echo "$1" ;;
+    esac
+}
+
+missing() {
+    echo "MISSING: $1"
+    # exit
+}
+
+cd() {
+    chdir $(__p $1)
+}
+
+rm() (
+    set +f
+    flags=
+    if [ "$1" = "-r" ]; then
+	shift
+	flags=-r
+    fi
+
+    for i; do
+	fn=$(__p $i)
+	# Expand the globs in the args, we disabled them before starting
+	for j in $fn; do
+	    if [ -f "$j" ]; then
+		echo "removing $j"
+		/bin/rm -f $flags $j
+	    else
+		missing $j
+	    fi
+	done
+    done
+)
+
+mv() {
+    src=$(__p $1)
+    dst=$(__p $2)
+    if [ -f $src ]; then
+	echo "Moving $src to $dst"
+	/bin/mv -f $src $dst
+    else
+	missing $src
+    fi
+}
+
+set -e
+# Test to see if p80 / the catch-up kil works.
+. vars
+export TSRC=${P80TESTDIR}/211bsd
+export P80=${P80TESTDIR}/p80
+
+/bin/rm -rf $P80TESTDIR
+mkdir -p $P80TESTDIR
+
+mkdir -p $TSRC
+chdir $TSRC
+tar xf $TOP/src.tar
+
+mkdir -p $P80
+chdir $P80
+tar xvf $PATCHSRC/usr_update.tar.bz2
+tar xvf patches.tar.bz2
+
+# README says to run root.step1. However, that's bogus for us. It renames a device we don't have.
+# it creates a hard link that was in 2.10.1BSD which we have. And it applies patches, but with a
+# command that's bogus for us.
+# skip root.step1
+
+# apply the patches for /
+chdir $TSRC
+patch -t -V none -p1 < $P80/root_patch
+
+# usr step 1, use the script
+# The functions above do some sanity checks before moving
+chdir $TSRC
+set -f
+. $P80/usr.step1
+set +f
+
+# usr step 2, extract
+chdir $TSRC/usr
+tar xpf $P80/usr.update.tar.Z
+
+find $TSRC/usr/src -type f | xargs chmod +w
+
+# user step 3, patch
+chdir $TSRC
+for i in $P80/xa?; do
+    echo ------------------- $i -----------------------
+    patch -t -V none -p1 < $i
+done
