@@ -1,7 +1,5 @@
 #
-# 180 creates new and imrpoved strcompact tools
-#
-# we need to look at the CSRG SCCS archive and the bsd patches group to me sure.
+# 180 creates new and improved strcompact tools
 #
 # It creates:
 #	/usr/src/ucb/symcompact.c
