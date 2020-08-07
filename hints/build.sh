@@ -3,7 +3,7 @@
 # Script to build a 2.11BSD pl 0 system from recoverd sources on a 2.11pl195
 # system that we have extant.
 
-R=/scratch
+R=/ur
 S=$R/usr/src
 
 # The build requires /dev/null to work, so create it. While we're here, go head
