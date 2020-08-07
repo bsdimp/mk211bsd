@@ -507,20 +507,27 @@ cp -p $ROOT211/usr/src/sys/pdp/mch_csv.s $ROOT211/usr/src/sys/pdp/net_csv.s
 # released, though, since they all seem to have the newer symbol format with a
 # string table (and toyset didn't happen for until patch 151).
 find $ROOT211/usr/src -name \*.o -o -name lib\*.a | xargs rm -f
-(
-    for i in \
-	sys/autoconfig/autoconfig sys/pdpstand/boot sys/pdpstand/mkfs \
-	sys/pdpstand/restor sys/pdpstand/icheck sys/pdpstand/maketape \
-	sys/pdpstand/toyset games/hack/crypt ucb/w \
-	usr.lib/libF77/profiled/Version usr.lib/libF77/mkindx \
-	usr.lib/libF77/mkvers usr.lib/libI77/profiled/Version \
-	usr.lib/libI77/mkindx usr.lib/libI77/mkvers \
-	usr.lib/libI77/Version usr.lib/libU77/profiled/Version \
-	usr.lib/libU77/mkindx usr.lib/libU77/mkvers \
-	usr.lib/libU77/Version; do
-	rm $ROOT211/usr/src/$i
-	done
-)
+for i in \
+    new/jove/doc/cmds.doc new/nmcoll/nmcoll.0 \
+    sys/autoconfig/autoconfig sys/pdpstand/boot sys/pdpstand/mkfs \
+    sys/pdpstand/restor sys/pdpstand/icheck sys/pdpstand/maketape \
+    sys/pdpstand/toyset sys/sys/tags sys/pdp/symbols.sort \
+    sys/pdpstand/xp.c.fuji160 sys/conf/NONET \
+    games/hack/crypt ucb/w \
+    usr.lib/libF77/profiled/Version usr.lib/libF77/mkindx \
+    usr.lib/libF77/mkvers usr.lib/libI77/profiled/Version \
+    usr.lib/libI77/mkindx usr.lib/libI77/mkvers \
+    usr.lib/libI77/Version usr.lib/libU77/profiled/Version \
+    usr.lib/libU77/mkindx usr.lib/libU77/mkvers \
+    usr.lib/libU77/Version
+do
+    rm $ROOT211/usr/src/$i
+done
+
+# remove some detritis from sms running warp
+rm $ROOT211/usr/games/lib/warp/warp.log $ROOT211/usr/games/lib/warp/warp.top
+# kill old warp binary, it causes trouble later
+rm $ROOT211/usr/games/warp
 
 #
 # Also, the KAZOO config was included through some unknown rev. It's not in
