@@ -558,7 +558,8 @@ trap - EXIT
 pprint 1 "Bootstrapping"
 bootstrap_as $ROOTV7
 # Put the building scripts on the target...
-cp $HINTSDIR/build.sh $HINTSDIR/build2.sh $ROOT211
+mkdir -p $ROOT211/usr/urbsd
+cp $HINTSDIR/build.sh $HINTSDIR/build2.sh $ROOT211/usr/urbsd
 pprint 1 "Fixing permissions and prepping tape"
 (
     cd $ROOT211

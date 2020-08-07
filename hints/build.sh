@@ -30,4 +30,4 @@ cp ld nm as/as as/as2 $R/bs
 # OK, now it's time to jump into the chroot.
 echo Launching the chroot build
 cd /
-#chroot $R sh -c /build2.sh
+#chroot $R sh -c /usr/urbsd/build2.sh
