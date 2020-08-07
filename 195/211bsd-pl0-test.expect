@@ -25,16 +25,16 @@ expect "# "					{send "\004"}
 expect "login: "				{send "root\r"}
 expect "$prompt"				{send "newfs ra1a rd54\r"}
 expect "$prompt"				{send "newfs ra1g rd54\r"}
-expect "$prompt"				{send "mkdir -p /scratch\r"}
-expect "$prompt"				{send "mount /dev/ra1a /scratch\r"}
-expect "$prompt"				{send "mkdir -p /scratch/usr\r"}
-expect "$prompt"				{send "mount /dev/ra1g /scratch/usr\r"}
-expect "$prompt"				{send "cd /scratch\r"}
+expect "$prompt"				{send "mkdir -p /ur\r"}
+expect "$prompt"				{send "mount /dev/ra1a /ur\r"}
+expect "$prompt"				{send "mkdir -p /ur/usr\r"}
+expect "$prompt"				{send "mount /dev/ra1g /ur/usr\r"}
+expect "$prompt"				{send "cd /ur\r"}
 expect "$prompt"				{send "mt -f /dev/rmt12 rew\r"}
 expect "$prompt"				{send "tar xv\r"}
 expect "$prompt"				{send "sh -ex ./usr/urbsd/build.sh\r"}
 set timeout 3600
-expect "$prompt"				{send "chroot /scratch sh -ex /usr/urbsd/build2.sh\r"}
+expect "$prompt"				{send "chroot /ur sh -ex /usr/urbsd/build2.sh\r"}
 # Should do something smart on timeout...
 
 # And we're done...
