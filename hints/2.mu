@@ -1,6 +1,6 @@
 --- /usr/src/sys/mdec/bruboot.s.old	2020-06-14 08:25:17.715240000 -0600
 +++ /usr/src/sys/mdec/bruboot.s	2020-06-14 08:25:29.172329000 -0600
-@@ -49,8 +49,6 @@
+@@ -45,8 +45,6 @@
  	nop			/ These two lines must be present or DEC
  	br	start		/ boot ROMs will refuse to run boot block!
  start:
