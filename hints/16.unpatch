@@ -1,0 +1,13 @@
+#	To apply the following patch:
+#
+#		1) cd /usr/src/lib
+#		2) rm mip/*
+#		3) zcat PORT/mip.tar.Z | tar xf -
+#		4) cd mip
+#		5) patch < the_patch_below
+#
+# So to unapply, I have to rm stuff
+rm $ROOT211/usr/src/lib/mip/*
+for i in $(cd $ROOT2101 ; find usr/src/lib/mip -type f); do
+    from2.10.1 $i
+done
