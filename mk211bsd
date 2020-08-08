@@ -594,8 +594,10 @@ pprint 1 "Fixing permissions and prepping tape"
     # install properly...
     file etc/* | grep -v chown | grep PDP-11 | awk -F: '{print $1;}' | xargs rm
     rm -rf usr/new
-    mkdir -p usr/new/lib usr/new/man
+    mkdir -p usr/new/lib usr/new/man usr/new/man/cat1
     rm -rf usr/local # New around patch 80...
+    # These need to exist for install to work on some targets
+    mkdir usr/man/man6 usr/man/manl usr/man/catn
 
     # Remove some binaries that shouldn't be there. tcsh was added later
     # and ns* utilities didn't build in pl0 (though maybe I'll need to add
