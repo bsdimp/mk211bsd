@@ -215,6 +215,20 @@ make clean
 # Build it all again now that we've done the above dance
 make all
 make install
+# Install a few artifacts that aren't done by default
+(cd games/battlestar ; make stringfile)
+(   # because make install doesn't work, we have to copy from the
+    # /usr/src/man/Makefile and tewak slightly
+    cd man;
+    make scriptinstall
+#    for file in `find /usr/man -type f -name '*.0' -print`; do \
+#	sed -n -f /usr/man/makewhatis.sed $$file; \
+#    done | sort -u > whatis.db
+#    install -o bin -g bin -m 444 whatis.db /usr/man/whatis
+    install -c -o bin -g bin -m 444 man.template /usr/man/man.template
+)
+# Need to rebuild the find database...
+# /usr/lib/find/updatedb
 make clean
 
 #
