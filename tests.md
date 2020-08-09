@@ -1,12 +1,51 @@
 # ur2.11BSD Testing
 
-This tries to document the tests that I'm using to validate my reconstruction
+This tries to document the tests that I'm using to validate my
+reconstruction. There's four major categories of testing. First is backwards
+patch consistency. Is the reconstruction consistent with the patches going
+backwards? Next is compile consistency: can the resulting system be built and
+boot. Next is date consistency. Are the dates that the files wind up with
+consistent with a product released in February or March 1991? Finally, there's
+forward patch consistency. Can I start at the reconstructed sources and end with
+patch 80? Patch 195? Does the catch-up kit work?
 
-# Patch Consistent
+## Current status
+
+All but two of the backward patch inconsistencies have been coorected. There's a
+change to ctags.c indicated by one. There's also a change to sh (mac.h) which
+may indicate a hidden change. All of the rest of the issues have been explained,
+or of no consequence.
+
+There's one issue with nslookup that needs to be resolve on the build
+consistency test. It's unclear if that needs to be resolved in favor of doing it
+by hand, or if the binaries were just missing. I suspect this will be resolved
+by hand since the binaries are quite popular.
+
+There's about 20 files that are not date consistent that need looking into. More
+details coming. The system is rebuilt in 1991 to help detect these issues. The
+current testing methodology loses the dates from patch files, so we are not yet
+able to detect missing patches to files that were patched after pl80 (we can
+detect it to 80 since the catch-up kit has a complete set of patches).
+
+There's still a few inconsistencies with patching to pl80 with the catch-up
+kit. Those need to be documented. Mostly files that are expected to be present
+by the upgrade scripts, but are not. It's unclear if some of the removals were a
+just in case thing, or the files really were on the master tape. The bulk of the
+remaining ones deal with local machine configuration. No attempt has been made
+to walk the patches forward, nor deal with the multitude of added files in patch
+80 that are no-where-else documented. No attempt has been made to go from patch
+80 -> 195, or try to get close to patch 80 one patch at a time.
+
+It's likely time to create github issues for the first two categories so they
+aren't forgotten. The date and catch-up issues need to be burned down a bit more
+and documented when the going gets slow there. Much code needs to be written to
+do the patch-at-a-time upgrade.
+
+# Backwards Patch Consistency
 
 The very first test is 'is the reconstruction consistent with the patches'. This means, does anything in the patches contradict what has been reconstructed. Examples of this are the patches not apply, applying with unexplained fuzz or line number deltas.
 
-Now that all the patches apply w/o error, I've narrowed the scope of this patch. The test is to grep for the words offset or fuzz in the log files:
+Now that all the patches apply w/o error, I've narrowed the scope of this test. The test is to grep for the words offset or fuzz in the log files:
 
         % egrep 'Hunk.*offset|fuzz' log/*
         log/107.log:Hunk #1 succeeded at 53 with fuzz 1 (offset -6 lines).
