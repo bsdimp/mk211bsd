@@ -10,27 +10,27 @@ The very first test is 'is the reconstruction consistent with the patches'. This
 
 Now that all the patches apply w/o error, I've narrowed the scope of this patch. The test is to grep for the words offset or fuzz in the log files:
 
-  % egrep 'Hunk.*offset|fuzz' log/*
-  log/107.log:Hunk #1 succeeded at 53 with fuzz 1 (offset -6 lines).
-  log/124.log:Hunk #1 succeeded at 69 with fuzz 1 (offset 2 lines).
-  log/124.log:Hunk #1 succeeded at 55 (offset 1 line).
-  log/142.log:Hunk #1 succeeded at 50 with fuzz 2 (offset 8 lines).
-  log/142.log:Hunk #1 succeeded at 50 with fuzz 2 (offset 8 lines).
-  log/152.log:Hunk #1 succeeded at 265 (offset 1 line).
-  log/152.log:Hunk #2 succeeded at 313 (offset 1 line).
-  log/152.log:Hunk #3 succeeded at 354 (offset 1 line).
-  log/152.log:Hunk #1 succeeded at 230 (offset 1 line).
-  log/152.log:Hunk #2 succeeded at 265 (offset 1 line).
-  log/152.log:Hunk #3 succeeded at 284 (offset 1 line).
-  log/159.log:Hunk #1 succeeded at 109 with fuzz 2 (offset 27 lines).
-  log/159.log:Hunk #1 succeeded at 109 with fuzz 2 (offset 27 lines).
-  log/179.log:Hunk #14 succeeded at 1018 with fuzz 1 (offset -8 lines).
-  log/42.log:Hunk #1 succeeded at 336 (offset -1 lines).
-  log/42.log:Hunk #1 succeeded at 177 (offset -155 lines).
-  log/84.log:Hunk #1 succeeded at 325 (offset -1 lines).
-  log/84.log:Hunk #2 succeeded at 377 (offset -1 lines).
-  log/84.log:Hunk #1 succeeded at 215 (offset -156 lines).
-  log/89.log:Hunk #2 succeeded at 403 with fuzz 1 (offset -3 lines).
+> % egrep 'Hunk.*offset|fuzz' log/*
+> log/107.log:Hunk #1 succeeded at 53 with fuzz 1 (offset -6 lines).
+> log/124.log:Hunk #1 succeeded at 69 with fuzz 1 (offset 2 lines).
+> log/124.log:Hunk #1 succeeded at 55 (offset 1 line).
+> log/142.log:Hunk #1 succeeded at 50 with fuzz 2 (offset 8 lines).
+> log/142.log:Hunk #1 succeeded at 50 with fuzz 2 (offset 8 lines).
+> log/152.log:Hunk #1 succeeded at 265 (offset 1 line).
+> log/152.log:Hunk #2 succeeded at 313 (offset 1 line).
+> log/152.log:Hunk #3 succeeded at 354 (offset 1 line).
+> log/152.log:Hunk #1 succeeded at 230 (offset 1 line).
+> log/152.log:Hunk #2 succeeded at 265 (offset 1 line).
+> log/152.log:Hunk #3 succeeded at 284 (offset 1 line).
+> log/159.log:Hunk #1 succeeded at 109 with fuzz 2 (offset 27 lines).
+> log/159.log:Hunk #1 succeeded at 109 with fuzz 2 (offset 27 lines).
+> log/179.log:Hunk #14 succeeded at 1018 with fuzz 1 (offset -8 lines).
+> log/42.log:Hunk #1 succeeded at 336 (offset -1 lines).
+> log/42.log:Hunk #1 succeeded at 177 (offset -155 lines).
+> log/84.log:Hunk #1 succeeded at 325 (offset -1 lines).
+> log/84.log:Hunk #2 succeeded at 377 (offset -1 lines).
+> log/84.log:Hunk #1 succeeded at 215 (offset -156 lines).
+> log/89.log:Hunk #2 succeeded at 403 with fuzz 1 (offset -3 lines).
 
 This indicates that there's 20 issues that need explaining in some way. Based on the current text below, there's two possible issues, and the rest either don't matter for the reconstruction back to 0 (but may when we forward apply things) or are likely harmless (4 issues that are very low priority).
 
