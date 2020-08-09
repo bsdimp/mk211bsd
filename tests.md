@@ -1,10 +1,8 @@
 # ur2.11BSD Testing
 
-Note: mardown is supposedly able to do block quotes with just a 2 space indent. This is massively failing on github's viewer for some reason.
-
 This tries to document the tests that I'm using to validate my reconstruction
 
-## Patch Consistent
+# Patch Consistent
 
 The very first test is 'is the reconstruction consistent with the patches'. This means, does anything in the patches contradict what has been reconstructed. Examples of this are the patches not apply, applying with unexplained fuzz or line number deltas.
 
@@ -34,13 +32,13 @@ Now that all the patches apply w/o error, I've narrowed the scope of this patch.
 
 This indicates that there's 20 issues that need explaining in some way. Based on the current text below, there's two possible issues, and the rest either don't matter for the reconstruction back to 0 (but may when we forward apply things) or are likely harmless (4 issues that are very low priority).
 
-### What it means
+## What it means
 
 Fuzz is the number of lines ignored in the patch to apply it for the non-changing part. This suggests minor changes around the code that's changing. Each should be investigated. Often, it's white space, but sometimes it can be more.
 
 Offset means that it expected the patch to start at line X but instead it started at X+offset. When offset is possitive, it indicates lines added (though offset 1 is quite often a blank line). When negative, it means code was deleted. The larger the number, the more cause for concern. Very large numbers can also just indicate code motion and not any substantial changes.
 
-XXX going backwards offset may be flipped, need to check and verify.
+Here's an analysis of each of the errors.
 
 ### 179.log POSSIBLE ISSUE
         |*** /usr/src/ucb/ctags.c.old	Mon Feb 16 22:11:08 1987
@@ -196,7 +194,7 @@ This suggests a patch to mac.h prior to patch 107 that had a net loss of 6 lines
 So there's a little bit of fuzz around this. Since /usr/src/new wasn't official until patch 80, maybe this is residual from that. Then again, there's this note in patch 89:
         The 'crash' program was updated only for completeness, the program
         has not run (or run correctly) since 2.10.1BSD (if not before that).
-so I'll rate it likely harmless.
+so I'll rate it likely harmless since the crash program likely didn't even work in 2.11BSD. That makes any reconstruction impossible to test, absent a tape surfacing...
 
 ### 84.log likely harmless
 
@@ -240,7 +238,7 @@ VAX is a no-effort reconstruction that's known to be badly off.
 
 Same as 84.log.
 
-## Build Tests
+# Build Tests
 
 We know that the 2.11BSD happened. If we're trying to reconstruct the sources to it, then they should build. We also know that at the time certain practices were in place. We need to determine if any build breakage was 'worked around' by these practices or if it indicates a problem in my reconstruction.
 
