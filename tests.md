@@ -237,3 +237,138 @@ VAX is a no-effort reconstruction that's known to be badly off.
   Hunk #1 succeeded at 177 (offset -155 lines).
 
 Same as 84.log.
+
+## Build Tests
+
+We know that the 2.11BSD happened. If we're trying to reconstruct the sources to it, then they should build. We also know that at the time certain practices were in place. We need to determine if any build breakage was 'worked around' by these practices or if it indicates a problem in my reconstruction.
+
+I established the following criteria:
+ 1. Does the breakage stop the build from completing? If so, then it's a bad reconstruction.
+ 1. Can a clean tree rebuild entirely?
+ 1. Could a 'dirty' tree cause the build to succeed? That is, if it complains something is missing, then is there a way to recreate the missing thing via make? If so, then one could pluasuably state that it could have gone unnoticed in the release. Rebuilding everything took more than a day, and according to notes in the patches, was undertaken about once a year.
+ 1. Is the breakage fixed later? Patches 106 to 116 fixed numerous build breakages and irregularities. Generally, I've opted to reconstruct as if those parts had been built by hand (mostly man pages, though I'm not sure what to do about the ns* utilties)
+ 1. Anything that it doesn't know to make?
+
+## Known errors
+
+### Don't know how to make clean. Stop.
+
+There's a number of makefiles that don't know how to make clean. These errors
+are all ignored by the build system, so are believed to be expected and
+normal. This happens three times. But the root cause is in the
+src/usr.lib/sendmail/lib/Makefile, which actually does not know how to make
+clean.
+
+### rmdir: tmp: no such file or directory Exit 1 (ignored)
+  rmdir: tmp: No such file or directory
+  *** Exit 1 (ignored)
+
+In libc, the Makefiles use a tmp directory to do the build. It's removed, and rm returns an error since the file isn't there. This error is ignored and totally expected.
+
+### Exit 1 (ignored) in me
+  if [ ! -d /usr/lib/me ]; then  rm -f /usr/lib/me;  mkdir /usr/lib/me;  fi
+  *** Exit 1 (ignored)
+
+This blows away the installed macro environment styles and recreates them. This error is expected.
+
+### Exit 1 (ignored) in f77
+
+  mkstr - f77_strings xx equiv.c
+  cc -S -w -DTARGET=PDP11 -DFAMILY=DMR -DHERE=PDP11 -DOUTPUT=BINARY  -DPOLISH=POSTFIX -DOVERLAID -DC_OVERLAY               xxequiv.c
+  mv xxequiv.s equiv.s
+  if [ X-i = X-n ]; then ed - equiv.s < :rofix; fi
+  *** Exit 1 (ignored)
+
+This is fixing up the error messages when building separate binaries. This error is expected due to the limitations in /bin/sh that's in 2.11BSD as shipped.
+
+### Exit 10 (ignored) in jove
+
+  ./setmaps < keymaps.txt > keymaps.c
+  Warning: cannot find command "select-buffer-1".
+  Warning: cannot find command "select-buffer-2".
+  Warning: cannot find command "select-buffer-3".
+  Warning: cannot find command "select-buffer-4".
+  Warning: cannot find command "select-buffer-5".
+  Warning: cannot find command "select-buffer-6".
+  Warning: cannot find command "select-buffer-7".
+  Warning: cannot find command "select-buffer-8".
+  Warning: cannot find command "select-buffer-9".
+  Warning: cannot find command "select-buffer-10".
+  *** Exit 10 (ignored)
+
+Another expected error.
+
+### Exit 1 (ignored) in learn
+
+  mkdir /usr/lib/learn  /usr/lib/learn/log  /usr/lib/learn/bin
+  mkdir: /usr/lib/learn: File exists
+  mkdir: /usr/lib/learn/log: File exists
+  mkdir: /usr/lib/learn/bin: File exists
+  *** Exit 1 (ignored)
+
+Learn is trying to make directories that already exist. The lack of -p is what causes this.
+
+### Exit 1 (ignored) find
+
+  install -s find /usr/bin/find
+  mkdir /usr/lib/find
+  mkdir: /usr/lib/find: File exists
+  *** Exit 1 (ignored)
+
+This directory does exist, so this an expected error.
+
+### Exit 1 (ignored) rwho
+
+  mkdir /usr/spool/rwho
+  mkdir: /usr/spool/rwho: File exists
+  *** Exit 1 (ignored)
+
+This directory does exist, so this an expected error.
+
+### Exit 1 (ignored) ex
+  mkdir /usr/preserve
+  mkdir: /usr/preserve: File exists
+  *** Exit 1 (ignored)
+
+This directory does exist, so this an expected error.
+
+### Exit 1 (ignored) battlestar
+  install -c battlestar.6 /usr/man/man6/battlestar.6
+  install: can't find battlestar.6.
+  *** Exit 1 (ignored)
+
+This file indeed does not exist here. It's one of the files that patch 106 moves back to live in /usr/src/games/battlestar. So this is expected and also fixed later.
+
+### Exit 1 (ignored) phantasia
+  mkdir /usr/games/lib/phantasia
+  mkdir: /usr/games/lib/phantasia: File exists
+  *** Exit 1 (ignored)
+
+This directory does exist, so this an expected error.
+
+### Exit 1 (ignored) warp
+  mv /usr/games/warp /usr/games/warp.old
+  mv: /usr/games/warp: Cannot access: No such file or directory
+  *** Exit 1 (ignored)
+
+this is expected. We remove warp as part of the build process so we don't wind up with a warp.old dated in 1994 on the image.
+
+### Exit 1 (ignored) warp
+  if test ! -f `./filexp /usr/games/lib/warp/warp.news`; then  cp warp.news `./filexp /usr/games/lib/warp`;  fi
+  *** Exit 1 (ignored)
+
+Also an expected exit value due to limitations in /bin/sh
+
+### Exit 1 in nslookup
+  for i in tools; do  (cd $i; make -k clean);  done
+  sh: tools: bad directory
+  *** Exit 1
+
+This error is a real error. It's fixed in the 106-116 line of patches. It's
+unclear if we should just build/install by hand or not for this one give the
+high visibility of the missing pieces. It's highly likely that this was test
+built, test installed before a full build, so the binaries were on the
+system. This suggests that the build2.sh build orchestration should do that too.
+
+
+
