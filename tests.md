@@ -1,5 +1,7 @@
 # ur2.11BSD Testing
 
+Note: mardown is supposedly able to do block quotes with just a 2 space indent. This is massively failing on github's viewer for some reason.
+
 This tries to document the tests that I'm using to validate my reconstruction
 
 ## Patch Consistent
