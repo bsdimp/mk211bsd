@@ -599,6 +599,17 @@ pprint 1 "Fixing permissions and prepping tape"
     # These need to exist for install to work on some targets
     mkdir usr/man/man6 usr/man/manl usr/man/catn
 
+    # The 195 tape has wlonex entry, better to use the 2.10.1BSD one
+    from2.10.1 usr/lib/uucp/L.sys
+
+    # use the aliases file from 2.10.1. The date from the 2.11 reconstruction
+    # is too new, but there's only one change.
+    from2.10.1 usr/lib/aliases
+
+    # There's more changes for crontab, but this is a reasonable reconstruction
+    # since we don't have diffs for the original.
+    from2.10.1 usr/lib/crontab
+
     # Remove some binaries that shouldn't be there. tcsh was added later
     # and ns* utilities didn't build in pl0 (though maybe I'll need to add
     # a hack to get them). lint was broken in the release, and fixed in

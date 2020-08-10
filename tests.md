@@ -409,5 +409,172 @@ high visibility of the missing pieces. It's highly likely that this was test
 built, test installed before a full build, so the binaries were on the
 system. This suggests that the build2.sh build orchestration should do that too.
 
+# Date Test
 
+To test this, I use the following
+	# date 9104151234
+	# ^D to boot to multiuser
+	login: root
+	# touch /now
+        # find / -newer /now -ls | grep -v ' 2020 ' | colrm 1 42
 
+Most recnetly this generated the following:
+| Documented below | Date | File |
+|------------------|------|------|
+| * | Apr 15 12:35 | /usr/adm/acct |
+| * | Mar 10  1993 | /usr/doc/2.10/setup.2.11 |
+|   | Jan 16  1994 | /usr/games/words |
+| * | Jan 15  1993 | /usr/include/OLD |
+| * | Feb 16  1994 | /usr/lib/uucp/SEQF |
+| o | Jul 12  1994 | /usr/lib/uucp/L.sys |
+|   | Jun 12  1994 | /usr/lib/find/find.codes |
+| o | Dec 30  1992 | /usr/lib/crontab |
+| o | Jul 12  1994 | /usr/lib/aliases |
+| R | Jul 17  1994 | /usr/man/whatis |
+|   | Jul 12  1994 | /usr/msgs/bounds |
+| * | Jan  9  1993 | /usr/preserve |
+|   | Jul 11  1994 | /usr/spool/at/lasttimedone |
+| * | Dec 28  1991 | /usr/spool/lpd/errs |
+| * | Jul 12  1994 | /usr/spool/lpd/acct |
+| * | Jun 21  1994 | /usr/spool/lpd/.seq |
+| * | Jun 21  1994 | /usr/spool/lpd/status |
+| * | Jul 12  1994 | /usr/spool/mail |
+|   | Jul 12  1994 | /usr/spool/mqueue/syslog |
+| * | Jul 12  1994 | /usr/spool/rwho |
+| * | Apr  8  1994 | /usr/spool/uucp/LCK |
+| * | Dec 19  1991 | /usr/spool/uucp/STST |
+| * | Apr  3  1994 | /usr/spool/uucp/C. |
+| * | Apr  3  1994 | /usr/spool/uucp/D.sms |
+| * | Apr  3  1994 | /usr/spool/uucp/D.smsX |
+| * | Jul 12  1994 | /usr/spool/uucp/LOGFILE |
+| * | Apr 15 12:35 | /usr/spool/lpd.lock |
+|   | Apr 28  1991 | /usr/src/sys/pdpstand/maketape.data |
+|   | Apr 26  1993 | /usr/src/etc/named/master/root.cache |
+| c | Dec 24  1991 | /usr/src/games/warp/UU/myread |
+| c | Dec 24  1991 | /usr/src/games/warp/UU/grimble |
+|   | Jul 30  1991 | /usr/src/lib/pcc/Makefile.twopass |
+|   | Jan 20  1993 | /usr/src/lib/Makefile |
+| c | Jun 10  1992 | /usr/src/new/rn/Pnews |
+| c | Jun 10  1992 | /usr/src/new/rn/config.sh |
+| c | Jun 10  1992 | /usr/src/new/rn/config.h |
+| c | Jun 10  1992 | /usr/src/new/rn/Rnmail |
+| c | Jun 10  1992 | /usr/src/new/rn/newsetup |
+| c | Jun 10  1992 | /usr/src/new/rn/newsgroups |
+| c | Jun 10  1992 | /usr/src/new/rn/newsnews |
+|   | Jan 22  1993 | /usr/src/new/crash/Makefile |
+|   | Dec 31  1993 | /usr/src/usr.lib/sendmail.MX/src/daemon.c |
+
+There's 42 items in this list. Let's unpack them one at a time. '*' means
+there's little to no value in the file because it's part of a running system, or
+left over junk. 'c' are genreated config files. 'R' are files that are
+regenerated. 'o' can be reconstructed from the old release.
+
+## Today's date
+
+| Date | File |
+|------|------|
+| Apr 15 12:35 | /usr/adm/acct |
+| Apr 15 12:35 | /usr/spool/lpd.lock |
+
+## Directories
+
+These files are directories, so their dates might be messed up:
+
+| Date | File |
+|------|------|
+| Mar 10  1993 | /usr/doc/2.10/setup.2.11 |
+| Jan  9  1993 | /usr/preserve |
+| Jan 15  1993 | /usr/include/OLD |
+| Jul 12  1994 | /usr/spool/mail |
+| Jul 12  1994 | /usr/spool/rwho |
+| Apr  8  1994 | /usr/spool/uucp/LCK |
+| Dec 19  1991 | /usr/spool/uucp/STST |
+| Apr  3  1994 | /usr/spool/uucp/C. |
+| Apr  3  1994 | /usr/spool/uucp/D.sms |
+| Apr  3  1994 | /usr/spool/uucp/D.smsX |
+
+One would think that /usr/include/OLD is something that should be deleted, but
+the files are needed for ps. It's unclear why / how that wound up with a future
+date, though, since we patch one of the files in it. It's contents are
+fine. There's other docs that tell use there's only two files in here for ps.
+
+The UUCP ones are all empty directories. They likely can just be deleted since
+at least the D.sms* ones are local to the master machine that made the
+tapes. The others I believe are created as needed, and so there'd be no harm in
+deleting them. We could create them as part of the build process. There was some
+other directories that were deleted in the catch-up patch, so those will be
+recreated when that bug is fixed. Getting this detail right, though, likely has
+minimal benefit.
+
+The rest of these directories can likely just be deleted. At least /var/preserve
+and /usr/spool/rwho would get recreated (since there's an ignored error now for
+these two in the build). We can likely recreate all of them as part of the build
+process and lose no data. They would have been created at the time the tape was
+made. We know it was made in Jan-Mar of 1991, btw. There's a odd lack of files
+from 1991 on this release that happened in March....
+
+## Other UUCP files
+
+| Date | File |
+|------|------|
+| Feb 16  1994 | /usr/lib/uucp/SEQF |
+| Jul 12  1994 | /usr/lib/uucp/L.sys |
+| Jul 12  1994 | /usr/spool/uucp/LOGFILE |
+
+These are related to UUCP. LOGFILE and SEQF appear to be uninteresting. L.sys
+has some mild historical interest, but it's basically how to log into the remove
+systems (and likely should never have been in the distribution). The one from
+the 195 tape appears to have a live number and username and password. The old
+one likely had similar info, and is lost to time. It's not patched in any patch,
+nor in the catchup patches. It's likely best replaced by the one from 2.10.1BSD,
+which looks like a suitable dummy file.
+
+## Lpd files
+
+| Date | File |
+|------|------|
+| Dec 28  1991 | /usr/spool/lpd/errs |
+| Jul 12  1994 | /usr/spool/lpd/acct |
+| Jun 21  1994 | /usr/spool/lpd/.seq |
+| Jun 21  1994 | /usr/spool/lpd/status |
+| Apr 15 12:35 | /usr/spool/lpd.lock |
+
+These files are incidental to lpd running. They are uninteresting other than to have weird dates.
+
+## Config files
+
+| Date | File |
+|------|------|
+| Jun 10  1992 | /usr/src/new/rn/Pnews |
+| Jun 10  1992 | /usr/src/new/rn/config.sh |
+| Jun 10  1992 | /usr/src/new/rn/config.h |
+| Jun 10  1992 | /usr/src/new/rn/Rnmail |
+| Jun 10  1992 | /usr/src/new/rn/newsetup |
+| Jun 10  1992 | /usr/src/new/rn/newsgroups |
+| Jun 10  1992 | /usr/src/new/rn/newsnews |
+| Dec 24  1991 | /usr/src/games/warp/UU/myread |
+| Dec 24  1991 | /usr/src/games/warp/UU/grimble |
+
+These likely need to be regenerated as part of buid2.sh, but the rn Configure
+program is difficult to run. warp is easier, but also needs to run.
+
+## man whatis database
+
+| Date | File |
+|------|------|
+| Jul 17  1994 | /usr/man/whatis |
+
+This needs to be regenerated. Unfortunately the script that does this in 2.11BSD
+pl 0 runs out of memory. We may need to find some way to generate it on the
+FreeBSD host.
+
+## Changes after 2.10.1
+
+| Date | File |
+|------|------|
+| Dec 30  1992 | /usr/lib/crontab |
+| Jul 12  1994 | /usr/lib/aliases |
+
+These files most liklely were unchanged from 2.10.1. Or, if not, that's the most
+likely reconstruction in absense of other data. aliases just has one change, and
+crontab was reformatted a bit, but is substantially simmilar.
