@@ -215,6 +215,8 @@ make clean
 # Build it all again now that we've done the above dance
 make all
 make install
+# words is installed in the wrong place, so move it
+mv $ROOT211/words $ROOT211/usr/games
 # Install a few artifacts that aren't done by default
 (cd games/battlestar ; make stringfile)
 (   # because make install doesn't work, we have to copy from the

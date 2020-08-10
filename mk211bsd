@@ -624,6 +624,10 @@ pprint 1 "Fixing permissions and prepping tape"
     # Sendmail detritis that needs to be removed (alias kept around,
     # though it has a too-new date
     rm -f usr/lib/sendmail.cf usr/lib/sendmail.sr
+
+    # /usr/msgs/bounds isn't created by default, remove the one we inherited from
+    # the 2.11 pl 195 tape.
+    rm usr/msgs/bounds
 )
 
 # Make the src.tar

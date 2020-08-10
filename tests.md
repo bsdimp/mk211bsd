@@ -423,7 +423,6 @@ Most recnetly this generated the following:
 |------------------|------|------|
 | * | Apr 15 12:35 | /usr/adm/acct |
 | * | Mar 10  1993 | /usr/doc/2.10/setup.2.11 |
-|   | Jan 16  1994 | /usr/games/words |
 | * | Jan 15  1993 | /usr/include/OLD |
 | * | Feb 16  1994 | /usr/lib/uucp/SEQF |
 | o | Jul 12  1994 | /usr/lib/uucp/L.sys |
@@ -431,7 +430,6 @@ Most recnetly this generated the following:
 | o | Dec 30  1992 | /usr/lib/crontab |
 | o | Jul 12  1994 | /usr/lib/aliases |
 | R | Jul 17  1994 | /usr/man/whatis |
-|   | Jul 12  1994 | /usr/msgs/bounds |
 | * | Jan  9  1993 | /usr/preserve |
 |   | Jul 11  1994 | /usr/spool/at/lasttimedone |
 | * | Dec 28  1991 | /usr/spool/lpd/errs |
