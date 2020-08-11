@@ -92,6 +92,7 @@ expect "# "					{send "chmod 755 / /usr /usr/src /usr/src/sys\r"}
 # Add /usr to fstab
 expect "# "					{send "echo /dev/${name}:/usr:rw:1:2 >> /etc/fstab\r"}
 expect "# "					{send "\r"}
+expect "# "					{send "echo Done test installing 2.11BSD pl 0....\r"}
 # And we're done...
 expect "# "					{send "sync\r"}
 expect "# "					{send "sync\r"}
