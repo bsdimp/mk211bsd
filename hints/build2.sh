@@ -192,7 +192,8 @@ make clean
     cd /usr/src/man
     DESTDIR=
     export DESTDIR
-    for i in man[1-9]; do
+    for i in man[1-8]; do
+	echo doing /usr/src/man/$i
 	cd /usr/src/man/$i
 	MDIR=`grep MDIR= Makefile | awk '{print $2;}'`
 	export MDIR
@@ -291,3 +292,5 @@ mv /usr/lib/sendmail /usr/lib/sendmail.off
 
 # And let's just copy the right kernel to unix
 cp /raunix /unix
+
+echo BUILD2 HAS COMPLETED SUCCESSFULLY
