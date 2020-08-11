@@ -18,3 +18,5 @@ patch -V none -p1 -R </$TEMP/patchfile
 rm localdefs.h DEBUGS INFO stab.c
 mv macdefs.h macdefs
 mv mac2defs.h mac2defs
+# This isn't listed, but clearly came in with patch 17
+rm Makefile.twopass

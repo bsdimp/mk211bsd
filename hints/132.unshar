@@ -16,3 +16,5 @@ done
 patch -V none -p1 < $PATCHDIR/76
 # Patch 108 makes some fixes to Makefile, so apply those in too so 108 undoes them
 sed -n -e'/\*\*\* .*\/tools\/Makefile.old/,/*\*\* .*\/restor\/Makefile.old/p' < $PATCHDIR/108 | patch -V none -p1
+# root.cache came in here. Replace it with the one from 1990 in the CSRG archives.
+cp $HINTSDIR/root.cache $ROOT211/usr/src/etc/named/master/root.cache

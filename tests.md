@@ -576,16 +576,13 @@ These files most liklely were unchanged from 2.10.1. Or, if not, that's the most
 likely reconstruction in absense of other data. aliases just has one change, and
 crontab was reformatted a bit, but is substantially simmilar.
 
-# Bottom line...
+## Bottom line...
 
 Here's the filtered list of what I think might be interesting.
 
 | Date | File |
 |------|------|
 | Jul 17  1994 | /usr/man/whatis |
-| Apr 28  1991 | /usr/src/sys/pdpstand/maketape.data |
-| Apr 26  1993 | /usr/src/etc/named/master/root.cache |
-| Jul 30  1991 | /usr/src/lib/pcc/Makefile.twopass |
 | Jan 20  1993 | /usr/src/lib/Makefile |
 | Jan 22  1993 | /usr/src/new/crash/Makefile |
 | Dec 31  1993 | /usr/src/usr.lib/sendmail.MX/src/daemon.c |
@@ -593,23 +590,15 @@ Here's the filtered list of what I think might be interesting.
 whatis can't build on pdp-11, so it's stale. For the release reconstruction, I
 think we need to find a way to build it.
 
-maketape.data: unsure why this changed after the release announcement. It's
-identical to 2.10.1BSD, so this may be a phantom save, and a false
-positive. There was work in this area to merge in the tmscpboot.s into
-mtboot.s. This is almost certianly a false positive. need to restore it from
-2.10.1BSD I think.
-
-root.cache: This was updated in 132. It's unclear what should be there. There's
-a copy from July 1st, 1990 in the CSRG archive, so I'll just use that. Dated Sat
-Jun 30 23:21:32 1990 -0700. It's in hints now waiting for mk211bsd update.
-
-Makefile.twopass: Unsure why / how this is there.
-
 lib/Makefile: Unclear how this didn't get unupdated. Need to investigate.
 
 crash/Makefile: Also no clue, but this is documented as not working in 2.11BSD as released
 
 daemon.c: WTF? Can't find where this change. The non-mx version is documented as
 changing in patches 105 and 174. Unsure how to patch the MX version w/o more
-careful study to recover this patch.
+careful study to recover this patch. Most likely the same changes need to
+happen.
 
+# Boot test failures
+
+The tmscpboot stuff is broken.
