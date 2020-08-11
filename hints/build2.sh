@@ -231,7 +231,7 @@ mv $ROOT211/words $ROOT211/usr/games
     install -c -o bin -g bin -m 444 man.template /usr/man/man.template
 )
 # Need to rebuild the find database...
-# /usr/lib/find/updatedb
+/usr/lib/find/updatedb
 make clean
 
 #
