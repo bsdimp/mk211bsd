@@ -576,10 +576,6 @@ pprint 1 "Fixing permissions and prepping tape"
     # rm libraries that are useless
     find lib usr/lib -name \*.a | xargs rm -f
 
-    # lint was broken in pl 0, so these won't be regenerated
-    # and it doesn't matter if they are there or not :)
-    rm -f usr/lib/lint/*
-
     # push the date of the sources back to something approximately
     # correct: use the date of the announcement, which was posted at
     # Date: 14 Mar 91 07:31:17 GMT
