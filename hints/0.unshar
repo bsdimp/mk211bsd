@@ -14,3 +14,21 @@ touch -d 1989-04-20T20:22:25Z $ROOT211/bin/copyh
 # 4 -rw-r--r--   1 imp  imp   1305 Mar 13 08:24:32 1987 token.c
 touch -d 1988-12-10T20:13:12Z usr/src/bin/awk/Makefile
 touch -d 1987-03-13T08:24:32Z usr/src/bin/awk/token.c
+
+# lint was broken in 2.11BSD a bit. It used the 2.10.1
+# files because its regeneration wasn't automated.
+rm usr/lib/lint/*.ln
+rm usr/lib/lint/llib-ltermlib
+ln -s llib-termcap usr/lib/lint/llib-ltermlib
+cp -va $ROOT2101/usr/lib/lint/*.* usr/lib/lint
+
+# The 195 tape has wlonex entry, better to use the 2.10.1BSD one
+from2.10.1 usr/lib/uucp/L.sys
+
+# use the aliases file from 2.10.1. The date from the 2.11 reconstruction
+# is too new, but there's only one change.
+from2.10.1 usr/lib/aliases
+
+# There's more changes for crontab, but this is a reasonable reconstruction
+# since we don't have diffs for the original.
+from2.10.1 usr/lib/crontab
