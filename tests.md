@@ -459,7 +459,6 @@ Most recnetly this generated the following:
 | c | Jun 10  1992 | /usr/src/new/rn/newsgroups |
 | c | Jun 10  1992 | /usr/src/new/rn/newsnews |
 |   | Jan 22  1993 | /usr/src/new/crash/Makefile |
-|   | Dec 31  1993 | /usr/src/usr.lib/sendmail.MX/src/daemon.c |
 
 There's 42 items in this list. Let's unpack them one at a time. '*' means
 there's little to no value in the file because it's part of a running system, or
@@ -585,20 +584,19 @@ Here's the filtered list of what I think might be interesting.
 | Jul 17  1994 | /usr/man/whatis |
 | Jan 20  1993 | /usr/src/lib/Makefile |
 | Jan 22  1993 | /usr/src/new/crash/Makefile |
-| Dec 31  1993 | /usr/src/usr.lib/sendmail.MX/src/daemon.c |
 
 whatis can't build on pdp-11, so it's stale. For the release reconstruction, I
-think we need to find a way to build it.
+think we need to find a way to build it. But at least it's well known.
 
 lib/Makefile: Unclear how this didn't get unupdated. Need to investigate.
 
 crash/Makefile: Also no clue, but this is documented as not working in 2.11BSD as released
 
-daemon.c: WTF? Can't find where this change. The non-mx version is documented as
-changing in patches 105 and 174. Unsure how to patch the MX version w/o more
-careful study to recover this patch. Most likely the same changes need to
-happen.
+Both of the makefiles, though, have dates that land it around the time of the
+big cleanup from patch 106 to 116, so maybe they are forgotten hunks to that?
 
 # Boot test failures
 
 The tmscpboot stuff is broken.
+
+The pl80 catchup reconstruction hasn't been tested.
