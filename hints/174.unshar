@@ -5,3 +5,6 @@ cd $TEMP
 sed -n -e '/^sed.*patchfile/,/^SHAR_EOF/p' < $patch | sh -x
 cd $ROOT211
 patch -V none -R -p1 < $TEMP/patchfile
+# Patch 174 is missing one chunk for sendmail.MX/src/daemon.c, so dig that out of patchfile and apply it.
+sed -ne '/sendmail.src.daemon.c.old/,/sendmail.src.conf.h.old/p' < $TEMP/patchfile | \
+    sed -e 's=/sendmail/=/sendmail.MX/=' | patch -V none -R -p1
