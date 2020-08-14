@@ -10,10 +10,15 @@ touch -d 1989-04-20T20:22:25Z $ROOT211/bin/copyh
 # than 2.10.1, the 195 tape has dates in 1994 on them. Reset them back to
 # the 2.10.1BSD dates. It's unclear why they changed on this date, but
 # these are the more likely dates that 2.11 shipped with.
+# Ditto with two Makefiles that are otherwise identical
 # 4 -r--r--r--   1 imp  imp   1119 Dec 10 20:13:12 1988 Makefile
 # 4 -rw-r--r--   1 imp  imp   1305 Mar 13 08:24:32 1987 token.c
+# 4 -r--r--r--  1 imp  imp  733 Feb 26 01:17:24 1987 usr/src/lib/Makefile
+# 4 -r--r--r--  1 imp  imp  625 Aug 12 08:47:05 1988 usr/src/new/crash/Makefile
 touch -d 1988-12-10T20:13:12Z usr/src/bin/awk/Makefile
 touch -d 1987-03-13T08:24:32Z usr/src/bin/awk/token.c
+touch -d 1987-02-26T01:17:24Z usr/src/lib/Makefile
+touch -d 1988-09-12T08:47:05Z usr/src/new/crash/Makefile
 
 # lint was broken in 2.11BSD a bit. It used the 2.10.1
 # files because its regeneration wasn't automated.

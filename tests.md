@@ -449,8 +449,6 @@ Most recnetly this generated the following:
 |   | Apr 26  1993 | /usr/src/etc/named/master/root.cache |
 | c | Dec 24  1991 | /usr/src/games/warp/UU/myread |
 | c | Dec 24  1991 | /usr/src/games/warp/UU/grimble |
-|   | Jul 30  1991 | /usr/src/lib/pcc/Makefile.twopass |
-|   | Jan 20  1993 | /usr/src/lib/Makefile |
 | c | Jun 10  1992 | /usr/src/new/rn/Pnews |
 | c | Jun 10  1992 | /usr/src/new/rn/config.sh |
 | c | Jun 10  1992 | /usr/src/new/rn/config.h |
@@ -458,7 +456,6 @@ Most recnetly this generated the following:
 | c | Jun 10  1992 | /usr/src/new/rn/newsetup |
 | c | Jun 10  1992 | /usr/src/new/rn/newsgroups |
 | c | Jun 10  1992 | /usr/src/new/rn/newsnews |
-|   | Jan 22  1993 | /usr/src/new/crash/Makefile |
 
 There's 42 items in this list. Let's unpack them one at a time. '*' means
 there's little to no value in the file because it's part of a running system, or
@@ -582,18 +579,9 @@ Here's the filtered list of what I think might be interesting.
 | Date | File |
 |------|------|
 | Jul 17  1994 | /usr/man/whatis |
-| Jan 20  1993 | /usr/src/lib/Makefile |
-| Jan 22  1993 | /usr/src/new/crash/Makefile |
 
 whatis can't build on pdp-11, so it's stale. For the release reconstruction, I
 think we need to find a way to build it. But at least it's well known.
-
-lib/Makefile: Unclear how this didn't get unupdated. Need to investigate.
-
-crash/Makefile: Also no clue, but this is documented as not working in 2.11BSD as released
-
-Both of the makefiles, though, have dates that land it around the time of the
-big cleanup from patch 106 to 116, so maybe they are forgotten hunks to that?
 
 # Boot test failures
 
