@@ -239,7 +239,43 @@ The Makefiles (generated files) have become out of sync by one line. There's an 
         Hunk #1 succeeded at 53 with fuzz 1 (offset -6 lines).
         done
 
-This suggests a patch to mac.h prior to patch 107 that had a net loss of 6 lines in the first 53 lines of the file.
+This suggests a patch to mac.h prior to patch 107 that had a net loss of 6 lines
+in the first 53 lines of the file. However, the problem is with patch(1)
+itself. A diff between 2.10.1 and 2.11 shows the following:
+
+        diff -u root-2.{10.1,11}/usr/src/bin/sh/mac.h
+        --- root-2.10.1/usr/src/bin/sh/mac.h	1982-12-24 19:44:31.000000000 -0700
+        +++ root-2.11/usr/src/bin/sh/mac.h	2020-08-14 23:49:24.177048000 -0600
+        @@ -53,11 +53,11 @@
+         #define QUOTE	0200
+        
+         #define EOF	0
+        +
+        +#define MAX(a,b)	((a)>(b)?(a):(b))
+         #define NL	'\n'
+         #define SP	' '
+         #define LQ	'`'
+         #define RQ	'\''
+         #define MINUS	'-'
+         #define COLON	':'
+        -
+        -#define MAX(a,b)	((a)>(b)?(a):(b))
+
+which shows that patch merged it. The date in the diff I just ran is the same,
+and the delta is 6 lines. I'm convinced that therefore it's a bug in patch. Many
+old timers set the fuzz to 0 to avoid these things. But this is likely just a
+bug in patch reverse appling a patch that removes lines at the end of a file. The patch itself is this:
+        *** /usr/src/bin/sh/mac.h.old	Fri Dec 24 18:44:31 1982
+        --- /usr/src/bin/sh/mac.h	Mon Jan 18 08:45:24 1993
+        ***************
+        *** 59,63 ****
+          #define RQ	'\''
+          #define MINUS	'-'
+          #define COLON	':'
+        - 
+        - #define MAX(a,b)	((a)>(b)?(a):(b))
+        --- 59,61 ----
+I'm unsure if I should fix this or hack around it with the above diff...
 
 ### 89.log likely harmless
         Hmm...  The next patch looks like a new-style context diff to me...
