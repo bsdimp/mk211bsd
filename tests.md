@@ -61,6 +61,10 @@ Now that all the patches apply w/o error, I've narrowed the scope of this test. 
         log/152.log:Hunk #3 succeeded at 284 (offset 1 line).
         log/159.log:Hunk #1 succeeded at 109 with fuzz 2 (offset 27 lines).
         log/159.log:Hunk #1 succeeded at 109 with fuzz 2 (offset 27 lines).
+        log/174.log:Hunk #1 succeeded at 540 (offset 6 lines).
+        log/174.log:Hunk #2 succeeded at 563 (offset 6 lines).
+        log/174.log:Hunk #3 succeeded at 579 (offset 6 lines).
+        log/174.log:Hunk #4 succeeded at 617 with fuzz 1 (offset 6 lines).
         log/179.log:Hunk #14 succeeded at 1018 with fuzz 1 (offset -8 lines).
         log/42.log:Hunk #1 succeeded at 336 (offset -1 lines).
         log/42.log:Hunk #1 succeeded at 177 (offset -155 lines).
@@ -101,6 +105,25 @@ Here's an analysis of each of the errors.
         done
 
 This suggests a missing patch in ctags.c that removed 8 lines between lines 963 and 1018. There's no other patches to ctags.c in the tree, so this may be hard to track down.
+
+### 174.log false positive
+
+        The text leading up to this was:
+        --------------------------
+        |*** /usr/src/usr.lib/sendmail.MX/src/daemon.c.old	Wed Jan 27 20:26:37 1993
+        |--- /usr/src/usr.lib/sendmail.MX/src/daemon.c	Fri Dec 31 23:06:54 1993
+        --------------------------
+        Patching file usr/src/usr.lib/sendmail.MX/src/daemon.c using Plan A...
+        Hunk #1 succeeded at 540 (offset 6 lines).
+        Hunk #2 succeeded at 563 (offset 6 lines).
+        Hunk #3 succeeded at 579 (offset 6 lines).
+        Hunk #4 succeeded at 617 with fuzz 1 (offset 6 lines).
+        Hmm...  Ignoring the trailing garbage.
+        done
+
+This is the result of creating this patch from the patch to
+sendmail/src/daemon.c. It would have been required to build/run sendmail.MX on
+2.11BSD.
 
 ### 159.log doesn't matter
         Patching QT/Makefile
