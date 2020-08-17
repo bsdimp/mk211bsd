@@ -48,7 +48,6 @@ The very first test is 'is the reconstruction consistent with the patches'. This
 Now that all the patches apply w/o error, I've narrowed the scope of this test. The test is to grep for the words offset or fuzz in the log files:
 
         % egrep 'Hunk.*offset|fuzz' log/*
-        log/107.log:Hunk #1 succeeded at 53 with fuzz 1 (offset -6 lines).
         log/124.log:Hunk #1 succeeded at 69 with fuzz 1 (offset 2 lines).
         log/124.log:Hunk #1 succeeded at 55 (offset 1 line).
         log/142.log:Hunk #1 succeeded at 50 with fuzz 2 (offset 8 lines).
@@ -65,7 +64,6 @@ Now that all the patches apply w/o error, I've narrowed the scope of this test. 
         log/174.log:Hunk #2 succeeded at 563 (offset 6 lines).
         log/174.log:Hunk #3 succeeded at 579 (offset 6 lines).
         log/174.log:Hunk #4 succeeded at 617 with fuzz 1 (offset 6 lines).
-        log/179.log:Hunk #14 succeeded at 1018 with fuzz 1 (offset -8 lines).
         log/42.log:Hunk #1 succeeded at 336 (offset -1 lines).
         log/42.log:Hunk #1 succeeded at 177 (offset -155 lines).
         log/84.log:Hunk #1 succeeded at 325 (offset -1 lines).
@@ -73,7 +71,7 @@ Now that all the patches apply w/o error, I've narrowed the scope of this test. 
         log/84.log:Hunk #1 succeeded at 215 (offset -156 lines).
         log/89.log:Hunk #2 succeeded at 403 with fuzz 1 (offset -3 lines).
 
-This indicates that there's 20 issues that need explaining in some way. Based on the current text below, there's two possible issues, and the rest either don't matter for the reconstruction back to 0 (but may when we forward apply things) or are likely harmless (4 issues that are very low priority).
+This indicates that there's 19 issues that need explaining in some way. Based on the current text below, there's two possible issues, and the rest either don't matter for the reconstruction back to 0 (but may when we forward apply things) or are likely harmless (4 issues that are very low priority).
 
 ## What it means
 
@@ -82,29 +80,6 @@ Fuzz is the number of lines ignored in the patch to apply it for the non-changin
 Offset means that it expected the patch to start at line X but instead it started at X+offset. When offset is possitive, it indicates lines added (though offset 1 is quite often a blank line). When negative, it means code was deleted. The larger the number, the more cause for concern. Very large numbers can also just indicate code motion and not any substantial changes.
 
 Here's an analysis of each of the errors.
-
-### 179.log POSSIBLE ISSUE
-        |*** /usr/src/ucb/ctags.c.old	Mon Feb 16 22:11:08 1987
-        |--- /usr/src/ucb/ctags.c	Wed Feb 16 23:47:07 1994
-        --------------------------
-        Patching file usr/src/ucb/ctags.c using Plan A...
-        Hunk #1 succeeded at 4.
-        Hunk #2 succeeded at 94.
-        Hunk #3 succeeded at 102.
-        Hunk #4 succeeded at 178.
-        Hunk #5 succeeded at 198.
-        Hunk #6 succeeded at 224.
-        Hunk #7 succeeded at 300.
-        Hunk #8 succeeded at 310.
-        Hunk #9 succeeded at 447.
-        Hunk #10 succeeded at 699.
-        Hunk #11 succeeded at 860.
-        Hunk #12 succeeded at 913.
-        Hunk #13 succeeded at 963.
-        Hunk #14 succeeded at 1018 with fuzz 1 (offset -8 lines).
-        done
-
-This suggests a missing patch in ctags.c that removed 8 lines between lines 963 and 1018. There's no other patches to ctags.c in the tree, so this may be hard to track down.
 
 ### 174.log false positive
 
@@ -226,56 +201,6 @@ Same files with offsets as for 159.log. Likely doesn't matter for same reasons. 
         done
 
 The Makefiles (generated files) have become out of sync by one line. There's an additional line inserted in the first 55 lines of the template or similar. Given the amount of hand editing, I'll likely just document this as 'weird' in the end. For both of these, it's not a huge deal: we regenerate them at patch 93.
-
-### 107.log POSSIBLE ISSUE
-
-        The text leading up to this was:
-        --------------------------
-        |*** /usr/src/bin/sh/mac.h.old	Fri Dec 24 18:44:31 1982
-        |--- /usr/src/bin/sh/mac.h	Mon Jan 18 08:45:24 1993
-        --------------------------
-        Patching file usr/src/bin/sh/mac.h using Plan A...
-        No such line 62 in input file, ignoring
-        Hunk #1 succeeded at 53 with fuzz 1 (offset -6 lines).
-        done
-
-This suggests a patch to mac.h prior to patch 107 that had a net loss of 6 lines
-in the first 53 lines of the file. However, the problem is with patch(1)
-itself. A diff between 2.10.1 and 2.11 shows the following:
-
-        diff -u root-2.{10.1,11}/usr/src/bin/sh/mac.h
-        --- root-2.10.1/usr/src/bin/sh/mac.h	1982-12-24 19:44:31.000000000 -0700
-        +++ root-2.11/usr/src/bin/sh/mac.h	2020-08-14 23:49:24.177048000 -0600
-        @@ -53,11 +53,11 @@
-         #define QUOTE	0200
-        
-         #define EOF	0
-        +
-        +#define MAX(a,b)	((a)>(b)?(a):(b))
-         #define NL	'\n'
-         #define SP	' '
-         #define LQ	'`'
-         #define RQ	'\''
-         #define MINUS	'-'
-         #define COLON	':'
-        -
-        -#define MAX(a,b)	((a)>(b)?(a):(b))
-
-which shows that patch merged it. The date in the diff I just ran is the same,
-and the delta is 6 lines. I'm convinced that therefore it's a bug in patch. Many
-old timers set the fuzz to 0 to avoid these things. But this is likely just a
-bug in patch reverse appling a patch that removes lines at the end of a file. The patch itself is this:
-        *** /usr/src/bin/sh/mac.h.old	Fri Dec 24 18:44:31 1982
-        --- /usr/src/bin/sh/mac.h	Mon Jan 18 08:45:24 1993
-        ***************
-        *** 59,63 ****
-          #define RQ	'\''
-          #define MINUS	'-'
-          #define COLON	':'
-        - 
-        - #define MAX(a,b)	((a)>(b)?(a):(b))
-        --- 59,61 ----
-I'm unsure if I should fix this or hack around it with the above diff...
 
 ### 89.log likely harmless
         Hmm...  The next patch looks like a new-style context diff to me...
