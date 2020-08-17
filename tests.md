@@ -11,21 +11,22 @@ patch 80? Patch 195? Does the catch-up kit work?
 
 ## Current status
 
-All but two of the backward patch inconsistencies have been coorected. There's a
-change to ctags.c indicated by one. There's also a change to sh (mac.h) which
-may indicate a hidden change. All of the rest of the issues have been explained,
-or of no consequence.
+All of the backward patch inconsistencies have been either corrected or
+accounted for (or of little consequence).
 
 There's one issue with nslookup that needs to be resolve on the build
 consistency test. It's unclear if that needs to be resolved in favor of doing it
 by hand, or if the binaries were just missing. I suspect this will be resolved
 by hand since the binaries are quite popular.
 
-There's about 20 files that are not date consistent that need looking into. More
-details coming. The system is rebuilt in 1991 to help detect these issues. The
-current testing methodology loses the dates from patch files, so we are not yet
-able to detect missing patches to files that were patched after pl80 (we can
-detect it to 80 since the catch-up kit has a complete set of patches).
+There's one file that is not date consistent that need looking into. The system
+is rebuilt in 1991 to help detect these issues. The current testing methodology
+loses the dates from patch files, so we are not yet able to detect missing
+patches to files that were patched after pl80 (we can detect it to 80 since the
+catch-up kit has a complete set of patches). The dates of files patched aren't
+updated by patch, so there's ~1184 files that have dates of 2020... While
+important for the recreation, git doesn't retain date metadata, so we'll have to
+look at other means.
 
 There's still a few inconsistencies with patching to pl80 with the catch-up
 kit. Those need to be documented. Mostly files that are expected to be present
