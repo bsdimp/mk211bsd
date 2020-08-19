@@ -1,0 +1,4 @@
+cd $ROOT211
+patch -V none -p1 -R < $patch
+cp usr/src/ucb/sendbug/bugformat usr/lib
+# xxx unsure if this should be done here or in build2.sh
