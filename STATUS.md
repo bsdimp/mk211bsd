@@ -28,9 +28,11 @@ likely spot on, or within a tiny epsilon of the original 2.11 tape.
 It's hard to say for sure, but my best guess is that the following files are the
 ones that are likely lost.
 
- * ld.c -- ld was written in patches 158 to 176. It was deleted in patch 160 and
+ * ld.c -- ld was rewritten in patches 158 to 176. It was deleted in patch 160 and
    replaced in 163. ar.c, randlib.c and nm.c also were extensively reworked as
-   well.
+   well. We've replaced it with the 2.10.1 ld.c, plus all known patches from
+   USENET, but the offsets differ in what's posted, suggesting there might be
+   other, currently unknown, patches.
  * MAKEDEV -- Patch 3 changes this, but it doesn't reverse apply cleanly to the
    tree we have, with 42 and 72 backed out as well. The reason for this is unknown.
  * usr/local/Makefile has decompr16 in it in 195. decompr16 was added to the tree
@@ -119,7 +121,8 @@ there, being mindful of three things: (1) the ranlib stuff may be a weird hybrid
 of the old/new since we still have the short symbol name length; (2) the vax has
 various changes to get away from 16-bit ints; and (3) the vax has more extensive
 reloc info than the pdp-11. After careful selection of what came from 2.10.1
-and what came from 4.3BSD's ld.c, I think I have a good ld.c.
+and what came from 4.3BSD's ld.c, I think I have a good ld.c, but one that's maybe
+a little different than what's actually shipping.
 
 We learned from ld.c that ranlib must be producing the oldformat, but inside the
 new portable ar format. It's is believd that this was accomplished by copying a
