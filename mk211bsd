@@ -548,8 +548,8 @@ for p in $patches 0; do
     undo_patch_level $p 2>&1 > $LOGS/$p.log
 done
 
-# The 2.11 pl 195 as can't assemble the pl0 as, but the 2.10.1
-# can, so start there...
+# The 2.11 pl 195 as(1) can't assemble the pl0 as(1), but the 2.10.1 can, so
+# start there...
 trap - EXIT
 pprint 1 "Bootstrapping"
 bootstrap_as $ROOTV7
