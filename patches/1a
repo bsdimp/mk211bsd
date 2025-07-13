@@ -1,0 +1,467 @@
+*** /old/src/etc/tftpd/tftpd.c	Thu Jul 30 22:40:39 1987
+--- /usr/src/etc/tftpd/tftpd.c	Wed May 15 21:37:45 1991
+***************
+*** 1,7 ****
+  /*
+   * Copyright (c) 1983 Regents of the University of California.
+!  * All rights reserved.  The Berkeley software License Agreement
+!  * specifies the terms and conditions for redistribution.
+   */
+  
+  #ifndef lint
+--- 1,20 ----
+  /*
+   * Copyright (c) 1983 Regents of the University of California.
+!  * All rights reserved.
+!  *
+!  * Redistribution and use in source and binary forms are permitted
+!  * provided that: (1) source distributions retain this entire copyright
+!  * notice and comment, and (2) distributions including binaries display
+!  * the following acknowledgement:  ``This product includes software
+!  * developed by the University of California, Berkeley and its contributors''
+!  * in the documentation or other materials provided with the distribution
+!  * and in all advertising materials mentioning features or use of this
+!  * software. Neither the name of the University nor the names of its
+!  * contributors may be used to endorse or promote products derived
+!  * from this software without specific prior written permission.
+!  * THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+!  * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+!  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+   */
+  
+  #ifndef lint
+***************
+*** 8,18 ****
+  char copyright[] =
+  "@(#) Copyright (c) 1983 Regents of the University of California.\n\
+   All rights reserved.\n";
+! #endif not lint
+  
+  #ifndef lint
+! static char sccsid[] = "@(#)tftpd.c	5.6 (Berkeley) 5/13/86";
+! #endif not lint
+  
+  #ifdef	BSD2_10
+  #define	timeoutbuf	to_buf
+--- 21,31 ----
+  char copyright[] =
+  "@(#) Copyright (c) 1983 Regents of the University of California.\n\
+   All rights reserved.\n";
+! #endif /* not lint */
+  
+  #ifndef lint
+! static char sccsid[] = "@(#)tftpd.c	5.12 (Berkeley) 6/1/90";
+! #endif /* not lint */
+  
+  #ifdef	BSD2_10
+  #define	timeoutbuf	to_buf
+***************
+*** 29,46 ****
+  #include <sys/ioctl.h>
+  #include <sys/wait.h>
+  #include <sys/stat.h>
+  
+  #include <netinet/in.h>
+  
+  #include <arpa/tftp.h>
+  
+! #include <signal.h>
+  #include <stdio.h>
+  #include <errno.h>
+  #include <ctype.h>
+- #include <netdb.h>
+- #include <setjmp.h>
+  #include <syslog.h>
+  
+  #define	TIMEOUT		5
+  
+--- 42,60 ----
+  #include <sys/ioctl.h>
+  #include <sys/wait.h>
+  #include <sys/stat.h>
++ #include <sys/signal.h>
+  
+  #include <netinet/in.h>
+  
+  #include <arpa/tftp.h>
+  
+! #include <netdb.h>
+! #include <setjmp.h>
+  #include <stdio.h>
+  #include <errno.h>
+  #include <ctype.h>
+  #include <syslog.h>
++ #include <string.h>
+  
+  #define	TIMEOUT		5
+  
+***************
+*** 56,67 ****
+  struct	sockaddr_in from;
+  int	fromlen;
+  
+! main()
+  {
+  	register struct tftphdr *tp;
+! 	register int n;
+  	int on = 1;
+  
+  	openlog("tftpd", LOG_PID, LOG_DAEMON);
+  	if (ioctl(0, FIONBIO, &on) < 0) {
+  		syslog(LOG_ERR, "ioctl(FIONBIO): %m\n");
+--- 70,88 ----
+  struct	sockaddr_in from;
+  int	fromlen;
+  
+! #define MAXARG	4
+! char	*dirs[MAXARG+1];
+! 
+! main(ac, av)
+! 	char **av;
+  {
+  	register struct tftphdr *tp;
+! 	register int n = 0;
+  	int on = 1;
+  
++ 	ac--; av++;
++ 	while (ac-- > 0 && n < MAXARG)
++ 		dirs[n++] = *av++;
+  	openlog("tftpd", LOG_PID, LOG_DAEMON);
+  	if (ioctl(0, FIONBIO, &on) < 0) {
+  		syslog(LOG_ERR, "ioctl(FIONBIO): %m\n");
+***************
+*** 224,229 ****
+--- 245,253 ----
+   * have no uid or gid, for now require
+   * file to exist and be publicly
+   * readable/writable.
++  * If we were invoked with arguments
++  * from inetd then the file must also be
++  * in one of the given directory prefixes.
+   * Note also, full path name must be
+   * given as we have no login directory.
+   */
+***************
+*** 233,241 ****
+--- 257,277 ----
+  {
+  	struct stat stbuf;
+  	int	fd;
++ 	char *cp, **dirp;
+  
+  	if (*filename != '/')
+  		return (EACCESS);
++ 	/*
++ 	 * prevent tricksters from getting around the directory restrictions
++ 	 */
++ 	for (cp = filename + 1; *cp; cp++)
++ 		if(*cp == '.' && strncmp(cp-1, "/../", 4) == 0)
++ 			return(EACCESS);
++ 	for (dirp = dirs; *dirp; dirp++)
++ 		if (strncmp(filename, *dirp, strlen(*dirp)) == 0)
++ 			break;
++ 	if (*dirp==0 && dirp!=dirs)
++ 		return (EACCESS);
+  	if (stat(filename, &stbuf) < 0)
+  		return (errno == ENOENT ? ENOTFOUND : EACCESS);
+  	if (mode == RRQ) {
+***************
+*** 437,443 ****
+  	register struct tftphdr *tp;
+  	int length;
+  	register struct errmsg *pe;
+- 	extern char *sys_errlist[];
+  
+  	tp = (struct tftphdr *)buf;
+  	tp->th_opcode = htons((u_short)ERROR);
+--- 473,478 ----
+***************
+*** 446,452 ****
+  		if (pe->e_code == error)
+  			break;
+  	if (pe->e_code < 0) {
+! 		pe->e_msg = sys_errlist[error - 100];
+  		tp->th_code = EUNDEF;   /* set 'undef' errorcode */
+  	}
+  	strcpy(tp->th_msg, pe->e_msg);
+--- 481,487 ----
+  		if (pe->e_code == error)
+  			break;
+  	if (pe->e_code < 0) {
+! 		pe->e_msg = strerror(error - 100);
+  		tp->th_code = EUNDEF;   /* set 'undef' errorcode */
+  	}
+  	strcpy(tp->th_msg, pe->e_msg);
+*** /old/src/etc/tunefs.c	Sun Feb 15 23:29:08 1987
+*** /old/src/ucb/tftp/main.c	Mon Dec 26 15:50:19 1988
+--- /usr/src/ucb/tftp/main.c	Wed May 15 21:08:00 1991
+***************
+*** 1,7 ****
+  /*
+!  * Copyright (c) 1985 Regents of the University of California.
+!  * All rights reserved.  The Berkeley software License Agreement
+!  * specifies the terms and conditions for redistribution.
+   */
+  
+  #ifndef lint
+--- 1,20 ----
+  /*
+!  * Copyright (c) 1983 Regents of the University of California.
+!  * All rights reserved.
+!  *
+!  * Redistribution and use in source and binary forms are permitted
+!  * provided that: (1) source distributions retain this entire copyright
+!  * notice and comment, and (2) distributions including binaries display
+!  * the following acknowledgement:  ``This product includes software
+!  * developed by the University of California, Berkeley and its contributors''
+!  * in the documentation or other materials provided with the distribution
+!  * and in all advertising materials mentioning features or use of this
+!  * software. Neither the name of the University nor the names of its
+!  * contributors may be used to endorse or promote products derived
+!  * from this software without specific prior written permission.
+!  * THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+!  * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+!  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+   */
+  
+  #ifndef lint
+***************
+*** 8,18 ****
+  char copyright[] =
+  "@(#) Copyright (c) 1983 Regents of the University of California.\n\
+   All rights reserved.\n";
+! #endif not lint
+  
+  #ifndef lint
+! static char sccsid[] = "@(#)main.c	5.5 (Berkeley) 2/7/86";
+! #endif not lint
+  
+  /* Many bug fixes are from Jim Guyton <guyton@rand-unix> */
+  
+--- 21,31 ----
+  char copyright[] =
+  "@(#) Copyright (c) 1983 Regents of the University of California.\n\
+   All rights reserved.\n";
+! #endif /* not lint */
+  
+  #ifndef lint
+! static char sccsid[] = "@(#)main.c	5.9 (Berkeley) 6/1/90";
+! #endif /* not lint */
+  
+  /* Many bug fixes are from Jim Guyton <guyton@rand-unix> */
+  
+***************
+*** 24,30 ****
+  #include <sys/file.h>
+  
+  #include <netinet/in.h>
+- #include <arpa/inet.h>
+  
+  #include <signal.h>
+  #include <stdio.h>
+--- 37,42 ----
+***************
+*** 281,288 ****
+  		targ = index(cp, ':');
+  		*targ++ = 0;
+  		hp = gethostbyname(cp);
+! 		if (hp == 0) {
+! 			printf("%s: Unknown host.\n", cp);
+  			return;
+  		}
+  		bcopy(hp->h_addr, (caddr_t)&sin.sin_addr, hp->h_length);
+--- 293,301 ----
+  		targ = index(cp, ':');
+  		*targ++ = 0;
+  		hp = gethostbyname(cp);
+! 		if (hp == NULL) {
+! 			fprintf(stderr, "tftp: %s: ", cp);
+! 			herror((char *)NULL);
+  			return;
+  		}
+  		bcopy(hp->h_addr, (caddr_t)&sin.sin_addr, hp->h_length);
+***************
+*** 373,380 ****
+  
+  			*src++ = 0;
+  			hp = gethostbyname(argv[n]);
+! 			if (hp == 0) {
+! 				printf("%s: Unknown host.\n", argv[n]);
+  				continue;
+  			}
+  			bcopy(hp->h_addr, (caddr_t)&sin.sin_addr, hp->h_length);
+--- 386,394 ----
+  
+  			*src++ = 0;
+  			hp = gethostbyname(argv[n]);
+! 			if (hp == NULL) {
+! 				fprintf(stderr, "tftp: %s: ", argv[n]);
+! 				herror((char *)NULL);
+  				continue;
+  			}
+  			bcopy(hp->h_addr, (caddr_t)&sin.sin_addr, hp->h_length);
+*** /old/src/ucb/tftp/tftp.c	Sun Jul  3 18:51:17 1988
+--- /usr/src/ucb/tftp/tftp.c	Wed May 15 21:56:15 1991
+***************
+*** 1,15 ****
+  /*
+!  * Copyright (c) 1985 Regents of the University of California.
+!  * All rights reserved.  The Berkeley software License Agreement
+!  * specifies the terms and conditions for redistribution.
+   */
+  
+  #ifndef lint
+! static char sccsid[] = "@(#)tftp.c	5.5 (Berkeley) 2/7/86";
+! #endif not lint
+  
+  #ifdef	BSD2_10
+! #define	timeoutbuf	to_buf
+  #endif
+  
+  /* Many bug fixes are from Jim Guyton <guyton@rand-unix> */
+--- 1,28 ----
+  /*
+!  * Copyright (c) 1983 Regents of the University of California.
+!  * All rights reserved.
+!  *
+!  * Redistribution and use in source and binary forms are permitted
+!  * provided that: (1) source distributions retain this entire copyright
+!  * notice and comment, and (2) distributions including binaries display
+!  * the following acknowledgement:  ``This product includes software
+!  * developed by the University of California, Berkeley and its contributors''
+!  * in the documentation or other materials provided with the distribution
+!  * and in all advertising materials mentioning features or use of this
+!  * software. Neither the name of the University nor the names of its
+!  * contributors may be used to endorse or promote products derived
+!  * from this software without specific prior written permission.
+!  * THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+!  * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+!  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+   */
+  
+  #ifndef lint
+! static char sccsid[] = "@(#)tftp.c	5.9 (Berkeley) 6/1/90";
+! #endif /* not lint */
+  
+  #ifdef	BSD2_10
+! #define	timeoutbuf to_buf
+  #endif
+  
+  /* Many bug fixes are from Jim Guyton <guyton@rand-unix> */
+***************
+*** 67,73 ****
+  	register struct tftphdr *ap;       /* data and ack packets */
+  	struct tftphdr *r_init(), *dp;
+  	register int block = 0, size, n;
+! 	register u_long amount = 0;
+  	struct sockaddr_in from;
+  	int fromlen;
+  	int convert;            /* true if doing nl->crlf conversion */
+--- 80,86 ----
+  	register struct tftphdr *ap;       /* data and ack packets */
+  	struct tftphdr *r_init(), *dp;
+  	register int block = 0, size, n;
+! 	u_long amount = 0;
+  	struct sockaddr_in from;
+  	int fromlen;
+  	int convert;            /* true if doing nl->crlf conversion */
+***************
+*** 305,314 ****
+  nak(error)
+  	int error;
+  {
+  	register struct tftphdr *tp;
+  	int length;
+! 	register struct errmsg *pe;
+! 	extern char *sys_errlist[];
+  
+  	tp = (struct tftphdr *)ackbuf;
+  	tp->th_opcode = htons((u_short)ERROR);
+--- 318,327 ----
+  nak(error)
+  	int error;
+  {
++ 	register struct errmsg *pe;
+  	register struct tftphdr *tp;
+  	int length;
+! 	char *strerror();
+  
+  	tp = (struct tftphdr *)ackbuf;
+  	tp->th_opcode = htons((u_short)ERROR);
+***************
+*** 317,323 ****
+  		if (pe->e_code == error)
+  			break;
+  	if (pe->e_code < 0) {
+! 		pe->e_msg = sys_errlist[error - 100];
+  		tp->th_code = EUNDEF;
+  	}
+  	strcpy(tp->th_msg, pe->e_msg);
+--- 330,336 ----
+  		if (pe->e_code == error)
+  			break;
+  	if (pe->e_code < 0) {
+! 		pe->e_msg = strerror(error - 100);
+  		tp->th_code = EUNDEF;
+  	}
+  	strcpy(tp->th_msg, pe->e_msg);
+*** /old/src/ucb/tftp/tftpsubs.c	Mon Dec 26 15:50:20 1988
+--- /usr/src/ucb/tftp/tftpsubs.c	Wed May 15 21:34:37 1991
+***************
+*** 1,12 ****
+  /*
+!  * Copyright (c) 1985 Regents of the University of California.
+!  * All rights reserved.  The Berkeley software License Agreement
+!  * specifies the terms and conditions for redistribution.
+   */
+  
+  #ifndef lint
+! static char sccsid[] = "@(#)tftpsubs.c	1.2 (Berkeley) 2/7/86";
+! #endif not lint
+  
+  /* Simple minded read-ahead/write-behind subroutines for tftp user and
+     server.  Written originally with multiple buffers in mind, but current
+--- 1,25 ----
+  /*
+!  * Copyright (c) 1983 Regents of the University of California.
+!  * All rights reserved.
+!  *
+!  * Redistribution and use in source and binary forms are permitted
+!  * provided that: (1) source distributions retain this entire copyright
+!  * notice and comment, and (2) distributions including binaries display
+!  * the following acknowledgement:  ``This product includes software
+!  * developed by the University of California, Berkeley and its contributors''
+!  * in the documentation or other materials provided with the distribution
+!  * and in all advertising materials mentioning features or use of this
+!  * software. Neither the name of the University nor the names of its
+!  * contributors may be used to endorse or promote products derived
+!  * from this software without specific prior written permission.
+!  * THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+!  * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+!  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+   */
+  
+  #ifndef lint
+! static char sccsid[] = "@(#)tftpsubs.c	5.5 (Berkeley) 6/1/90";
+! #endif /* not lint */
+  
+  /* Simple minded read-ahead/write-behind subroutines for tftp user and
+     server.  Written originally with multiple buffers in mind, but current
+***************
+*** 190,196 ****
+  	    c = *p++;                   /* pick up a character */
+  	    if (prevchar == '\r') {     /* if prev char was cr */
+  		if (c == '\n')          /* if have cr,lf then just */
+! 		   fseek(file, -1L, 1); /* smash lf on top of the cr */
+  		else
+  		   if (c == '\0')       /* if have cr,nul then */
+  			goto skipit;    /* just skip over the putc */
+--- 203,209 ----
+  	    c = *p++;                   /* pick up a character */
+  	    if (prevchar == '\r') {     /* if prev char was cr */
+  		if (c == '\n')          /* if have cr,lf then just */
+! 		   fseek(file, -1L, 1);  /* smash lf on top of the cr */
+  		else
+  		   if (c == '\0')       /* if have cr,nul then */
+  			goto skipit;    /* just skip over the putc */
+*** /old/src/ucb/vlp/vlp.c	Mon Feb 16 23:55:12 1987

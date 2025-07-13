@@ -1,0 +1,4008 @@
+*** /old/src/lib/pcc/code.c	Fri Jul 10 14:36:06 1981
+--- /usr/src/lib/pcc/code.c	Mon Jul 29 06:00:56 1991
+***************
+*** 1,23 ****
+! # include <stdio.h>
+! # include <signal.h>
+  
+! # include "mfile1"
+  
+! int proflag;
+! int strftn = 0;	/* is the current function one which returns a value */
+! FILE *tmpfile;
+! FILE *outfile = stdout;
+  
+  branch( n ){
+  	/* output a branch to label n */
+  	/* exception is an ordinary function branching to retlab: then, return */
+  	if( n == retlab && !strftn ){
+! 		printf( "	jmp	cret\n" );
+  		}
+  	else printf( "	jbr	L%d\n", n );
+  	}
+  
+! int lastloc = PROG;
+  
+  defalign(n) {
+  	/* cause the alignment to become a multiple of n */
+--- 1,27 ----
+! # include "pass1.h"
+! # include <sys/types.h>
+! # include <a.out.h>
+! # include <stab.h>
+  
+! int proflg = 0;	/* are we generating profiling code? */
+! int strftn = 0;  /* is the current function one which returns a value */
+! int gdebug;
+! int fdefflag;  /* are we within a function definition ? */
+! char NULLNAME[8];
+! int labelno;
+  
+! # define putstr(s)	fputs((s), stdout)
+  
+  branch( n ){
+  	/* output a branch to label n */
+  	/* exception is an ordinary function branching to retlab: then, return */
+  	if( n == retlab && !strftn ){
+! 		putstr( "	jmp	cret\n" );
+  		}
+  	else printf( "	jbr	L%d\n", n );
+  	}
+  
+! int lastloc = { -1 };
+  
+  defalign(n) {
+  	/* cause the alignment to become a multiple of n */
+***************
+*** 35,54 ****
+  	switch( l ){
+  
+  	case PROG:
+! 		outfile = stdout;
+! 		printf( "	.text\n" );
+  		break;
+  
+  	case DATA:
+  	case ADATA:
+! 		outfile = stdout;
+! 		if( temp != DATA && temp != ADATA )
+! 			printf( "	.data\n" );
+  		break;
+  
+  	case STRNG:
+  	case ISTRNG:
+- 		outfile = tmpfile;
+  		break;
+  
+  	case STAB:
+--- 39,55 ----
+  	switch( l ){
+  
+  	case PROG:
+! 		putstr( "	.text\n" );
+! 		psline();
+  		break;
+  
+  	case DATA:
+  	case ADATA:
+! 		putstr( "	.data\n" );
+  		break;
+  
+  	case STRNG:
+  	case ISTRNG:
+  		break;
+  
+  	case STAB:
+***************
+*** 64,70 ****
+  
+  deflab( n ){
+  	/* output something to define the current position as label n */
+! 	fprintf( outfile, "L%d:\n", n );
+  	}
+  
+  int crslab = 10;
+--- 65,71 ----
+  
+  deflab( n ){
+  	/* output something to define the current position as label n */
+! 	printf( "L%d:\n", n );
+  	}
+  
+  int crslab = 10;
+***************
+*** 77,106 ****
+  efcode(){
+  	/* code for the end of a function */
+  
+! 	if( strftn ){  /* copy output (in r0) to caller */
+  		register struct symtab *p;
+! 		register int stlab;
+! 		register int count;
+! 		int size;
+  
+  		p = &stab[curftn];
+  
+  		deflab( retlab );
+  
+! 		stlab = getlab();
+! 		printf( "	mov	$L%d,r1\n", stlab );
+! 		size = tsize( DECREF(p->stype), p->dimoff, p->sizoff ) / SZCHAR;
+! 		count = size/2;
+! 		while( count-- ) {
+! 			printf( "	mov	(r0)+,(r1)+\n" );
+! 			}
+! 		printf( "	mov	$L%d,r0\n", stlab );
+! 		printf( "	.bss\nL%d:	.=.+%d.\n	.text\n", stlab, size );
+  		/* turn off strftn flag, so return sequence will be generated */
+  		strftn = 0;
+  		}
+  	branch( retlab );
+  	p2bend();
+  	}
+  
+  bfcode( a, n ) int a[]; {
+--- 78,129 ----
+  efcode(){
+  	/* code for the end of a function */
+  
+! 	if( strftn ){  /* copy output (in R0) to caller */
+! 		register NODE *l, *r;
+  		register struct symtab *p;
+! 		register TWORD t;
+! 		int i;
+  
+  		p = &stab[curftn];
++ 		t = p->stype;
++ 		t = DECREF(t);
+  
+  		deflab( retlab );
+  
+! 		i = getlab();	/* label for return area */
+! #ifndef LCOMM
+! 		putstr("	.bss\n" );
+! 		printf("L%d: .=.+%d.\n", i, tsize(t, p->dimoff, p->sizoff)/SZCHAR );
+! 		putstr("	.text\n" );
+! #else
+! 		{ int sz = tsize(t, p->dimoff, p->sizoff) / SZCHAR;
+! 		if (sz % sizeof (int))
+! 			sz += sizeof (int) - (sz % sizeof (int));
+! 		printf("	.lcomm	L%d,%d\n", i, sz);
+! 		}
+! #endif
+! 		psline();
+! 		printf("	mov	$L%d,r1\n", i);
+! 
+! 		reached = 1;
+! 		l = block( REG, NIL, NIL, PTR|t, p->dimoff, p->sizoff );
+! 		l->tn.rval = 1;  /* R1 */
+! 		l->tn.lval = 0;  /* no offset */
+! 		r = block( REG, NIL, NIL, PTR|t, p->dimoff, p->sizoff );
+! 		r->tn.rval = 0;  /* R0 */
+! 		r->tn.lval = 0;
+! 		l = buildtree( UNARY MUL, l, NIL );
+! 		r = buildtree( UNARY MUL, r, NIL );
+! 		l = buildtree( ASSIGN, l, r );
+! 		l->in.op = FREE;
+! 		ecomp( l->in.left );
+! 		printf( "	mov	$L%d,r0\n", i );
+  		/* turn off strftn flag, so return sequence will be generated */
+  		strftn = 0;
+  		}
+  	branch( retlab );
+  	p2bend();
++ 	fdefflag = 0;
+  	}
+  
+  bfcode( a, n ) int a[]; {
+***************
+*** 109,115 ****
+  	register i;
+  	register temp;
+  	register struct symtab *p;
+! 	int off;
+  
+  	locctr( PROG );
+  	p = &stab[curftn];
+--- 132,138 ----
+  	register i;
+  	register temp;
+  	register struct symtab *p;
+! 	OFFSZ off;
+  
+  	locctr( PROG );
+  	p = &stab[curftn];
+***************
+*** 119,134 ****
+  	strftn = (temp==STRTY) || (temp==UNIONTY);
+  
+  	retlab = getlab();
+- 	if( proflag ){
+- 		int plab;
+- 		plab = getlab();
+- 		printf( "	mov	$L%d,r0\n", plab );
+- 		printf( "	jsr	pc,mcount\n" );
+- 		printf( "	.bss\nL%d:	.=.+2\n	.text\n", plab );
+- 		}
+  
+  	/* routine prolog */
+  
+  	printf( "	jsr	r5,csv\n" );
+  	/* adjust stack for autos */
+  	printf( "	sub	$.F%d,sp\n", ftnno );
+--- 142,157 ----
+  	strftn = (temp==STRTY) || (temp==UNIONTY);
+  
+  	retlab = getlab();
+  
+  	/* routine prolog */
+  
++ 	if( proflg ){	/* profile code */
++ 		i = getlab();
++ 		printf( "	mov	$L%d,r0\n", i );
++ 		printf( "	jsr	pc,mcount\n" );
++ 		printf( "	.bss\nL%d:	.=.+2\n	.text\n", i );
++ 		}
++ 
+  	printf( "	jsr	r5,csv\n" );
+  	/* adjust stack for autos */
+  	printf( "	sub	$.F%d,sp\n", ftnno );
+***************
+*** 142,157 ****
+  			p->sclass = PARAM;  /* forget that it is a register */
+  			p->offset = NOOFFSET;
+  			oalloc( p, &off );
+! 			printf( "	mov	%d.(r5),r%d\n", p->offset/SZCHAR, temp );
+  			p->offset = temp;  /* remember register number */
+  			p->sclass = REGISTER;   /* remember that it is a register */
+  			}
+  		else {
+  			if( oalloc( p, &off ) ) cerror( "bad argument" );
+  			}
+  
+  		}
+  	}
+  
+  bccode(){ /* called just before the first executable statment */
+  		/* by now, the automatics and register variables are allocated */
+--- 165,195 ----
+  			p->sclass = PARAM;  /* forget that it is a register */
+  			p->offset = NOOFFSET;
+  			oalloc( p, &off );
+! 		printf( "	mov	%d.(r5),r%d\n", p->offset/SZCHAR, temp);
+  			p->offset = temp;  /* remember register number */
+  			p->sclass = REGISTER;   /* remember that it is a register */
+  			}
++ 		else if( p->stype == STRTY || p->stype == UNIONTY ) {
++ 			p->offset = NOOFFSET;
++ 			if( oalloc( p, &off ) ) cerror( "bad argument" );
++ 			SETOFF( off, ALSTACK );
++ 			}
+  		else {
+  			if( oalloc( p, &off ) ) cerror( "bad argument" );
+  			}
+  
+  		}
++ 	if (gdebug) {
++ #ifdef STABDOT
++ 		pstabdot(N_SLINE, lineno);
++ #else
++ 		pstab(NULLNAME, N_SLINE);
++ 		printf("0,%d,LL%d\n", lineno, labelno);
++ 		printf("LL%d:\n", labelno++);
++ #endif
+  	}
++ 	fdefflag = 1;
++ 	}
+  
+  bccode(){ /* called just before the first executable statment */
+  		/* by now, the automatics and register variables are allocated */
+***************
+*** 183,207 ****
+  	if( p->sclass == EXTDEF ){
+  		printf( "	.globl	%s\n", exname( p->sname ) );
+  		}
+! 	if( p->sclass == STATIC && p->slevel>1 ) deflab( p->offset );
+  	else printf( "%s:\n", exname( p->sname ) );
+  
+  	}
+  
+  bycode( t, i ){
+  	/* put byte i+1 in a string */
+  
+  	i &= 07;
+  	if( t < 0 ){ /* end of the string */
+! 		if( i != 0 ) fprintf( outfile, "\n" );
+  		}
+  
+  	else { /* stash byte t into string */
+! 		if( i == 0 ) fprintf( outfile, "	.byte	" );
+! 		else fprintf( outfile, "," );
+! 		fprintf( outfile, "%o", t );
+! 		if( i == 07 ) fprintf( outfile, "\n" );
+  		}
+  	}
+  
+  zecode( n ){
+--- 221,288 ----
+  	if( p->sclass == EXTDEF ){
+  		printf( "	.globl	%s\n", exname( p->sname ) );
+  		}
+! 	if( p->sclass == STATIC && p->slevel>1 ) deflab( (int)p->offset );
+  	else printf( "%s:\n", exname( p->sname ) );
+  
+  	}
+  
+  bycode( t, i ){
++ #ifdef ASSTRINGS
++ static	int	lastoctal = 0;
++ #endif
++ 
+  	/* put byte i+1 in a string */
+  
++ #ifdef ASSTRINGS
++ 
++ 	i &= 077;
++ 	if ( t < 0 ){
++ 		if ( i != 0 )	putstr( "\"\n" );
++ 	} else {
++ 		if ( i == 0 ) putstr("\t.ascii\t\"");
++ 		if ( t == '\\' || t == '"'){
++ 			lastoctal = 0;
++ 			printf("\\%c", t);
++ 		}
++ 			/*
++ 			 *	We escape the colon in strings so that
++ 			 *	c2 will, in its infinite wisdom, interpret
++ 			 *	the characters preceding the colon as a label.
++ 			 *	If we didn't escape the colon, c2 would
++ 			 *	throw away any trailing blanks or tabs after
++ 			 *	the colon, but reconstruct a assembly
++ 			 *	language semantically correct program.
++ 			 *	C2 hasn't been taught about strings.
++ 			 */
++ 		else if ( t == ':' || t < 040 || t >= 0177 ){
++ 			lastoctal++;
++ 			printf("\\%o",t);
++ 		}
++ 		else if ( lastoctal && '0' <= t && t <= '9' ){
++ 			lastoctal = 0;
++ 			printf("\"\n\t.ascii\t\"%c", t );
++ 		}
++ 		else
++ 		{	
++ 			lastoctal = 0;
++ 			putchar(t);
++ 		}
++ 		if ( i == 077 ) putstr("\"\n");
++ 	}
++ #else
++ 
+  	i &= 07;
+  	if( t < 0 ){ /* end of the string */
+! 		if( i != 0 ) putchar( '\n' );
+  		}
+  
+  	else { /* stash byte t into string */
+! 		if( i == 0 ) putstr( "	.byte	" );
+! 		else putchar( ',' );
+! 		printf( "0x%x", t );
+! 		if( i == 07 ) putchar( '\n' );
+  		}
++ #endif
+  	}
+  
+  zecode( n ){
+***************
+*** 232,274 ****
+  
+  where(c){ /* print location of error  */
+  	/* c is either 'u', 'c', or 'w' */
+  	fprintf( stderr, "%s, line %d: ", ftitle, lineno );
+  	}
+  
+- char *tmpname = "/tmp/pcXXXXXX";
+- 
+  main( argc, argv ) char *argv[]; {
+! 	int dexit();
+! 	register int c;
+! 	register int i;
+! 	int r;
+! 
+! 	for( i=1; i<argc; ++i )
+! 		if( argv[i][0] == '-' && argv[i][1] == 'X' && argv[i][2] == 'p' ) {
+! 			proflag = 1;
+! 			}
+! 
+! 	mktemp(tmpname);
+! 	if(signal( SIGHUP, SIG_IGN) != SIG_IGN) signal(SIGHUP, dexit);
+! 	if(signal( SIGINT, SIG_IGN) != SIG_IGN) signal(SIGINT, dexit);
+! 	if(signal( SIGTERM, SIG_IGN) != SIG_IGN) signal(SIGTERM, dexit);
+! 	tmpfile = fopen( tmpname, "w" );
+! 
+! 	r = mainp1( argc, argv );
+! 
+! 	tmpfile = freopen( tmpname, "r", tmpfile );
+! 	if( tmpfile != NULL )
+! 		while((c=getc(tmpfile)) != EOF )
+! 			putchar(c);
+! 	else cerror( "Lost temp file" );
+! 	unlink(tmpname);
+! 	return( r );
+  	}
+  
+! dexit( v ) {
+! 	unlink(tmpname);
+! 	exit(1);
+! 	}
+  
+  genswitch(p,n) register struct sw *p;{
+  	/*	p points to an array of structures, each consisting
+--- 313,331 ----
+  
+  where(c){ /* print location of error  */
+  	/* c is either 'u', 'c', or 'w' */
++ 	/* GCOS version */
+  	fprintf( stderr, "%s, line %d: ", ftitle, lineno );
+  	}
+  
+  main( argc, argv ) char *argv[]; {
+! #ifdef BUFSTDERR
+! 	char errbuf[BUFSIZ];
+! 	setbuf(stderr, errbuf);
+! #endif
+! 	return(mainp1( argc, argv ));
+  	}
+  
+! struct sw heapsw[SWITSZ];	/* heap for switches */
+  
+  genswitch(p,n) register struct sw *p;{
+  	/*	p points to an array of structures, each consisting
+***************
+*** 285,290 ****
+--- 342,348 ----
+  
+  	if( range>0 && range <= 3*n && n>=4 ){ /* implement a direct switch */
+  
++ 		swlab = getlab();
+  		dlab = p->slab >= 0 ? p->slab : getlab();
+  
+  		if( p[1].sval ){
+***************
+*** 300,306 ****
+  		printf( "	jhi	L%d\n", dlab );
+  
+  		printf( "	asl	r0\n" );
+! 		printf( "	jmp	*L%d(r0)\n", swlab = getlab() );
+  
+  		/* output table */
+  
+--- 358,364 ----
+  		printf( "	jhi	L%d\n", dlab );
+  
+  		printf( "	asl	r0\n" );
+! 		printf( "	jmp	*L%d(r0)\n", swlab );
+  
+  		/* output table */
+  
+***************
+*** 321,326 ****
+--- 379,398 ----
+  
+  		}
+  
++ 	if( n>8 ) {	/* heap switch */
++ 
++ 		heapsw[0].slab = dlab = p->slab >= 0 ? p->slab : getlab();
++ 		makeheap(p, n, 1);	/* build heap */
++ 
++ 		walkheap(1, n);	/* produce code */
++ 
++ 		if( p->slab >= 0 )
++ 			branch( dlab );
++ 		else
++ 			printf("L%d:\n", dlab);
++ 		return;
++ 	}
++ 
+  	/* debugging code */
+  
+  	/* out for the moment
+***************
+*** 332,338 ****
+  	for( i=1; i<=n; ++i ){
+  		/* already in r0 */
+  
+! 		printf( "	cmp	r0,$" );
+  		printf( CONFMT, p[i].sval );
+  		printf( ".\n	jeq	L%d\n", p[i].slab );
+  		}
+--- 404,410 ----
+  	for( i=1; i<=n; ++i ){
+  		/* already in r0 */
+  
+! 		putstr( "	cmp	r0,$" );
+  		printf( CONFMT, p[i].sval );
+  		printf( ".\n	jeq	L%d\n", p[i].slab );
+  		}
+***************
+*** 339,341 ****
+--- 411,457 ----
+  
+  	if( p->slab>=0 ) branch( p->slab );
+  	}
++ 
++ makeheap(p, m, n)
++ register struct sw *p;
++ {
++ 	register int q;
++ 
++ 	q = select(m);
++ 	heapsw[n] = p[q];
++ 	if( q>1 ) makeheap(p, q-1, 2*n);
++ 	if( q<m ) makeheap(p+q, m-q, 2*n+1);
++ }
++ 
++ select(m) {
++ 	register int l,i,k;
++ 
++ 	for(i=1; ; i*=2)
++ 		if( (i-1) > m ) break;
++ 	l = ((k = i/2 - 1) + 1)/2;
++ 	return( l + (m-k < l ? m-k : l));
++ }
++ 
++ walkheap(start, limit)
++ {
++ 	int label;
++ 
++ 
++ 	if( start > limit ) return;
++ 	printf("	cmp	r0,$%d.\n",  heapsw[start].sval);
++ 	printf("	jeq	L%d\n", heapsw[start].slab);
++ 	if( (2*start) > limit ) {
++ 		printf("	jbr 	L%d\n", heapsw[0].slab);
++ 		return;
++ 	}
++ 	if( (2*start+1) <= limit ) {
++ 		label = getlab();
++ 		printf("	jgt	L%d\n", label);
++ 	} else
++ 		printf("	jgt	L%d\n", heapsw[0].slab);
++ 	walkheap( 2*start, limit);
++ 	if( (2*start+1) <= limit ) {
++ 		printf("L%d:\n", label);
++ 		walkheap( 2*start+1, limit);
++ 	}
++ }
+*** /old/src/lib/pcc/local.c	Fri Jul 10 14:36:07 1981
+--- /usr/src/lib/pcc/local.c	Tue Jul 30 12:46:22 1991
+***************
+*** 1,4 ****
+! # include "mfile1"
+  
+  
+  /*	this file contains code which is dependent on the target machine */
+--- 1,4 ----
+! # include "pass1.h"
+  
+  
+  /*	this file contains code which is dependent on the target machine */
+***************
+*** 8,16 ****
+  	/* cast node p to type t */
+  
+  	p = buildtree( CAST, block( NAME, NIL, NIL, t, 0, (int)t ), p );
+! 	p->left->op = FREE;
+! 	p->op = FREE;
+! 	return( p->right );
+  	}
+  
+  NODE *
+--- 8,16 ----
+  	/* cast node p to type t */
+  
+  	p = buildtree( CAST, block( NAME, NIL, NIL, t, 0, (int)t ), p );
+! 	p->in.left->in.op = FREE;
+! 	p->in.op = FREE;
+! 	return( p->in.right );
+  	}
+  
+  NODE *
+***************
+*** 33,45 ****
+  	register o;
+  	register m, ml;
+  
+! 	switch( o = p->op ){
+  
+  	case NAME:
+! 		if( p->rval < 0 ) { /* already processed; ignore... */
+  			return(p);
+  			}
+! 		q = &stab[p->rval];
+  		switch( q->sclass ){
+  
+  		case AUTO:
+--- 33,45 ----
+  	register o;
+  	register m, ml;
+  
+! 	switch( o = p->in.op ){
+  
+  	case NAME:
+! 		if( p->tn.rval < 0 ) { /* already processed; ignore... */
+  			return(p);
+  			}
+! 		q = &stab[p->tn.rval];
+  		switch( q->sclass ){
+  
+  		case AUTO:
+***************
+*** 46,53 ****
+  		case PARAM:
+  			/* fake up a structure reference */
+  			r = block( REG, NIL, NIL, PTR+STRTY, 0, 0 );
+! 			r->lval = 0;
+! 			r->rval = (q->sclass==AUTO?STKREG:ARGREG);
+  			p = stref( block( STREF, r, p, 0, 0, 0 ) );
+  			break;
+  
+--- 46,53 ----
+  		case PARAM:
+  			/* fake up a structure reference */
+  			r = block( REG, NIL, NIL, PTR+STRTY, 0, 0 );
+! 			r->tn.lval = 0;
+! 			r->tn.rval = (q->sclass==AUTO?STKREG:ARGREG);
+  			p = stref( block( STREF, r, p, 0, 0, 0 ) );
+  			break;
+  
+***************
+*** 55,68 ****
+  		case LABEL:
+  		case STATIC:
+  			if( q->slevel == 0 ) break;
+! 			p->lval = 0;
+! 			p->rval = -q->offset;
+  			break;
+  
+  		case REGISTER:
+! 			p->op = REG;
+! 			p->lval = 0;
+! 			p->rval = q->offset;
+  			break;
+  
+  			}
+--- 55,68 ----
+  		case LABEL:
+  		case STATIC:
+  			if( q->slevel == 0 ) break;
+! 			p->tn.lval = 0;
+! 			p->tn.rval = -q->offset;
+  			break;
+  
+  		case REGISTER:
+! 			p->in.op = REG;
+! 			p->tn.lval = 0;
+! 			p->tn.rval = q->offset;
+  			break;
+  
+  			}
+***************
+*** 71,120 ****
+  	case LE:
+  	case GT:
+  	case GE:
+! 		if( ISPTR( p->left->type ) || ISPTR( p->right->type ) ){
+! 			p->op += (ULT-LT);
+  			}
+  		break;
+  
+  	case PCONV:
+  		/* do pointer conversions for char and longs */
+! 		ml = p->left->type;
+! 		if( ( ml==CHAR || ml==UCHAR || ml==LONG || ml==ULONG ) && p->left->op != ICON ) break;
+  
+  		/* pointers all have the same representation; the type is inherited */
+! 		p->left->type = p->type;
+! 		p->left->cdim = p->cdim;
+! 		p->left->csiz = p->csiz;
+! 		p->op = FREE;
+! 		return( p->left );
+  
+  	case SCONV:
+! 		m = (p->type == FLOAT || p->type == DOUBLE );
+! 		ml = (p->left->type == FLOAT || p->left->type == DOUBLE );
+! 		if( m != ml ) break;
+  
+  		/* now, look for conversions downwards */
+  
+! 		m = p->type;
+! 		ml = p->left->type;
+! 		if( p->left->op == ICON ){ /* simulate the conversion here */
+  			CONSZ val;
+! 			val = p->left->lval;
+  			switch( m ){
+  			case CHAR:
+! 				p->left->lval = (char) val;
+  				break;
+  			case UCHAR:
+! 				p->left->lval = val & 0XFF;
+  				break;
+  			case UNSIGNED:
+! 				p->left->lval = val & 0XFFFFL;
+  				break;
+  			case INT:
+! 				p->left->lval = (int)val;
+  				break;
+  				}
+! 			p->left->type = m;
+  			}
+  		else {
+  			/* meaningful ones are conversion of int to char, int to short,
+--- 71,138 ----
+  	case LE:
+  	case GT:
+  	case GE:
+! 		if(ISPTR(p->in.left->in.type) || ISPTR(p->in.right->in.type)){
+! 			p->in.op += (ULT-LT);
+  			}
+  		break;
+  
+  	case PCONV:
+  		/* do pointer conversions for char and longs */
+! 		ml = p->in.left->in.type;
+! 		if( ( ml==CHAR || ml==UCHAR || ml==LONG || ml==ULONG ) && p->in.left->in.op != ICON ) break;
+  
+  		/* pointers all have the same representation; the type is inherited */
+! 		p->in.left->in.type = p->in.type;
+! 		p->in.left->fn.cdim = p->fn.cdim;
+! 		p->in.left->fn.csiz = p->fn.csiz;
+! 		p->in.op = FREE;
+! 		return( p->in.left );
+  
+  	case SCONV:
+! 		m = (p->in.type == FLOAT || p->in.type == DOUBLE );
+! 		ml = (p->in.left->in.type == FLOAT || p->in.left->in.type == DOUBLE );
+! 		o = p->in.left->in.op;
+! 		if( (o == FCON || o == DCON) && ml && !m ) {
+! 			/* float type to int type */
+! 			r = block( ICON, (NODE *)NULL, (NODE *)NULL, LONG, 0, 0 );
+! 			if( o == FCON )
+! 				r->tn.lval = (long) p->in.left->fpn.fval;
+! 			else
+! 				r->tn.lval = (long) p->in.left->dpn.dval;
+! 			r->tn.rval = NONAME;
+! 			p->in.left->in.op = FREE;
+! 			p->in.left = r;
+! 			}
+! 		else
+! #ifdef SPRECC
+! 			if ( ml || m )
+! #else
+! 			if ( ml != m )
+! #endif
+! 				break;
+  
+  		/* now, look for conversions downwards */
+  
+! 		m = p->in.type;
+! 		ml = p->in.left->in.type;
+! 		if( p->in.left->in.op == ICON ){ /* simulate the conversion here */
+  			CONSZ val;
+! 			val = p->in.left->tn.lval;
+  			switch( m ){
+  			case CHAR:
+! 				p->in.left->tn.lval = (char) val;
+  				break;
+  			case UCHAR:
+! 				p->in.left->tn.lval = val & 0XFF;
+  				break;
+  			case UNSIGNED:
+! 				p->in.left->tn.lval = val & 0XFFFFL;
+  				break;
+  			case INT:
+! 				p->in.left->tn.lval = (int)val;
+  				break;
+  				}
+! 			p->in.left->in.type = m;
+  			}
+  		else {
+  			/* meaningful ones are conversion of int to char, int to short,
+***************
+*** 131,149 ****
+  			}
+  
+  		/* clobber conversion */
+! 		p->op = FREE;
+! 		return( p->left );  /* conversion gets clobbered */
+  
+  	case ASSIGN:
+  		/* get rid of SCONV for assignments
+  		   from LONG -> CHAR|INT	*/
+! 		if( p->right->op == SCONV ) {
+! 			m = p->right->type;
+! 			ml = p->right->left->type;
+  			if( ( m==LONG || m==ULONG ) &&
+  			    ml!=FLOAT && ml!=DOUBLE ) {
+! 				p->right->op = FREE;
+! 				p->right = p->right->left;
+  				}
+  			}
+  		break;
+--- 149,167 ----
+  			}
+  
+  		/* clobber conversion */
+! 		p->in.op = FREE;
+! 		return( p->in.left );  /* conversion gets clobbered */
+  
+  	case ASSIGN:
+  		/* get rid of SCONV for assignments
+  		   from LONG -> CHAR|INT	*/
+! 		if( p->in.right->in.op == SCONV ) {
+! 			m = p->in.right->in.type;
+! 			ml = p->in.right->in.left->in.type;
+  			if( ( m==LONG || m==ULONG ) &&
+  			    ml!=FLOAT && ml!=DOUBLE ) {
+! 				p->in.right->in.op = FREE;
+! 				p->in.right = p->in.right->in.left;
+  				}
+  			}
+  		break;
+***************
+*** 150,158 ****
+  
+  	case PVCONV:
+  	case PMCONV:
+! 		if( p->right->op != ICON ) cerror( "bad conversion", 0);
+! 		p->op = FREE;
+! 		return( buildtree( o==PMCONV?MUL:DIV, p->left, p->right ) );
+  
+  	case PLUS:
+  	case MINUS:
+--- 168,176 ----
+  
+  	case PVCONV:
+  	case PMCONV:
+! 		if( p->in.right->in.op != ICON ) cerror( "bad conversion", 0);
+! 		p->in.op = FREE;
+! 		return( buildtree( o==PMCONV?MUL:DIV, p->in.left, p->in.right ) );
+  
+  	case PLUS:
+  	case MINUS:
+***************
+*** 159,172 ****
+  	case LS:
+  	case MUL:
+  		/* optimize address calculations with long indexes */
+! 		if( ISPTR( p->type ) || ISARY( p->type ) ) {
+! 			if( p->left->type==LONG || p->left->type==ULONG )
+! 				p->left = cast( p->left, INT );
+! 			if( p->right->type==LONG || p->right->type==ULONG )
+! 				p->right = cast( p->right, INT );
+  			}
+  		break;
+  
+  		}
+  
+  	return(p);
+--- 177,204 ----
+  	case LS:
+  	case MUL:
+  		/* optimize address calculations with long indexes */
+! 		if( ISPTR( p->in.type ) || ISARY( p->in.type ) ) {
+! 			if( p->in.left->in.type==LONG || p->in.left->in.type==ULONG )
+! 				p->in.left = cast( p->in.left, INT );
+! 			if( p->in.right->in.type==LONG || p->in.right->in.type==ULONG )
+! 				p->in.right = cast( p->in.right, INT );
+  			}
+  		break;
+  
++ 	case FLD:
++ 		/* make sure that the second pass does not make the
++ 		   descendant of a FLD operator into a doubly indexed OREG */
++ 
++ 		if( p->in.left->in.op == UNARY MUL
++ 				&& (r=p->in.left->in.left)->in.op == PCONV)
++ 			if( r->in.left->in.op == PLUS || r->in.left->in.op == MINUS ) 
++ 				if( ISPTR(r->in.type) ) {
++ 					if( ISUNSIGNED(p->in.left->in.type) )
++ 						p->in.left->in.type = UCHAR;
++ 					else
++ 						p->in.left->in.type = CHAR;
++ 				}
++ 		break;
+  		}
+  
+  	return(p);
+***************
+*** 182,188 ****
+  
+  cisreg( t ) TWORD t; { /* is an automatic variable of type t OK for a register variable */
+  
+! 	if( t==INT || t==UNSIGNED || ISPTR(t) ) return(1);
+  	return(0);
+  	}
+  
+--- 214,230 ----
+  
+  cisreg( t ) TWORD t; { /* is an automatic variable of type t OK for a register variable */
+  
+! #ifdef TRUST_REG_CHAR_AND_REG_SHORT
+! 	if( t==INT || t==UNSIGNED 				/* tbl */
+! 		|| t==CHAR || t==UCHAR || t==SHORT 		/* tbl */
+! 		|| t==USHORT || ISPTR(t)) return(1);		/* tbl */
+! #else
+! 	if( t==INT || t==UNSIGNED 				/* wnj */
+! #ifdef	SPRECC
+! 		|| t==FLOAT
+! #endif
+! 		|| ISPTR(t)) return (1);			/* wnj */
+! #endif
+  	return(0);
+  	}
+  
+***************
+*** 199,205 ****
+  	/* in general they  are necessary for offcon, but not on H'well */
+  
+  	p = bcon(0);
+! 	p->lval = off/SZCHAR;
+  	return(p);
+  
+  	}
+--- 241,247 ----
+  	/* in general they  are necessary for offcon, but not on H'well */
+  
+  	p = bcon(0);
+! 	p->tn.lval = off/SZCHAR;
+  	return(p);
+  
+  	}
+***************
+*** 216,222 ****
+  	/* we also assume sz  < SZINT */
+  
+  	if((sz+inwd) > SZINT) cerror("incode: field > int");
+! 	word |= p->lval<<inwd;
+  	inwd += sz;
+  	inoff += sz;
+  	if(inoff%SZINT == 0) {
+--- 258,264 ----
+  	/* we also assume sz  < SZINT */
+  
+  	if((sz+inwd) > SZINT) cerror("incode: field > int");
+! 	word |= ((unsigned)(p->tn.lval<<(16-sz))) >> (16-sz-inwd);
+  	inwd += sz;
+  	inoff += sz;
+  	if(inoff%SZINT == 0) {
+***************
+*** 241,248 ****
+  	}
+  
+  cinit( p, sz ) NODE *p; {
+! 	/* arrange for the initialization of p into a space of
+! 	size sz */
+  	/* the proper alignment has been opbtained */
+  	/* inoff is updated to have the proper final value */
+  	ecode( p );
+--- 283,314 ----
+  	}
+  
+  cinit( p, sz ) NODE *p; {
+! 	NODE *l;
+! 
+! 	/*
+! 	 * as a favor (?) to people who want to write
+! 	 *     int i = 9600/134.5;
+! 	 * we will, under the proper circumstances, do
+! 	 * a coersion here.
+! 	 */
+! 	switch (p->in.type) {
+! 	case INT:
+! 	case UNSIGNED:
+! 		l = p->in.left;
+! 		if (l->in.op != SCONV ||
+! 		    (l->in.left->tn.op != DCON && l->in.left->tn.op != FCON))
+! 			break;
+! 		l->in.op = FREE;
+! 		l = l->in.left;
+! 		l->tn.lval = l->tn.op == DCON ? (long)(l->dpn.dval) :
+! 			(long)(l->fpn.fval);
+! 		l->tn.rval = NONAME;
+! 		l->tn.op = ICON;
+! 		l->tn.type = INT;
+! 		p->in.left = l;
+! 		break;
+! 	}
+! 	/* arrange for the initialization of p into a space of size sz */
+  	/* the proper alignment has been opbtained */
+  	/* inoff is updated to have the proper final value */
+  	ecode( p );
+***************
+*** 261,288 ****
+  		}
+  	}
+  
+- 
+  char *
+  exname( p ) char *p; {
+  	/* make a name look like an external name in the local machine */
+  
+  	static char text[NCHNAM+1];
+  
+  	register i;
+  
+  	text[0] = '_';
+! 	for( i=1; *p&&i<NCHNAM; ++i ){
+  		text[i] = *p++;
+- 		}
+  
+  	text[i] = '\0';
+  	text[NCHNAM] = '\0';  /* truncate */
+  
+  	return( text );
+  	}
+  
+! ctype( type ) TWORD type; { /* map types which are not defined on the local machine */
+  	switch( BTYPE(type) ){
+  	case SHORT:
+  		MODTYPE(type,INT);
+  		break;
+--- 327,364 ----
+  		}
+  	}
+  
+  char *
+  exname( p ) char *p; {
+  	/* make a name look like an external name in the local machine */
+  
++ #ifndef FLEXNAMES
+  	static char text[NCHNAM+1];
++ #else
++ 	static char text[256+1];
++ #endif
+  
+  	register i;
+  
+  	text[0] = '_';
+! #ifndef FLEXNAMES
+! 	for( i=1; *p&&i<NCHNAM; ++i )
+! #else
+! 	for( i=1; *p; ++i )
+! #endif
+  		text[i] = *p++;
+  
+  	text[i] = '\0';
++ #ifndef FLEXNAMES
+  	text[NCHNAM] = '\0';  /* truncate */
++ #endif
+  
+  	return( text );
+  	}
+  
+! ctype( type ) TWORD type;
+!      { /* map types which are not defined on the local machine */
+  	switch( BTYPE(type) ){
++ 
+  	case SHORT:
+  		MODTYPE(type,INT);
+  		break;
+***************
+*** 302,308 ****
+  
+  commdec( id ){ /* make a common declaration for id, if reasonable */
+  	register struct symtab *q;
+! 	OFFSZ off;
+  
+  	q = &stab[id];
+  	printf( "	.comm	%s,", exname( q->sname ) );
+--- 378,384 ----
+  
+  commdec( id ){ /* make a common declaration for id, if reasonable */
+  	register struct symtab *q;
+! 	OFFSZ off, tsize();
+  
+  	q = &stab[id];
+  	printf( "	.comm	%s,", exname( q->sname ) );
+***************
+*** 319,329 ****
+  	return(0);
+  	}
+  
+- 
+  isitfloat( s ) char *s; {
+  	double atof();
+! 	dcon = atof(s);
+! 	return( FCON );
+  	}
+  
+  ecode( p ) NODE *p; {
+--- 395,414 ----
+  	return(0);
+  	}
+  
+  isitfloat( s ) char *s; {
++ 	union cvt {
++ 		double	d;
++ 		int	n[4];
++ 	} cvt;
+  	double atof();
+! 
+! 	/* avoid floating point exception for double -> float conversions */
+! 	dcon = cvt.d = atof(s);
+! 	if( cvt.n[1] == 0 ){
+! 		fcon = dcon;
+! 		return( FCON );
+! 		}
+! 	return( DCON );
+  	}
+  
+  ecode( p ) NODE *p; {
+***************
+*** 335,337 ****
+--- 420,443 ----
+  	p2compile( p );
+  	}
+  
++ #ifndef ONEPASS
++ tlen(p) NODE *p; 
++ {
++ 	switch(p->in.type) {
++ 		case CHAR:
++ 		case UCHAR:
++ 			return(1);
++ 			
++ 		case LONG:
++ 		case ULONG:
++ 		case FLOAT:
++ 			return(4);
++ 
++ 		case DOUBLE:
++ 			return(8);
++ 			
++ 		default:
++ 			return(2);
++ 		}
++ 	}
++ #endif
+*** /old/src/lib/pcc/local2.c	Fri Jun 18 09:59:54 1982
+--- /usr/src/lib/pcc/local2.c	Sat Aug  3 10:44:45 1991
+***************
+*** 1,9 ****
+! # include "mfile2"
+  /* a lot of the machine dependent parts of the second pass */
+  
+  # define BITMASK(n) ((1L<<n)-1)
+  where(c) {
+! 	printf("where() was called!");
+  	}
+  
+  lineid( l, fn ) char *fn; {
+--- 1,12 ----
+! # include "pass2.h"
+! extern	int	fltused;
+! #define	putstr(s)	fputs((s),stdout)
+! 
+  /* a lot of the machine dependent parts of the second pass */
+  
+  # define BITMASK(n) ((1L<<n)-1)
+  where(c) {
+! 	fprintf(stderr, "%s, line %d: ", filename, lineno);
+  	}
+  
+  lineid( l, fn ) char *fn; {
+***************
+*** 18,24 ****
+  	if( spoff >= AUTOINIT ) spoff -= AUTOINIT;
+  	spoff /= SZCHAR;
+  	SETOFF(spoff,2);
+! 	printf( "	.F%d = %Ld.\n", ftnno, spoff );
+  	if( fltused ) {
+  		fltused = 0;
+  		printf( "	.globl	fltused\n" );
+--- 21,27 ----
+  	if( spoff >= AUTOINIT ) spoff -= AUTOINIT;
+  	spoff /= SZCHAR;
+  	SETOFF(spoff,2);
+! 	printf( "	.F%d = %ld.\n", ftnno, spoff );
+  	if( fltused ) {
+  		fltused = 0;
+  		printf( "	.globl	fltused\n" );
+***************
+*** 75,80 ****
+--- 78,102 ----
+  	SBREG, SBREG,
+  	};
+  
++ tlen(p) NODE *p; 
++ {
++ 	switch(p->in.type) {
++ 		case CHAR:
++ 		case UCHAR:
++ 			return(1);
++ 			
++ 		case LONG:
++ 		case ULONG:
++ 		case FLOAT:
++ 			return(4);
++ 
++ 		case DOUBLE:
++ 			return(8);
++ 			
++ 		default:
++ 			return(2);
++ 		}
++ 	}
+  NODE *brnode;
+  int brcase;
+  
+***************
+*** 85,106 ****
+  	switch( c ){
+  
+  	case 'B':	/* output b if type is byte */
+! 		if( p->type == CHAR || p->type == UCHAR ) printf( "b" );
+  		return;
+  
+  	case 'N':  /* logical ops, turned into 0-1 */
+  		/* use register given by register 1 */
+  		cbgen( 0, m=getlab(), 'I' );
+! 		deflab( p->label );
+! 		printf( "	clr	%s\n", rnames[getlr( p, '1' )->rval] );
+! 		if( p->type == LONG || p->type == ULONG )
+! 			printf( "	clr	%s\n", rnames[getlr( p, '1' )->rval + 1] );
+  		deflab( m );
+  		return;
+  
+  	case 'I':
+  	case 'F':
+! 		cbgen( p->op, p->label, c );
+  		return;
+  
+  	case 'A':
+--- 107,128 ----
+  	switch( c ){
+  
+  	case 'B':	/* output b if type is byte */
+! 		if( p->in.type == CHAR || p->in.type == UCHAR ) printf( "b" );
+  		return;
+  
+  	case 'N':  /* logical ops, turned into 0-1 */
+  		/* use register given by register 1 */
+  		cbgen( 0, m=getlab(), 'I' );
+! 		deflab( p->bn.label );
+! 		printf( "	clr	%s\n", rnames[getlr( p, '1' )->tn.rval] );
+! 		if( p->in.type == LONG || p->in.type == ULONG )
+! 			printf( "	clr	%s\n", rnames[getlr(p, '1')->tn.rval + 1] );
+  		deflab( m );
+  		return;
+  
+  	case 'I':
+  	case 'F':
+! 		cbgen( p->in.op, p->bn.label, c );
+  		return;
+  
+  	case 'A':
+***************
+*** 117,128 ****
+  			register r, l;
+  			TWORD t;
+  
+! 			if( p->op == ASG LS ) return;
+! 			if( p->op != ASG RS ) cerror( "ZH bad" );
+! 			if( p->left->op != REG ) cerror( "SH left bad" );
+  
+! 			r = p->left->rval;
+! 			t = p->left->type;
+  			l = (t==LONG || t == ULONG );
+  
+  			if( t != UNSIGNED && t != UCHAR && t != ULONG ) return;  /* signed is ok */
+--- 139,150 ----
+  			register r, l;
+  			TWORD t;
+  
+! 			if( p->in.op == ASG LS ) return;
+! 			if( p->in.op != ASG RS ) cerror( "ZH bad" );
+! 			if( p->in.left->in.op != REG ) cerror( "SH left bad" );
+  
+! 			r = p->in.left->tn.rval;
+! 			t = p->in.left->in.type;
+  			l = (t==LONG || t == ULONG );
+  
+  			if( t != UNSIGNED && t != UCHAR && t != ULONG ) return;  /* signed is ok */
+***************
+*** 136,144 ****
+  			/* in the case where the value is known (rhs a constant),
+  				the mask is just computed and put out... */
+  
+! 			if( p->right->op == ICON ){
+  				int s;
+! 				s = p->right->lval;
+  				if( l ){
+  					if( s >= 16 ){
+  						printf( "	clr	r%d\n", r );
+--- 158,166 ----
+  			/* in the case where the value is known (rhs a constant),
+  				the mask is just computed and put out... */
+  
+! 			if( p->in.right->in.op == ICON ){
+  				int s;
+! 				s = p->in.right->tn.lval;
+  				if( l ){
+  					if( s >= 16 ){
+  						printf( "	clr	r%d\n", r );
+***************
+*** 158,164 ****
+  
+  			/* general case */
+  
+! 			if( istnode( p->right ) ) q = p->right;
+  			else q = getlr( p, '1' );  /* where -shift is stored */
+  
+  			/* first, we store the shifted value on the stack */
+--- 180,186 ----
+  
+  			/* general case */
+  
+! 			if( istnode( p->in.right ) ) q = p->in.right;
+  			else q = getlr( p, '1' );  /* where -shift is stored */
+  
+  			/* first, we store the shifted value on the stack */
+***************
+*** 192,200 ****
+  		/* sign extend or not -- register is one less than the
+  		   left descendent */
+  
+! 		m = p->left->rval - 1;
+  
+! 		if( ISUNSIGNED(p->type) ){
+  			printf( "	clr	r%d\n", m );
+  			}
+  		else {
+--- 214,222 ----
+  		/* sign extend or not -- register is one less than the
+  		   left descendent */
+  
+! 		m = p->in.left->tn.rval - 1;
+  
+! 		if( ISUNSIGNED(p->in.type) ){
+  			printf( "	clr	r%d\n", m );
+  			}
+  		else {
+***************
+*** 216,238 ****
+  
+  	case '~':
+  		/* complimented CR */
+! 		p->right->lval = ~p->right->lval;
+  		conput( getlr( p, 'R' ) );
+! 		p->right->lval = ~p->right->lval;
+  		return;
+  
+  	case 'M':
+  		/* negated CR */
+! 		p->right->lval = -p->right->lval;
+  		conput( getlr( p, 'R' ) );
+! 		p->right->lval = -p->right->lval;
+  		return;
+  
+  	case 'L':  /* INIT for long constants */
+  		{
+  			unsigned hi, lo;
+! 			lo = p->left->lval & BITMASK(SZINT);
+! 			hi = ( p->left->lval >> SZINT ) & BITMASK(SZINT);
+  			printf( "	%o; %o\n", hi, lo );
+  			return;
+  		}
+--- 238,260 ----
+  
+  	case '~':
+  		/* complimented CR */
+! 		p->in.right->tn.lval = ~p->in.right->tn.lval;
+  		conput( getlr( p, 'R' ) );
+! 		p->in.right->tn.lval = ~p->in.right->tn.lval;
+  		return;
+  
+  	case 'M':
+  		/* negated CR */
+! 		p->in.right->tn.lval = -p->in.right->tn.lval;
+  		conput( getlr( p, 'R' ) );
+! 		p->in.right->tn.lval = -p->in.right->tn.lval;
+  		return;
+  
+  	case 'L':  /* INIT for long constants */
+  		{
+  			unsigned hi, lo;
+! 			lo = p->in.left->tn.lval & BITMASK(SZINT);
+! 			hi = ( p->in.left->tn.lval >> SZINT ) & BITMASK(SZINT);
+  			printf( "	%o; %o\n", hi, lo );
+  			return;
+  		}
+***************
+*** 242,259 ****
+  		    LONG|ULONG -> CHAR|UCHAR|INT|UNSIGNED
+  		   increment offset to second word */
+  
+! 		m = p->type;
+! 		p = p->left;
+! 		switch( p->op ){
+  		case NAME:
+  		case OREG:
+! 			p->lval += SZINT/SZCHAR;
+  			return;
+  		case REG:
+! 			rfree( p->rval, p->type );
+! 			p->rval += 1;
+! 			p->type = m;
+! 			rbusy( p->rval, p->type );
+  			return;
+  		default:
+  			cerror( "Illegal ZT type conversion" );
+--- 264,281 ----
+  		    LONG|ULONG -> CHAR|UCHAR|INT|UNSIGNED
+  		   increment offset to second word */
+  
+! 		m = p->in.type;
+! 		p = p->in.left;
+! 		switch( p->in.op ){
+  		case NAME:
+  		case OREG:
+! 			p->tn.lval += SZINT/SZCHAR;
+  			return;
+  		case REG:
+! 			rfree( p->tn.rval, p->in.type );
+! 			p->tn.rval += 1;
+! 			p->in.type = m;
+! 			rbusy( p->tn.rval, p->in.type );
+  			return;
+  		default:
+  			cerror( "Illegal ZT type conversion" );
+***************
+*** 263,270 ****
+  
+  	case 'U':
+  		/* same as AL for exp under U* */
+! 		if( p->left->op == UNARY MUL ) {
+! 			adrput( getlr( p->left, 'L' ) );
+  			return;
+  			}
+  		cerror( "Illegal ZU" );
+--- 285,292 ----
+  
+  	case 'U':
+  		/* same as AL for exp under U* */
+! 		if( p->in.left->in.op == UNARY MUL ) {
+! 			adrput( getlr( p->in.left, 'L' ) );
+  			return;
+  			}
+  		cerror( "Illegal ZU" );
+***************
+*** 271,278 ****
+  		/* NO RETURN */
+  
+  	case 'W':	/* structure size */
+! 		if( p->op == STASG )
+! 			printf( "%d", p->stsize);
+  		else	cerror( "Not a structure" );
+  		return;
+  
+--- 293,300 ----
+  		/* NO RETURN */
+  
+  	case 'W':	/* structure size */
+! 		if( p->in.op == STASG )
+! 			printf( "%d", p->stn.stsize);
+  		else	cerror( "Not a structure" );
+  		return;
+  
+***************
+*** 281,310 ****
+  			register NODE *l, *r;
+  			register size, count;
+  
+! 			if( p->op == STASG ){
+! 				l = p->left;
+! 				r = p->right;
+  				}
+! 			else if( p->op == STARG ){  /* store an arg onto the stack */
+! 				r = p->left;
+  				}
+  			else cerror( "STASG bad" );
+  
+! 			if( r->op == ICON ) r->op = NAME;
+! 			else if( r->op == REG ) r->op = OREG;
+! 			else if( r->op != OREG ) cerror( "STASG-r" );
+  
+! 			size = p->stsize;
+  			count = size / 2;
+  
+! 			r->lval += size;
+! 			if( p->op == STASG ) l->lval += size;
+  
+  			while( count-- ){ /* simple load/store loop */
+! 				r->lval -= 2;
+  				expand( r, FOREFF, "	mov	AR," );
+! 				if( p->op == STASG ){
+! 					l->lval -= 2;
+  					expand( l, FOREFF, "AR\n" );
+  					}
+  				else {
+--- 303,332 ----
+  			register NODE *l, *r;
+  			register size, count;
+  
+! 			if( p->in.op == STASG ){
+! 				l = p->in.left;
+! 				r = p->in.right;
+  				}
+! 			else if( p->in.op == STARG ){  /* store an arg onto the stack */
+! 				r = p->in.left;
+  				}
+  			else cerror( "STASG bad" );
+  
+! 			if( r->in.op == ICON ) r->in.op = NAME;
+! 			else if( r->in.op == REG ) r->in.op = OREG;
+! 			else if( r->in.op != OREG ) cerror( "STASG-r" );
+  
+! 			size = p->stn.stsize;
+  			count = size / 2;
+  
+! 			r->tn.lval += size;
+! 			if( p->in.op == STASG ) l->tn.lval += size;
+  
+  			while( count-- ){ /* simple load/store loop */
+! 				r->tn.lval -= 2;
+  				expand( r, FOREFF, "	mov	AR," );
+! 				if( p->in.op == STASG ){
+! 					l->tn.lval -= 2;
+  					expand( l, FOREFF, "AR\n" );
+  					}
+  				else {
+***************
+*** 313,320 ****
+  
+  				}
+  
+! 			if( r->op == NAME ) r->op = ICON;
+! 			else if( r->op == OREG ) r->op = REG;
+  
+  			}
+  		break;
+--- 335,342 ----
+  
+  				}
+  
+! 			if( r->in.op == NAME ) r->in.op = ICON;
+! 			else if( r->in.op == OREG ) r->in.op = REG;
+  
+  			}
+  		break;
+***************
+*** 371,394 ****
+  	}
+  
+  callreg(p) NODE *p; {
+! 	return( (p->type==DOUBLE||p->type==FLOAT) ? FR0 : R0 );
+  	}
+  
+! shltype( o, p ) NODE *p; {
+! 	if( o == NAME|| o==REG || o == ICON || o == OREG ) return( 1 );
+! 	return( o==UNARY MUL && shumul(p->left) );
+  	}
+  
+  flshape( p ) register NODE *p; {
+! 	register o = p->op;
+  	if( o==NAME || o==REG || o==ICON || o==OREG ) return( 1 );
+! 	return( o==UNARY MUL && shumul(p->left)==STARNM );
+  	}
+  
+  shtemp( p ) register NODE *p; {
+! 	if( p->op == UNARY MUL ) p = p->left;
+! 	if( p->op == REG || p->op == OREG ) return( !istreg( p->rval ) );
+! 	return( p->op == NAME || p->op == ICON );
+  	}
+  
+  spsz( t, v ) TWORD t; CONSZ v; {
+--- 393,418 ----
+  	}
+  
+  callreg(p) NODE *p; {
+! 	return( (p->in.type==DOUBLE||p->in.type==FLOAT) ? FR0 : R0 );
+  	}
+  
+! canaddr( p ) NODE *p; {
+! 	register int o = p->in.op;
+! 
+! 	if( o==NAME || o==REG || o==ICON || o==OREG || (o==UNARY MUL && shumul(p->in.left)) ) return(1);
+! 	return(0);
+  	}
+  
+  flshape( p ) register NODE *p; {
+! 	register o = p->in.op;
+  	if( o==NAME || o==REG || o==ICON || o==OREG ) return( 1 );
+! 	return( o==UNARY MUL && shumul(p->in.left)==STARNM );
+  	}
+  
+  shtemp( p ) register NODE *p; {
+! 	if( p->in.op == UNARY MUL ) p = p->in.left;
+! 	if( p->in.op == REG || p->in.op == OREG ) return( !istreg( p->tn.rval ) );
+! 	return( p->in.op == NAME || p->in.op == ICON );
+  	}
+  
+  spsz( t, v ) TWORD t; CONSZ v; {
+***************
+*** 423,435 ****
+  shumul( p ) register NODE *p; {
+  	register o;
+  
+! 	o = p->op;
+  	if( o == NAME || o == OREG || o == ICON ) return( STARNM );
+  
+  	if( ( o == INCR || o == ASG MINUS ) &&
+! 	    ( p->left->op == REG && p->right->op == ICON ) &&
+! 	    p->right->name[0] == '\0' &&
+! 	    spsz( p->left->type, p->right->lval ) )
+  		return( STARREG );
+  
+  	return( 0 );
+--- 447,459 ----
+  shumul( p ) register NODE *p; {
+  	register o;
+  
+! 	o = p->in.op;
+  	if( o == NAME || o == OREG || o == ICON ) return( STARNM );
+  
+  	if( ( o == INCR || o == ASG MINUS ) &&
+! 	    ( p->in.left->in.op == REG && p->in.right->in.op == ICON ) &&
+! 	    p->in.right->in.name[0] == '\0' &&
+! 	    spsz( p->in.left->in.type, p->in.right->tn.lval ) )
+  		return( STARREG );
+  
+  	return( 0 );
+***************
+*** 440,446 ****
+  	}
+  
+  conput( p ) register NODE *p; {
+! 	switch( p->op ){
+  
+  	case ICON:
+  		acon( p );
+--- 464,470 ----
+  	}
+  
+  conput( p ) register NODE *p; {
+! 	switch( p->in.op ){
+  
+  	case ICON:
+  		acon( p );
+***************
+*** 447,453 ****
+  		return;
+  
+  	case REG:
+! 		printf( "%s", rnames[p->rval] );
+  		return;
+  
+  	default:
+--- 471,477 ----
+  		return;
+  
+  	case REG:
+! 		putstr( rnames[p->tn.rval] );
+  		return;
+  
+  	default:
+***************
+*** 464,499 ****
+  	   pair pointed to by p (for LONGs)*/
+  	CONSZ save;
+  
+! 	if( p->op == FLD ){
+! 		p = p->left;
+  		}
+  
+! 	save = p->lval;
+! 	switch( p->op ){
+  
+  	case NAME:
+! 		p->lval += SZINT/SZCHAR;
+  		acon( p );
+  		break;
+  
+  	case ICON:
+  		/* addressable value of the constant */
+! 		p->lval &= BITMASK(SZINT);
+! 		printf( "$" );
+  		acon( p );
+  		break;
+  
+  	case REG:
+! 		printf( "%s", rnames[p->rval+1] );
+  		break;
+  
+  	case OREG:
+! 		p->lval += SZINT/SZCHAR;
+! 		if( p->rval == R5 ){  /* in the argument region */
+! 			if( p->name[0] != '\0' ) werror( "bad arg temp" );
+  			}
+! 		if( p->lval != 0 || p->name[0] != '\0' ) acon( p );
+! 		printf( "(%s)", rnames[p->rval] );
+  		break;
+  
+  	default:
+--- 488,523 ----
+  	   pair pointed to by p (for LONGs)*/
+  	CONSZ save;
+  
+! 	if( p->in.op == FLD ){
+! 		p = p->in.left;
+  		}
+  
+! 	save = p->tn.lval;
+! 	switch( p->in.op ){
+  
+  	case NAME:
+! 		p->tn.lval += SZINT/SZCHAR;
+  		acon( p );
+  		break;
+  
+  	case ICON:
+  		/* addressable value of the constant */
+! 		p->tn.lval &= BITMASK(SZINT);
+! 		putstr( "$" );
+  		acon( p );
+  		break;
+  
+  	case REG:
+! 		putstr( rnames[p->tn.rval+1] );
+  		break;
+  
+  	case OREG:
+! 		p->tn.lval += SZINT/SZCHAR;
+! 		if( p->tn.rval == R5 ){  /* in the argument region */
+! 			if( p->in.name[0] != '\0' ) werror( "bad arg temp" );
+  			}
+! 		if( p->tn.lval != 0 || p->in.name[0] != '\0' ) acon( p );
+! 		printf( "(%s)", rnames[p->tn.rval] );
+  		break;
+  
+  	default:
+***************
+*** 501,507 ****
+  		break;
+  
+  		}
+! 	p->lval = save;
+  
+  	}
+  
+--- 525,531 ----
+  		break;
+  
+  		}
+! 	p->tn.lval = save;
+  
+  	}
+  
+***************
+*** 508,517 ****
+  adrput( p ) register NODE *p; {
+  	/* output an address, with offsets, from p */
+  
+! 	if( p->op == FLD ){
+! 		p = p->left;
+  		}
+! 	switch( p->op ){
+  
+  	case NAME:
+  		acon( p );
+--- 532,541 ----
+  adrput( p ) register NODE *p; {
+  	/* output an address, with offsets, from p */
+  
+! 	if( p->in.op == FLD ){
+! 		p = p->in.left;
+  		}
+! 	switch( p->in.op ){
+  
+  	case NAME:
+  		acon( p );
+***************
+*** 519,532 ****
+  
+  	case ICON:
+  		/* addressable value of the constant */
+! 		if( szty( p->type ) == 2 ) {
+  			/* print the high order value */
+  			CONSZ save;
+! 			save = p->lval;
+! 			p->lval = ( p->lval >> SZINT ) & BITMASK(SZINT);
+! 			printf( "$" );
+  			acon( p );
+! 			p->lval = save;
+  			return;
+  			}
+  		printf( "$" );
+--- 543,556 ----
+  
+  	case ICON:
+  		/* addressable value of the constant */
+! 		if( szty( p->in.type ) == 2 ) {
+  			/* print the high order value */
+  			CONSZ save;
+! 			save = p->tn.lval;
+! 			p->tn.lval = ( p->tn.lval >> SZINT ) & BITMASK(SZINT);
+! 			putstr( "$" );
+  			acon( p );
+! 			p->tn.lval = save;
+  			return;
+  			}
+  		printf( "$" );
+***************
+*** 534,558 ****
+  		return;
+  
+  	case REG:
+! 		printf( "%s", rnames[p->rval] );
+  		return;
+  
+  	case OREG:
+! 		if( p->rval == R5 ){  /* in the argument region */
+! 			if( p->name[0] != '\0' ) werror( "bad arg temp" );
+! 			printf( CONFMT, p->lval );
+! 			printf( ".(r5)" );
+  			return;
+  			}
+! 		if( p->lval != 0 || p->name[0] != '\0' ) acon( p );
+! 		printf( "(%s)", rnames[p->rval] );
+  		return;
+  
+  	case UNARY MUL:
+  		/* STARNM or STARREG found */
+  		if( tshape(p, STARNM) ) {
+! 			printf( "*" );
+! 			adrput( p->left);
+  			}
+  		else {	/* STARREG - really auto inc or dec */
+  			/* turn into OREG so replacement node will
+--- 558,582 ----
+  		return;
+  
+  	case REG:
+! 		putstr( rnames[p->tn.rval] );
+  		return;
+  
+  	case OREG:
+! 		if( p->tn.rval == R5 ){  /* in the argument region */
+! 			if( p->in.name[0] != '\0' ) werror( "bad arg temp" );
+! 			printf( CONFMT, p->tn.lval );
+! 			putstr( ".(r5)" );
+  			return;
+  			}
+! 		if( p->tn.lval != 0 || p->in.name[0] != '\0' ) acon( p );
+! 		printf( "(%s)", rnames[p->tn.rval] );
+  		return;
+  
+  	case UNARY MUL:
+  		/* STARNM or STARREG found */
+  		if( tshape(p, STARNM) ) {
+! 			putstr( "*" );
+! 			adrput( p->in.left);
+  			}
+  		else {	/* STARREG - really auto inc or dec */
+  			/* turn into OREG so replacement node will
+***************
+*** 560,580 ****
+  			register i;
+  			register NODE *q, *l;
+  
+! 			l = p->left;
+! 			q = l->left;
+! 			p->op = OREG;
+! 			p->rall = q->rall;
+! 			p->lval = q->lval;
+! 			p->rval = q->rval;
+! 			for( i=0; i<NCHNAM; i++ )
+! 				p->name[i] = q->name[i];
+! 			if( l->op == INCR ) {
+  				adrput( p );
+! 				printf( "+" );
+! 				p->lval -= l->right->lval;
+  				}
+! 			else {	/* l->op == ASG MINUS */
+! 				printf( "-" );
+  				adrput( p );
+  				}
+  			tfree( l );
+--- 584,608 ----
+  			register i;
+  			register NODE *q, *l;
+  
+! 			l = p->in.left;
+! 			q = l->in.left;
+! 			p->in.op = OREG;
+! 			p->in.rall = q->in.rall;
+! 			p->tn.lval = q->tn.lval;
+! 			p->tn.rval = q->tn.rval;
+! #ifndef FLEXNAMES
+! 			for(i=0; i<NCHNAM; ++i)
+! 				p->in.name[i] = q->in.name[i];
+! #else
+! 			p->in.name = q->in.name;
+! #endif
+! 			if( l->in.op == INCR ) {
+  				adrput( p );
+! 				putstr( "+" );
+! 				p->tn.lval -= l->in.right->tn.lval;
+  				}
+! 			else {	/* l->in.op == ASG MINUS */
+! 				putstr( "-" );
+  				adrput( p );
+  				}
+  			tfree( l );
+***************
+*** 591,606 ****
+  
+  acon( p ) register NODE *p; { /* print out a constant */
+  
+! 	if( p->name[0] == '\0' ){	/* constant only */
+! 		printf( CONFMT, p->lval);
+  		printf( "." );
+  		}
+! 	else if( p->lval == 0 ) {	/* name only */
+! 		printf( "%.8s", p->name );
+  		}
+  	else {				/* name + offset */
+! 		printf( "%.8s+", p->name );
+! 		printf( CONFMT, p->lval );
+  		printf( "." );
+  		}
+  	}
+--- 619,642 ----
+  
+  acon( p ) register NODE *p; { /* print out a constant */
+  
+! 	if( p->in.name[0] == '\0' ){	/* constant only */
+! 		printf( CONFMT, p->tn.lval);
+  		printf( "." );
+  		}
+! 	else if( p->tn.lval == 0 ) {	/* name only */
+! #ifndef FLEXNAMES
+! 		printf( "%.8s", p->in.name );
+! #else
+! 		putstr( p->in.name );
+! #endif
+  		}
+  	else {				/* name + offset */
+! #ifndef	FLEXNAMES
+! 		printf( "%.8s+", p->in.name );
+! #else
+! 		putstr( p->in.name );
+! #endif
+! 		printf( CONFMT, p->tn.lval );
+  		printf( "." );
+  		}
+  	}
+***************
+*** 615,632 ****
+  	register temp;
+  	register m;
+  
+! 	if( p->right ) temp = argsize( p->right );
+  	else temp = 0;
+  
+! 	if( p->right ){ /* generate args */
+! 		genargs( p->right );
+  		}
+  
+! 	if( !shltype( p->left->op, p->left ) ) {
+! 		order( p->left, INAREG|SOREG );
+  		}
+  
+! 	p->op = UNARY CALL;
+  	m = match( p, INTAREG|INTBREG );
+  	popargs( temp );
+  	return(m != MDONE);
+--- 651,668 ----
+  	register temp;
+  	register m;
+  
+! 	if( p->in.right ) temp = argsize( p->in.right );
+  	else temp = 0;
+  
+! 	if( p->in.right ){ /* generate args */
+! 		genargs( p->in.right );
+  		}
+  
+! 	if( !shltype( p->in.left->in.op, p->in.left ) ) {
+! 		order( p->in.left, INAREG|SOREG );
+  		}
+  
+! 	p->in.op = UNARY CALL;
+  	m = match( p, INTAREG|INTBREG );
+  	popargs( temp );
+  	return(m != MDONE);
+***************
+*** 694,700 ****
+  	};
+  
+  /* logical relations when compared in reverse order (cmp R,L) */
+! #ifdef	FORT
+  short revrel[] ={ EQ, NE, GE, GT, LE, LT, UGE, UGT, ULE, ULT };
+  #else
+  extern short revrel[];
+--- 730,736 ----
+  	};
+  
+  /* logical relations when compared in reverse order (cmp R,L) */
+! #ifndef	ONEPASS
+  short revrel[] ={ EQ, NE, GE, GT, LE, LT, UGE, UGT, ULE, ULT };
+  #else
+  extern short revrel[];
+***************
+*** 739,745 ****
+  	/* we have failed to match p with cookie; try another */
+  	if( cookie == FORREW ) return( 0 );  /* hopeless! */
+  	if( !(cookie&(INTAREG|INTBREG)) ) return( INTAREG|INTBREG );
+! 	if( !(cookie&INTEMP) && asgop(p->op) ) return( INTEMP|INAREG|INTAREG|INTBREG|INBREG );
+  	return( FORREW );
+  	}
+  
+--- 775,781 ----
+  	/* we have failed to match p with cookie; try another */
+  	if( cookie == FORREW ) return( 0 );  /* hopeless! */
+  	if( !(cookie&(INTAREG|INTBREG)) ) return( INTAREG|INTBREG );
+! 	if( !(cookie&INTEMP) && asgop(p->in.op) ) return( INTEMP|INAREG|INTAREG|INTBREG|INBREG );
+  	return( FORREW );
+  	}
+  
+***************
+*** 775,782 ****
+  	register o;
+  	register TWORD t;
+  
+! 	o = p->op;
+! 	t = p->type;
+  	if( t!=LONG && t!=ULONG ) return;
+  
+  	for( f=opfunc; f->fop; f++ ) {
+--- 811,818 ----
+  	register o;
+  	register TWORD t;
+  
+! 	o = p->in.op;
+! 	t = p->in.type;
+  	if( t!=LONG && t!=ULONG ) return;
+  
+  	for( f=opfunc; f->fop; f++ ) {
+***************
+*** 788,825 ****
+  	/* WARNING - this won't work for long in a REG */
+  	convert:
+  	if( asgop( o ) ) {
+! 		switch( p->left->op ) {
+  
+  		case UNARY MUL:	/* convert to address */
+! 			p->left->op = FREE;
+! 			p->left = p->left->left;
+  			break;
+  
+  		case NAME:	/* convert to ICON pointer */
+! 			p->left->op = ICON;
+! 			p->left->type = INCREF( p->left->type );
+  			break;
+  
+  		case OREG:	/* convert OREG to address */
+! 			p->left->op = REG;
+! 			p->left->type = INCREF( p->left->type );
+! 			if( p->left->lval != 0 ) {
+  				q = talloc();
+! 				q->op = PLUS;
+! 				q->rall = NOPREF;
+! 				q->type = p->left->type;
+! 				q->left = p->left;
+! 				q->right = talloc();
+  
+! 				q->right->op = ICON;
+! 				q->right->rall = NOPREF;
+! 				q->right->type = INT;
+! 				q->right->name[0] = '\0';
+! 				q->right->lval = p->left->lval;
+! 				q->right->rval = 0;
+  
+! 				p->left->lval = 0;
+! 				p->left = q;
+  				}
+  			break;
+  
+--- 824,865 ----
+  	/* WARNING - this won't work for long in a REG */
+  	convert:
+  	if( asgop( o ) ) {
+! 		switch( p->in.left->in.op ) {
+  
+  		case UNARY MUL:	/* convert to address */
+! 			p->in.left->in.op = FREE;
+! 			p->in.left = p->in.left->in.left;
+  			break;
+  
+  		case NAME:	/* convert to ICON pointer */
+! 			p->in.left->in.op = ICON;
+! 			p->in.left->in.type = INCREF( p->in.left->in.type );
+  			break;
+  
+  		case OREG:	/* convert OREG to address */
+! 			p->in.left->in.op = REG;
+! 			p->in.left->in.type = INCREF( p->in.left->in.type );
+! 			if( p->in.left->tn.lval != 0 ) {
+  				q = talloc();
+! 				q->in.op = PLUS;
+! 				q->in.rall = NOPREF;
+! 				q->in.type = p->in.left->in.type;
+! 				q->in.left = p->in.left;
+! 				q->in.right = talloc();
+  
+! 				q->in.right->in.op = ICON;
+! 				q->in.right->in.rall = NOPREF;
+! 				q->in.right->in.type = INT;
+! #ifdef	FLEXNAMES
+! 				q->in.right->in.name = "";
+! #else
+! 				q->in.right->in.name[0] = '\0';
+! #endif
+! 				q->in.right->tn.lval = p->in.left->tn.lval;
+! 				q->in.right->tn.rval = 0;
+  
+! 				p->in.left->tn.lval = 0;
+! 				p->in.left = q;
+  				}
+  			break;
+  
+***************
+*** 832,853 ****
+  
+  	/* build comma op for args to function */
+  	q = talloc();
+! 	q->op = CM;
+! 	q->rall = NOPREF;
+! 	q->type = INT;
+! 	q->left = p->left;
+! 	q->right = p->right;
+! 	p->op = CALL;
+! 	p->right = q;
+  
+  	/* put function name in left node of call */
+! 	p->left = q = talloc();
+! 	q->op = ICON;
+! 	q->rall = NOPREF;
+! 	q->type = INCREF( FTN + p->type );
+! 	strcpy( q->name, f->func );
+! 	q->lval = 0;
+! 	q->rval = 0;
+  
+  	return;
+  
+--- 872,897 ----
+  
+  	/* build comma op for args to function */
+  	q = talloc();
+! 	q->in.op = CM;
+! 	q->in.rall = NOPREF;
+! 	q->in.type = INT;
+! 	q->in.left = p->in.left;
+! 	q->in.right = p->in.right;
+! 	p->in.op = CALL;
+! 	p->in.right = q;
+  
+  	/* put function name in left node of call */
+! 	p->in.left = q = talloc();
+! 	q->in.op = ICON;
+! 	q->in.rall = NOPREF;
+! 	q->in.type = INCREF( FTN + p->in.type );
+! #ifndef	FLEXNAMES
+! 	strcpy( q->in.name, f->func );
+! #else
+! 	q->in.name = f->func;
+! #endif
+! 	q->tn.lval = 0;
+! 	q->tn.rval = 0;
+  
+  	return;
+  
+***************
+*** 858,889 ****
+  
+  	register NODE *r;
+  
+! 	switch( p->op ) {
+  
+  	case AND:
+  		/* commute L and R to eliminate compliments and constants */
+! 		if( p->left->op==ICON || p->left->op==COMPL ) {
+! 			r = p->left;
+! 			p->left = p->right;
+! 			p->right = r;
+  			}
+  	case ASG AND:
+  		/* change meaning of AND to ~R&L - bic on pdp11 */
+! 		r = p->right;
+! 		if( r->op==ICON ) { /* compliment constant */
+! 			r->lval = ~r->lval;
+  			}
+! 		else if( r->op==COMPL ) { /* ~~A => A */
+! 			r->op = FREE;
+! 			p->right = r->left;
+  			}
+  		else { /* insert complement node */
+! 			p->right = talloc();
+! 			p->right->op = COMPL;
+! 			p->right->rall = NOPREF;
+! 			p->right->type = r->type;
+! 			p->right->left = r;
+! 			p->right->right = NULL;
+  			}
+  		break;
+  
+--- 902,933 ----
+  
+  	register NODE *r;
+  
+! 	switch( p->in.op ) {
+  
+  	case AND:
+  		/* commute L and R to eliminate compliments and constants */
+! 		if( p->in.left->in.op==ICON || p->in.left->in.op==COMPL ) {
+! 			r = p->in.left;
+! 			p->in.left = p->in.right;
+! 			p->in.right = r;
+  			}
+  	case ASG AND:
+  		/* change meaning of AND to ~R&L - bic on pdp11 */
+! 		r = p->in.right;
+! 		if( r->in.op==ICON ) { /* compliment constant */
+! 			r->tn.lval = ~r->tn.lval;
+  			}
+! 		else if( r->in.op==COMPL ) { /* ~~A => A */
+! 			r->in.op = FREE;
+! 			p->in.right = r->in.left;
+  			}
+  		else { /* insert complement node */
+! 			p->in.right = talloc();
+! 			p->in.right->in.op = COMPL;
+! 			p->in.right->in.rall = NOPREF;
+! 			p->in.right->in.type = r->in.type;
+! 			p->in.right->in.left = r;
+! 			p->in.right->in.right = NULL;
+  			}
+  		break;
+  
+***************
+*** 890,913 ****
+  		}
+  	}
+  
+- myreader(p) register NODE *p; {
+- 	walkf( p, hardops );	/* convert ops to function calls */
+- 	canon( p );		/* expands r-vals for fileds */
+- 	walkf( p, optim2 );
+- 	toff = 0;  /* stack offset swindle */
+- 	}
+- 
+  special( p, shape ) register NODE *p; {
+  	/* special shape matching routine */
+  
+  	switch( shape ) {
+  
+! 	case SCCON:
+! 		if( p->op == ICON && p->name[0]=='\0' && p->lval>= -128 && p->lval <=127 ) return( 1 );
+  		break;
+  
+! 	case SICON:
+! 		if( p->op == ICON && p->name[0]=='\0' && p->lval>= 0 && p->lval <=32767 ) return( 1 );
+  		break;
+  
+  	default:
+--- 934,950 ----
+  		}
+  	}
+  
+  special( p, shape ) register NODE *p; {
+  	/* special shape matching routine */
+  
+  	switch( shape ) {
+  
+! 	case SSCON:
+! 		if( p->in.op == ICON && p->in.name[0]=='\0' && p->tn.lval>= -128 && p->tn.lval <=127 ) return( 1 );
+  		break;
+  
+! 	case SCCON:
+! 		if( p->in.op == ICON && p->in.name[0]=='\0' && p->tn.lval>= 0 && p->tn.lval <=32767 ) return( 1 );
+  		break;
+  
+  	default:
+***************
+*** 918,925 ****
+--- 955,982 ----
+  	return( 0 );
+  	}
+  
++ NODE * addroreg(l) NODE *l;
++ 				/* OREG was built in clocal()
++ 				 * for an auto or formal parameter
++ 				 * now its address is being taken
++ 				 * local code must unwind it
++ 				 * back to PLUS/MINUS REG ICON
++ 				 * according to local conventions
++ 				 */
++ {
++ 	cerror("address of OREG taken");
++ 	/*NOTREACHED*/
++ }
++ 
+  # ifndef ONEPASS
+  main( argc, argv ) char *argv[]; {
+  	return( mainp2( argc, argv ) );
+  	}
+  # endif
++ 
++ myreader(p) register NODE *p; {
++ 	walkf( p, hardops );	/* convert ops to function calls */
++ 	canon( p );		/* expands r-vals for fileds */
++ 	walkf( p, optim2 );
++ 	toff = 0;  /* stack offset swindle */
++ 	}
+*** /old/src/lib/pcc/mac2defs.h	Fri Jul 10 14:36:09 1981
+--- /usr/src/lib/pcc/mac2defs.h	Sat Aug  3 08:21:19 1991
+***************
+*** 1,51 ****
+! /*	PDP11 Registers */
+  
+! 	/* scratch registers */
+! # define R0 0
+! # define R1 1
+  
+! 	/* register variables */
+! # define R2 2
+! # define R3 3
+! # define R4 4
+  
+! 	/* special purpose */
+! # define R5 5	/* frame pointer */
+! # define SP 6	/* stack pointer */
+! # define PC 7	/* program counter */
+  
+! 	/* floating registers */
+  
+! # define FR0 8
+! # define FR1 9
+! # define FR2 10
+! # define FR3 11
+! # define FR4 12
+! # define FR5 13
+  
+! # define SAVEREGION 8 /* number of bytes for save area */
+  
+! # define BYTEOFF(x) ((x)&01)
+! # define wdal(k) (BYTEOFF(k)==0)
+! # define BITOOR(x) ((x)>>3)  /* bit offset to oreg offset */
+  
+! # define REGSZ 14
+  
+! # define TMPREG R5
+  
+  
+! # define STOARG(p)     /* just evaluate the arguments, and be done with it... */
+! # define STOFARG(p)
+! # define STOSTARG(p)
+! # define genfcall(a,b) gencall(a,b)
+! 
+! 
+! 	/* shape for constants between -128 and 127 */
+! # define SCCON (SPECIAL+100)
+! 	/* shape for constants between 0 and 32767 */
+! # define SICON (SPECIAL+101)
+! 
+! # define MYREADER(p) myreader(p)
+! extern int fltused;
+! 	/* calls can be nested on the PDP-11 */
+! # define NESTCALLS
+--- 1,62 ----
+! /*
+!  * PDP11 Registers
+!  */
+  
+! /*
+!  * Scratch registers
+!  */
+! #define R0	0
+! #define R1	1
+  
+! /*
+!  * Register variables
+!  */
+! #define R2	2
+! #define R3	3
+! #define R4	4
+  
+! /*
+!  * Special purpose registers
+!  */
+! #define R5	5	/* frame pointer */
+! #define SP	6	/* stack pointer */
+! #define PC	7	/* program counter */
+  
+! /* floating registers */
+  
+! #define FR0	8
+! #define FR1	9
+! #define FR2	10
+! #define FR3	11
+! #define FR4	12
+! #define FR5	13
+  
+! #define REGSZ	14
+! #define TMPREG	R5
+  
+! extern	int fregs;
+! extern	int maxargs;
+  
+! #define BYTEOFF(x) ((x)&01)
+! #define wdal(k)		(BYTEOFF(k)==0)		/* word align */
+! #define BITOOR(x)	((x)>>3)		/* bit offset to oreg offset */
+  
+! /*
+!  * Some macros used in store():
+!  *	just evaluate the arguments, and be done with it...
+!  */
+! #define STOARG(p)
+! #define STOFARG(p)
+! #define STOSTARG(p)
+! #define genfcall(a,b)	gencall(a,b)
+  
++ /*
++  * Some short routines that get called an awful lot are actually macros.
++  */
++ #define	shltype(o, p) \
++ 	((o) == REG || (o) == NAME || (o) == ICON || \
++ 	 (o) == OREG || ((o) == UNARY MUL && shumul((p)->in.left)))
++ #define	ncopy(q, p)	((q)->in = (p)->in)
+  
+! #define MYREADER(p) myreader(p)
+! int	optim2();
+*** /old/src/lib/pcc/macdefs.h	Fri Jul 10 14:36:09 1981
+--- /usr/src/lib/pcc/macdefs.h	Sun Aug  4 14:07:51 1991
+***************
+*** 1,67 ****
+! # define makecc(val,i)  lastcon = i ? (val<<8)|lastcon : val  
+  
+! # define  ARGINIT 32 
+! # define  AUTOINIT 48 
+! # define  SZCHAR 8
+! # define  SZINT 16
+! # define  SZFLOAT 32
+! # define  SZDOUBLE 64
+! # define  SZLONG 32
+! # define  SZSHORT 16
+! # define SZPOINT 16
+! # define ALCHAR 8
+! # define ALINT 16
+! # define ALFLOAT 16
+! # define ALDOUBLE 16
+! # define ALLONG 16
+! # define ALSHORT 16
+! # define ALPOINT 16
+! # define ALSTRUCT 16
+! # define  ALSTACK 16 
+  
+! /*	size in which constants are converted */
+! /*	should be long if feasable */
+  
+! # define CONSZ long
+! # define CONFMT "%Ld"
+  
+! /*	size in which offsets are kept
+! /*	should be large enough to cover address space in bits
+! */
+  
+! # define OFFSZ long
+  
+! /* 	character set macro */
+  
+! # define  CCTRANS(x) x
+  
+! /* register cookie for stack poINTer */
+  
+! # define  STKREG 5
+  # define ARGREG 5
+! 
+! /*	maximum and minimum register variables */
+! 
+  # define MAXRVAR 4
+  # define MINRVAR 2
+  
+! 	/* various standard pieces of code are used */
+! # define STDPRTREE
+! # define LABFMT "L%d"
+  
+! /* definition indicates automatics and/or temporaries
+!    are on a negative growing stack */
+  
+! # define BACKAUTO
+! # define BACKTEMP
+! 
+! # define RTOLBYTES
+! # ifndef FORT
+! # define ONEPASS
+! # endif
+! 
+! # ifndef FORT
+! # define EXIT dexit
+! # endif
+! 
+! # define ENUMSIZE(high,low) INT
+--- 1,68 ----
+! #ifndef _MACDEFS_
+! #define	_MACDEFS_
+  
+! #define makecc(val,i)  lastcon = i ? (val<<8)|lastcon : val  
+  
+! #define ARGINIT		32 
+! #define AUTOINIT	0 
+  
+! /*
+!  * Storage space requirements
+!  */
+! #define SZCHAR		8
+! #define SZINT		16
+! #define SZFLOAT		32
+! #define SZDOUBLE	64
+! #define SZLONG		32
+! #define SZSHORT		16
+! #define SZPOINT		16
+  
+! /*
+!  * Alignment constraints
+!  */
+! #define ALCHAR		8
+! #define ALINT		16
+! #define ALFLOAT		16
+! #define ALDOUBLE	16
+! #define ALLONG		16
+! #define ALSHORT		16
+! #define ALPOINT		16
+! #define ALSTRUCT	16
+! #define ALSTACK		16
+  
+! typedef	long	CONSZ;		/* size in which constants are converted */
+! typedef	long	OFFSZ;		/* size in which offsets are kept */
+  
+! #define CONFMT	"%ld"		/* format for printing constants */
+! #define LABFMT	"L%d"		/* format for printing labels */
+  
+! #define CCTRANS(x) x		/* character set macro */
+  
+! /*
+!  * Register cookies for stack pointer and argument pointer
+!  */
+  
+! # define STKREG 5
+  # define ARGREG 5
+! /*
+!  * Maximum and minimum register variables
+!  */
+  # define MAXRVAR 4
+  # define MINRVAR 2
+  
+! #define BACKAUTO		/* stack grows negatively for automatics */
+! #define BACKTEMP		/* stack grows negatively for temporaries */
+! #ifdef	vax
+! #define FIELDOPS		/* show field hardware support on VAX */
+! #endif
+! #define RTOLBYTES		/* bytes are numbered from right to left */
+  
+! #define ENUMSIZE(high,low) INT	/* enums are always stored in full int */
+  
+! #define ADDROREG
+! #define FIXDEF(p) outstab(p)
+! #define FIXARG(p) fixarg(p)
+! #ifndef ncopy
+! #define	ncopy(q, p)	((q)->in = (p)->in)
+! #endif
+! #endif
+*** /old/src/lib/pcc/order.c	Fri Jul 10 14:36:10 1981
+--- /usr/src/lib/pcc/order.c	Sat Aug  3 09:41:06 1991
+***************
+*** 1,4 ****
+! # include "mfile2"
+  
+  int fltused = 0;
+  
+--- 1,4 ----
+! # include "pass2.h"
+  
+  int fltused = 0;
+  
+***************
+*** 6,57 ****
+  	/* should the assignment op p be stored,
+  	   given that it lies as the right operand of o
+  	   (or the left, if o==UNARY MUL) */
+! 	return( shltype(p->left->op, p->left ) );
+  
+  	}
+  
+  deltest( p ) register NODE *p; {
+  	/* should we delay the INCR or DECR operation p */
+! 	if( p->op == INCR && p->left->op == REG && spsz( p->left->type, p->right->lval ) ){
+  		/* STARREG */
+  		return( 0 );
+  		}
+  
+! 	p = p->left;
+! 	if( p->op == UNARY MUL ) p = p->left;
+! 	return( p->op == NAME || p->op == OREG || p->op == REG );
+  	}
+  
+  mkadrs(p) register NODE *p; {
+  	register o;
+  
+! 	o = p->op;
+  
+  	if( asgop(o) ){
+! 		if( p->left->su >= p->right->su ){
+! 			if( p->left->op == UNARY MUL ){
+! 				if( p->left->su > 0 )
+! 					SETSTO( p->left->left, INTEMP );
+  				else {
+! 					if( p->right->su > 0 ) SETSTO( p->right, INTEMP );
+  					else cerror( "store finds both sides trivial" );
+  					}
+  				}
+! 			else if( p->left->op == FLD && p->left->left->op == UNARY MUL ){
+! 				SETSTO( p->left->left->left, INTEMP );
+  				}
+  			else { /* should be only structure assignment */
+! 				SETSTO( p->left, INTEMP );
+  				}
+  			}
+! 		else SETSTO( p->right, INTEMP );
+  		}
+  	else {
+! 		if( p->left->su > p->right->su ){
+! 			SETSTO( p->left, INTEMP );
+  			}
+  		else {
+! 			SETSTO( p->right, INTEMP );
+  			}
+  		}
+  	}
+--- 6,67 ----
+  	/* should the assignment op p be stored,
+  	   given that it lies as the right operand of o
+  	   (or the left, if o==UNARY MUL) */
+! 	return( shltype(p->in.left->in.op, p->in.left ) );
+  
+  	}
+  
+  deltest( p ) register NODE *p; {
+  	/* should we delay the INCR or DECR operation p */
+! 	if( p->in.op == INCR && p->in.left->in.op == REG && spsz( p->in.left->in.type, p->in.right->tn.lval ) ){
+  		/* STARREG */
+  		return( 0 );
+  		}
+  
+! 	p = p->in.left;
+! 	if( p->in.op == UNARY MUL ) p = p->in.left;
+! 	return( p->in.op == NAME || p->in.op == OREG || p->in.op == REG );
+  	}
+  
++ autoincr( p ) NODE *p; {
++ 	register NODE *q = p->in.left;
++ 
++ 	if( q->in.op == INCR && q->in.left->in.op == REG &&
++ 	    ISPTR(q->in.type) && p->in.type == DECREF(q->in.type) &&
++ 	    tlen(p) == q->in.right->tn.lval ) return(1);
++ 
++ 	return(0);
++ 	}
++ 
+  mkadrs(p) register NODE *p; {
+  	register o;
+  
+! 	o = p->in.op;
+  
+  	if( asgop(o) ){
+! 		if( p->in.left->in.su >= p->in.right->in.su ){
+! 			if( p->in.left->in.op == UNARY MUL ){
+! 				if( p->in.left->in.su > 0 )
+! 					SETSTO( p->in.left->in.left, INTEMP );
+  				else {
+! 					if( p->in.right->in.su > 0 ) SETSTO( p->in.right, INTEMP );
+  					else cerror( "store finds both sides trivial" );
+  					}
+  				}
+! 			else if( p->in.left->in.op == FLD && p->in.left->in.left->in.op == UNARY MUL ){
+! 				SETSTO( p->in.left->in.left->in.left, INTEMP );
+  				}
+  			else { /* should be only structure assignment */
+! 				SETSTO( p->in.left, INTEMP );
+  				}
+  			}
+! 		else SETSTO( p->in.right, INTEMP );
+  		}
+  	else {
+! 		if( p->in.left->in.su > p->in.right->in.su ){
+! 			SETSTO( p->in.left, INTEMP );
+  			}
+  		else {
+! 			SETSTO( p->in.right, INTEMP );
+  			}
+  		}
+  	}
+***************
+*** 61,67 ****
+  	/* offset of off, (from a register of r), if the
+  	/* resulting thing had type t */
+  
+! 	/* return( 1 );  /* NO */
+  	return(0);  /* YES */
+  	}
+  
+--- 71,77 ----
+  	/* offset of off, (from a register of r), if the
+  	/* resulting thing had type t */
+  
+! 	/* if( r == R0 ) return( 1 );  /* NO */
+  	return(0);  /* YES */
+  	}
+  
+***************
+*** 80,104 ****
+  
+  	register su;
+  
+! 	su = p->su;
+  
+! 	switch( p->type ){
+  
+  	case CHAR:
+  	case UCHAR:
+  		if( !(zap&ZCHAR) ) break;
+! 		if( su == 0 ) p->su = su = 1;
+  		break;
+  
+  	case LONG:
+  	case ULONG:
+  		if( !(zap&ZLONG) ) break;
+! 		if( p->op == UNARY MUL && su == 0 ) p->su = su = 2;
+  		break;
+  
+  	case FLOAT:
+  		if( !(zap&ZFLOAT) ) break;
+! 		if( su == 0 ) p->su = su = 1;
+  
+  		}
+  
+--- 90,114 ----
+  
+  	register su;
+  
+! 	su = p->in.su;
+  
+! 	switch( p->in.type ){
+  
+  	case CHAR:
+  	case UCHAR:
+  		if( !(zap&ZCHAR) ) break;
+! 		if( su == 0 ) p->in.su = su = 1;
+  		break;
+  
+  	case LONG:
+  	case ULONG:
+  		if( !(zap&ZLONG) ) break;
+! 		if( p->in.op == UNARY MUL && su == 0 ) p->in.su = su = 2;
+  		break;
+  
+  	case FLOAT:
+  		if( !(zap&ZFLOAT) ) break;
+! 		if( su == 0 ) p->in.su = su = 1;
+  
+  		}
+  
+***************
+*** 113,124 ****
+  	register o, ty, sul, sur;
+  	register nr;
+  
+! 	ty = optype( o=p->op);
+! 	nr = szty( p->type );
+! 	p->su = 0;
+  
+  	if( ty == LTYPE ) {
+! 		if( p->type==FLOAT ) p->su = 1;
+  		return;
+  		}
+  	else if( ty == UTYPE ){
+--- 123,134 ----
+  	register o, ty, sul, sur;
+  	register nr;
+  
+! 	ty = optype( o=p->in.op);
+! 	nr = szty( p->in.type );
+! 	p->in.su = 0;
+  
+  	if( ty == LTYPE ) {
+! 		if( p->in.type==FLOAT ) p->in.su = 1;
+  		return;
+  		}
+  	else if( ty == UTYPE ){
+***************
+*** 125,138 ****
+  		switch( o ) {
+  		case UNARY CALL:
+  		case UNARY STCALL:
+! 			p->su = fregs;  /* all regs needed */
+  			return;
+  
+  		case UNARY MUL:
+! 			if( shumul( p->left ) ) return;
+  
+  		default:
+! 			p->su = max( p->left->su, nr);
+  			return;
+  			}
+  		}
+--- 135,148 ----
+  		switch( o ) {
+  		case UNARY CALL:
+  		case UNARY STCALL:
+! 			p->in.su = fregs;  /* all regs needed */
+  			return;
+  
+  		case UNARY MUL:
+! 			if( shumul( p->in.left ) ) return;
+  
+  		default:
+! 			p->in.su = max( p->in.left->in.su, nr);
+  			return;
+  			}
+  		}
+***************
+*** 140,153 ****
+  
+  	/* If rhs needs n, lhs needs m, regular su computation */
+  
+! 	sul = p->left->su;
+! 	sur = p->right->su;
+  
+  	if( o == ASSIGN ){
+  		asop:  /* also used for +=, etc., to memory */
+  		if( sul==0 ){
+  			/* don't need to worry about the left side */
+! 			p->su = max( sur, nr );
+  			}
+  		else {
+  			/* right, left address, op */
+--- 150,163 ----
+  
+  	/* If rhs needs n, lhs needs m, regular su computation */
+  
+! 	sul = p->in.left->in.su;
+! 	sur = p->in.right->in.su;
+  
+  	if( o == ASSIGN ){
+  		asop:  /* also used for +=, etc., to memory */
+  		if( sul==0 ){
+  			/* don't need to worry about the left side */
+! 			p->in.su = max( sur, nr );
+  			}
+  		else {
+  			/* right, left address, op */
+***************
+*** 154,164 ****
+  			if( sur == 0 ){
+  				/* just get the lhs address into a register, and mov */
+  				/* the `nr' covers the case where value is in reg afterwards */
+! 				p->su = max( sul, nr );
+  				}
+  			else {
+  				/* right, left address, op */
+! 				p->su = max( sur, nr+sul );
+  				}
+  			}
+  		return;
+--- 164,174 ----
+  			if( sur == 0 ){
+  				/* just get the lhs address into a register, and mov */
+  				/* the `nr' covers the case where value is in reg afterwards */
+! 				p->in.su = max( sul, nr );
+  				}
+  			else {
+  				/* right, left address, op */
+! 				p->in.su = max( sur, nr+sul );
+  				}
+  			}
+  		return;
+***************
+*** 166,178 ****
+  
+  	if( o == CALL || o == STCALL ){
+  		/* in effect, takes all free registers */
+! 		p->su = fregs;
+  		return;
+  		}
+  
+  	if( o == STASG ){
+  		/* right, then left */
+! 		p->su = max( max( sul+nr, sur), fregs );
+  		return;
+  		}
+  
+--- 176,188 ----
+  
+  	if( o == CALL || o == STCALL ){
+  		/* in effect, takes all free registers */
+! 		p->in.su = fregs;
+  		return;
+  		}
+  
+  	if( o == STASG ){
+  		/* right, then left */
+! 		p->in.su = max( max( sul+nr, sur), fregs );
+  		return;
+  		}
+  
+***************
+*** 181,190 ****
+  		/* left then right, max(sul,sur+nr) */
+  		/* right then left, max(sur,sul+nr) */
+  		/* to hold both sides in regs: nr+nr */
+! 		nr = szty( p->left->type );
+! 		sul = zum( p->left, ZLONG|ZCHAR|ZFLOAT );
+! 		sur = zum( p->right, ZLONG|ZCHAR|ZFLOAT );
+! 		p->su = min( max(sul,sur+nr), max(sur,sul+nr) );
+  		return;
+  		}
+  
+--- 191,200 ----
+  		/* left then right, max(sul,sur+nr) */
+  		/* right then left, max(sur,sul+nr) */
+  		/* to hold both sides in regs: nr+nr */
+! 		nr = szty( p->in.left->in.type );
+! 		sul = zum( p->in.left, ZLONG|ZCHAR|ZFLOAT );
+! 		sur = zum( p->in.right, ZLONG|ZCHAR|ZFLOAT );
+! 		p->in.su = min( max(sul,sur+nr), max(sur,sul+nr) );
+  		return;
+  		}
+  
+***************
+*** 199,205 ****
+  		case ASG DIV:
+  		case ASG MOD:
+  		case ASG MUL:
+! 			if( p->type!=FLOAT && p->type!=DOUBLE ) nr = fregs;
+  			goto gencase;
+  
+  		case ASG PLUS:
+--- 209,215 ----
+  		case ASG DIV:
+  		case ASG MOD:
+  		case ASG MUL:
+! 			if( p->in.type!=FLOAT && p->in.type!=DOUBLE ) nr = fregs;
+  			goto gencase;
+  
+  		case ASG PLUS:
+***************
+*** 206,228 ****
+  		case ASG MINUS:
+  		case ASG AND:  /* really bic */
+  		case ASG OR:
+! 			if( p->type == INT || p->type == UNSIGNED || ISPTR(p->type) ) goto asop;
+  
+  		gencase:
+  		default:
+! 			sur = zum( p->right, ZCHAR|ZLONG|ZFLOAT );
+  			if( sur == 0 ){ /* easy case: if addressable,
+  				do left value, op, store */
+! 				if( sul == 0 ) p->su = nr;
+  				/* harder: left adr, val, op, store */
+! 				else p->su = max( sul, nr+1 );
+  				}
+  			else { /* do right, left adr, left value, op, store */
+  				if( sul == 0 ){  /* right, left value, op, store */
+! 					p->su = max( sur, nr+nr );
+  					}
+  				else {
+! 					p->su = max( sur, max( sul+nr, 1+nr+nr ) );
+  					}
+  				}
+  			return;
+--- 216,238 ----
+  		case ASG MINUS:
+  		case ASG AND:  /* really bic */
+  		case ASG OR:
+! 			if( p->in.type == INT || p->in.type == UNSIGNED || ISPTR(p->in.type) ) goto asop;
+  
+  		gencase:
+  		default:
+! 			sur = zum( p->in.right, ZCHAR|ZLONG|ZFLOAT );
+  			if( sur == 0 ){ /* easy case: if addressable,
+  				do left value, op, store */
+! 				if( sul == 0 ) p->in.su = nr;
+  				/* harder: left adr, val, op, store */
+! 				else p->in.su = max( sul, nr+1 );
+  				}
+  			else { /* do right, left adr, left value, op, store */
+  				if( sul == 0 ){  /* right, left value, op, store */
+! 					p->in.su = max( sur, nr+nr );
+  					}
+  				else {
+! 					p->in.su = max( sur, max( sul+nr, 1+nr+nr ) );
+  					}
+  				}
+  			return;
+***************
+*** 235,246 ****
+  	case QUEST:
+  	case COLON:
+  	case COMOP:
+! 		p->su = max( max(sul,sur), nr);
+  		return;
+  		}
+  
+  	if( ( o==DIV || o==MOD || o==MUL )
+! 	    && p->type!=FLOAT && p->type!=DOUBLE ) nr = fregs;
+  	if( o==PLUS || o==MUL || o==OR || o==ER ){
+  		/* AND is ruined by the hardware */
+  		/* permute: get the harder on the left */
+--- 245,256 ----
+  	case QUEST:
+  	case COLON:
+  	case COMOP:
+! 		p->in.su = max( max(sul,sur), nr);
+  		return;
+  		}
+  
+  	if( ( o==DIV || o==MOD || o==MUL )
+! 	    && p->in.type!=FLOAT && p->in.type!=DOUBLE ) nr = fregs;
+  	if( o==PLUS || o==MUL || o==OR || o==ER ){
+  		/* AND is ruined by the hardware */
+  		/* permute: get the harder on the left */
+***************
+*** 247,259 ****
+  
+  		register rt, lt;
+  
+! 		if( istnode( p->left ) || sul > sur ) goto noswap;  /* don't do it! */
+  
+  		/* look for a funny type on the left, one on the right */
+  
+  
+! 		lt = p->left->type;
+! 		rt = p->right->type;
+  
+  		if( rt == FLOAT && lt == DOUBLE ) goto swap;
+  
+--- 257,269 ----
+  
+  		register rt, lt;
+  
+! 		if( istnode( p->in.left ) || sul > sur ) goto noswap;  /* don't do it! */
+  
+  		/* look for a funny type on the left, one on the right */
+  
+  
+! 		lt = p->in.left->in.type;
+! 		rt = p->in.right->in.type;
+  
+  		if( rt == FLOAT && lt == DOUBLE ) goto swap;
+  
+***************
+*** 262,272 ****
+  		if( lt==LONG || lt==ULONG ){
+  			if( rt==LONG || rt==ULONG ){
+  				/* if one is a STARNM, swap */
+! 				if( p->left->op == UNARY MUL && sul==0 ) goto noswap;
+! 				if( p->right->op == UNARY MUL && p->left->op != UNARY MUL ) goto swap;
+  				goto noswap;
+  				}
+! 			else if( p->left->op == UNARY MUL && sul == 0 ) goto noswap;
+  			else goto swap;  /* put long on right, unless STARNM */
+  			}
+  
+--- 272,282 ----
+  		if( lt==LONG || lt==ULONG ){
+  			if( rt==LONG || rt==ULONG ){
+  				/* if one is a STARNM, swap */
+! 				if( p->in.left->in.op == UNARY MUL && sul==0 ) goto noswap;
+! 				if( p->in.right->in.op == UNARY MUL && p->in.left->in.op != UNARY MUL ) goto swap;
+  				goto noswap;
+  				}
+! 			else if( p->in.left->in.op == UNARY MUL && sul == 0 ) goto noswap;
+  			else goto swap;  /* put long on right, unless STARNM */
+  			}
+  
+***************
+*** 279,297 ****
+  
+  		swap:
+  			ssu = sul;  sul = sur; sur = ssu;
+! 			s = p->left;  p->left = p->right; p->right = s;
+  			}
+  		}
+  	noswap:
+  
+! 	sur = zum( p->right, ZCHAR|ZLONG|ZFLOAT );
+  	if( sur == 0 ){
+  		/* get left value into a register, do op */
+! 		p->su = max( nr, sul );
+  		}
+  	else {
+  		/* do harder into a register, then easier */
+! 		p->su = max( nr+nr, min( max( sul, nr+sur ), max( sur, nr+sul ) ) );
+  		}
+  	}
+  
+--- 289,307 ----
+  
+  		swap:
+  			ssu = sul;  sul = sur; sur = ssu;
+! 			s = p->in.left;  p->in.left = p->in.right; p->in.right = s;
+  			}
+  		}
+  	noswap:
+  
+! 	sur = zum( p->in.right, ZCHAR|ZLONG|ZFLOAT );
+  	if( sur == 0 ){
+  		/* get left value into a register, do op */
+! 		p->in.su = max( nr, sul );
+  		}
+  	else {
+  		/* do harder into a register, then easier */
+! 		p->in.su = max( nr+nr, min( max( sul, nr+sur ), max( sur, nr+sul ) ) );
+  		}
+  	}
+  
+***************
+*** 301,320 ****
+  	/* insure that the use of p gets done with register r; in effect, */
+  	/* simulate offstar */
+  
+! 	if( p->op == FLD ){
+! 		p->left->rall = p->rall;
+! 		p = p->left;
+  		}
+  
+! 	if( p->op != UNARY MUL ) return;  /* no more to do */
+! 	p = p->left;
+! 	if( p->op == UNARY MUL ){
+! 		p->rall = r;
+! 		p = p->left;
+  		}
+! 	if( p->op == PLUS && p->right->op == ICON ){
+! 		p->rall = r;
+! 		p = p->left;
+  		}
+  	rallo( p, r );
+  	}
+--- 311,330 ----
+  	/* insure that the use of p gets done with register r; in effect, */
+  	/* simulate offstar */
+  
+! 	if( p->in.op == FLD ){
+! 		p->in.left->in.rall = p->in.rall;
+! 		p = p->in.left;
+  		}
+  
+! 	if( p->in.op != UNARY MUL ) return;  /* no more to do */
+! 	p = p->in.left;
+! 	if( p->in.op == UNARY MUL ){
+! 		p->in.rall = r;
+! 		p = p->in.left;
+  		}
+! 	if( p->in.op == PLUS && p->in.right->in.op == ICON ){
+! 		p->in.rall = r;
+! 		p = p->in.left;
+  		}
+  	rallo( p, r );
+  	}
+***************
+*** 326,336 ****
+  	if( radebug ) printf( "rallo( %o, %o )\n", p, down );
+  
+  	down2 = NOPREF;
+! 	p->rall = down;
+  	down1 = ( down &= ~MUSTDO );
+  
+! 	ty = optype( o = p->op );
+! 	type = p->type;
+  
+  
+  	if( type == DOUBLE || type == FLOAT ){
+--- 336,346 ----
+  	if( radebug ) printf( "rallo( %o, %o )\n", p, down );
+  
+  	down2 = NOPREF;
+! 	p->in.rall = down;
+  	down1 = ( down &= ~MUSTDO );
+  
+! 	ty = optype( o = p->in.op );
+! 	type = p->in.type;
+  
+  
+  	if( type == DOUBLE || type == FLOAT ){
+***************
+*** 355,368 ****
+  			}
+  		/* at least 3 regs free */
+  		/* compute lhs in (r0,r1), address of left in r2 */
+! 		p->left->rall = R1|MUSTDO;
+! 		mkrall( p->left, R2|MUSTDO );
+  		/* now, deal with right */
+! 		if( fregs == 3 ) rallo( p->right, NOPREF );
+  		else {
+  			/* put address of long or value here */
+! 			p->right->rall = R3|MUSTDO;
+! 			mkrall( p->right, R3|MUSTDO );
+  			}
+  		return;
+  
+--- 365,378 ----
+  			}
+  		/* at least 3 regs free */
+  		/* compute lhs in (r0,r1), address of left in r2 */
+! 		p->in.left->in.rall = R1|MUSTDO;
+! 		mkrall( p->in.left, R2|MUSTDO );
+  		/* now, deal with right */
+! 		if( fregs == 3 ) rallo( p->in.right, NOPREF );
+  		else {
+  			/* put address of long or value here */
+! 			p->in.right->in.rall = R3|MUSTDO;
+! 			mkrall( p->in.right, R3|MUSTDO );
+  			}
+  		return;
+  
+***************
+*** 369,384 ****
+  	case MUL:
+  	case DIV:
+  	case MOD:
+! 		rallo( p->left, R1|MUSTDO );
+  
+  		if( fregs == 2 ){
+! 			rallo( p->right, NOPREF );
+  			return;
+  			}
+  		/* compute addresses, stay away from (r0,r1) */
+  
+! 		p->right->rall = (fregs==3) ? R2|MUSTDO : R3|MUSTDO ;
+! 		mkrall( p->right, R2|MUSTDO );
+  		return;
+  
+  	case CALL:
+--- 379,394 ----
+  	case MUL:
+  	case DIV:
+  	case MOD:
+! 		rallo( p->in.left, R1|MUSTDO );
+  
+  		if( fregs == 2 ){
+! 			rallo( p->in.right, NOPREF );
+  			return;
+  			}
+  		/* compute addresses, stay away from (r0,r1) */
+  
+! 		p->in.right->in.rall = (fregs==3) ? R2|MUSTDO : R3|MUSTDO ;
+! 		mkrall( p->in.right, R2|MUSTDO );
+  		return;
+  
+  	case CALL:
+***************
+*** 401,445 ****
+  
+  		}
+  
+! 	if( ty != LTYPE ) rallo( p->left, down1 );
+! 	if( ty == BITYPE ) rallo( p->right, down2 );
+  
+  	}
+  
+  offstar( p ) register NODE *p; {
+! 	/* handle indirections */
+! 
+! 	if( p->op == UNARY MUL ) p = p->left;
+! 
+! 	if( p->op == PLUS || p->op == MINUS ){
+! 		if( p->right->op == ICON ){
+! 			order( p->left , INTAREG|INAREG );
+  			return;
+  			}
+  		}
+  	order( p, INTAREG|INAREG );
+  	}
+  
+! setincr( p ) NODE *p; {
+! 	return( 0 );	/* for the moment, don't bother */
+  	}
+  
+  niceuty( p ) register NODE *p; {
+  	register TWORD t;
+  
+! 	return( p->op == UNARY MUL && (t=p->type)!=CHAR &&
+  		t!= UCHAR && t!= FLOAT &&
+! 		shumul( p->left) != STARREG );
+  	}
+  setbin( p ) register NODE *p; {
+  	register NODE *r, *l;
+  
+! 	r = p->right;
+! 	l = p->left;
+  
+! 	if( p->right->su == 0 ){ /* rhs is addressable */
+! 		if( logop( p->op ) ){
+! 			if( l->op == UNARY MUL && l->type != FLOAT && shumul( l->left ) != STARREG ) offstar( l->left );
+  			else order( l, INAREG|INTAREG|INBREG|INTBREG|INTEMP );
+  			return( 1 );
+  			}
+--- 411,492 ----
+  
+  		}
+  
+! 	if( ty != LTYPE ) rallo( p->in.left, down1 );
+! 	if( ty == BITYPE ) rallo( p->in.right, down2 );
+  
+  	}
+  
+  offstar( p ) register NODE *p; {
+! 	if( p->in.op == PLUS ) {
+! 		if( p->in.left->in.su == fregs ) {
+! 			order( p->in.left, INTAREG|INAREG );
+  			return;
++ 		} else if( p->in.right->in.su == fregs ) {
++ 			order( p->in.right, INTAREG|INAREG );
++ 			return;
++ 		}
++ 		if( p->in.left->in.op==LS && 
++ 		  (p->in.left->in.left->in.op!=REG || tlen(p->in.left->in.left)!=sizeof(int) ) ) {
++ 			order( p->in.left->in.left, INTAREG|INAREG );
++ 			return;
++ 		}
++ 		if( p->in.right->in.op==LS &&
++ 		  (p->in.right->in.left->in.op!=REG || tlen(p->in.right->in.left)!=sizeof(int) ) ) {
++ 			order( p->in.right->in.left, INTAREG|INAREG );
++ 			return;
++ 		}
++ 		if( p->in.type == (PTR|CHAR) || p->in.type == (PTR|UCHAR) ) {
++ 			if( p->in.left->in.op!=REG || tlen(p->in.left)!=sizeof(int) ) {
++ 				order( p->in.left, INTAREG|INAREG );
++ 				return;
+  			}
++ 			else if( p->in.right->in.op!=REG || tlen(p->in.right)!=sizeof(int) ) {
++ 				order(p->in.right, INTAREG|INAREG);
++ 				return;
++ 			}
+  		}
++ 	}
++ 	if( p->in.op == PLUS || p->in.op == MINUS ){
++ 		if( p->in.right->in.op == ICON ){
++ 			p = p->in.left;
++ 			order( p , INTAREG|INAREG);
++ 			return;
++ 			}
++ 		}
++ 
++ 	if( p->in.op == UNARY MUL && !canaddr(p) ) {
++ 		offstar( p->in.left );
++ 		return;
++ 	}
++ 
+  	order( p, INTAREG|INAREG );
+  	}
+  
+! setincr( p ) register NODE *p; {
+! 	p = p->in.left;
+! 	if( p->in.op == UNARY MUL ){
+! 		offstar( p );
+! 		return( 1 );
+! 		}
+! 	return( 0 );
+  	}
+  
+  niceuty( p ) register NODE *p; {
+  	register TWORD t;
+  
+! 	return( p->in.op == UNARY MUL && (t=p->in.type)!=CHAR &&
+  		t!= UCHAR && t!= FLOAT &&
+! 		shumul( p->in.left) != STARREG );
+  	}
+  setbin( p ) register NODE *p; {
+  	register NODE *r, *l;
+  
+! 	r = p->in.right;
+! 	l = p->in.left;
+  
+! 	if( p->in.right->in.su == 0 ){ /* rhs is addressable */
+! 		if( logop( p->in.op ) ){
+! 			if( l->in.op == UNARY MUL && l->in.type != FLOAT && shumul( l->in.left ) != STARREG ) offstar( l->in.left );
+  			else order( l, INAREG|INTAREG|INBREG|INTBREG|INTEMP );
+  			return( 1 );
+  			}
+***************
+*** 453,464 ****
+  	/* now, rhs is complicated: must do both sides into registers */
+  	/* do the harder side first */
+  
+! 	if( logop( p->op ) ){
+  		/* relational: do both sides into regs if need be */
+  
+! 		if( r->su > l->su ){
+  			if( niceuty(r) ){
+! 				offstar( r->left );
+  				return( 1 );
+  				}
+  			else if( !istnode( r ) ){
+--- 500,511 ----
+  	/* now, rhs is complicated: must do both sides into registers */
+  	/* do the harder side first */
+  
+! 	if( logop( p->in.op ) ){
+  		/* relational: do both sides into regs if need be */
+  
+! 		if( r->in.su > l->in.su ){
+  			if( niceuty(r) ){
+! 				offstar( r->in.left );
+  				return( 1 );
+  				}
+  			else if( !istnode( r ) ){
+***************
+*** 467,477 ****
+  				}
+  			}
+  		if( niceuty(l) ){
+! 			offstar( l->left );
+  			return( 1 );
+  			}
+  		else if( niceuty(r) ){
+! 			offstar( r->left );
+  			return( 1 );
+  			}
+  		else if( !istnode( l ) ){
+--- 514,524 ----
+  				}
+  			}
+  		if( niceuty(l) ){
+! 			offstar( l->in.left );
+  			return( 1 );
+  			}
+  		else if( niceuty(r) ){
+! 			offstar( r->in.left );
+  			return( 1 );
+  			}
+  		else if( !istnode( l ) ){
+***************
+*** 482,496 ****
+  			order( r, INTAREG|INAREG|INTBREG|INBREG|INTEMP );
+  			return( 1 );
+  			}
+! 		cerror( "setbin can't deal with %s", opst[p->op] );
+  		}
+  
+  	/* ordinary operator */
+  
+! 	if( !istnode(r) && r->su > l->su ){
+  		/* if there is a chance of making it addressable, try it... */
+  		if( niceuty(r) ){
+! 			offstar( r->left );
+  			return( 1 );  /* hopefully, it is addressable by now */
+  			}
+  		order( r, INTAREG|INAREG|INTBREG|INBREG|INTEMP );  /* anything goes on rhs */
+--- 529,543 ----
+  			order( r, INTAREG|INAREG|INTBREG|INBREG|INTEMP );
+  			return( 1 );
+  			}
+! 		cerror( "setbin can't deal with %s", opst[p->in.op] );
+  		}
+  
+  	/* ordinary operator */
+  
+! 	if( !istnode(r) && r->in.su > l->in.su ){
+  		/* if there is a chance of making it addressable, try it... */
+  		if( niceuty(r) ){
+! 			offstar( r->in.left );
+  			return( 1 );  /* hopefully, it is addressable by now */
+  			}
+  		order( r, INTAREG|INAREG|INTBREG|INBREG|INTEMP );  /* anything goes on rhs */
+***************
+*** 507,520 ****
+  	}
+  
+  setstr( p ) register NODE *p; { /* structure assignment */
+! 	if( p->right->op != REG ){
+! 		order( p->right, INTAREG );
+  		return(1);
+  		}
+! 	p = p->left;
+! 	if( p->op != NAME && p->op != OREG ){
+! 		if( p->op != UNARY MUL ) cerror( "bad setstr" );
+! 		order( p->left, INTAREG );
+  		return( 1 );
+  		}
+  	return( 0 );
+--- 554,567 ----
+  	}
+  
+  setstr( p ) register NODE *p; { /* structure assignment */
+! 	if( p->in.right->in.op != REG ){
+! 		order( p->in.right, INTAREG );
+  		return(1);
+  		}
+! 	p = p->in.left;
+! 	if( p->in.op != NAME && p->in.op != OREG ){
+! 		if( p->in.op != UNARY MUL ) cerror( "bad setstr" );
+! 		order( p->in.left, INTAREG );
+  		return( 1 );
+  		}
+  	return( 0 );
+***************
+*** 523,550 ****
+  setasg( p ) register NODE *p; {
+  	/* setup for assignment operator */
+  
+! 	if( p->right->su != 0 && p->right->op != REG ) {
+! 		if( p->right->op == UNARY MUL )
+! 			offstar( p->right->left );
+  		else
+! 			order( p->right, INAREG|INBREG|SOREG|SNAME|SCON );
+  		return(1);
+  		}
+! 	if( p->right->op != REG && ( p->type == FLOAT || p->type == DOUBLE ) ) {
+! 		order( p->right, INBREG );
+  		return(1);
+  		}
+! 	if( p->left->op == UNARY MUL && !tshape( p->left, STARREG|STARNM ) ){
+! 		offstar( p->left->left );
+  		return(1);
+  		}
+! 	if( p->left->op == FLD && p->left->left->op == UNARY MUL ){
+! 		offstar( p->left->left->left );
+  		return(1);
+  		}
+  	/* if things are really strange, get rhs into a register */
+! 	if( p->right->op != REG ){
+! 		order( p->right, INAREG|INBREG );
+  		return( 1 );
+  		}
+  	return(0);
+--- 570,597 ----
+  setasg( p ) register NODE *p; {
+  	/* setup for assignment operator */
+  
+! 	if( p->in.right->in.su != 0 && p->in.right->in.op != REG ) {
+! 		if( p->in.right->in.op == UNARY MUL )
+! 			offstar( p->in.right->in.left );
+  		else
+! 			order( p->in.right, INAREG|INBREG|SOREG|SNAME|SCON );
+  		return(1);
+  		}
+! 	if( p->in.right->in.op != REG && ( p->in.type == FLOAT || p->in.type == DOUBLE ) ) {
+! 		order( p->in.right, INBREG );
+  		return(1);
+  		}
+! 	if( p->in.left->in.op == UNARY MUL && !tshape( p->in.left, STARREG|STARNM ) ){
+! 		offstar( p->in.left->in.left );
+  		return(1);
+  		}
+! 	if( p->in.left->in.op == FLD && p->in.left->in.left->in.op == UNARY MUL ){
+! 		offstar( p->in.left->in.left->in.left );
+  		return(1);
+  		}
+  	/* if things are really strange, get rhs into a register */
+! 	if( p->in.right->in.op != REG ){
+! 		order( p->in.right, INAREG|INBREG );
+  		return( 1 );
+  		}
+  	return(0);
+***************
+*** 555,579 ****
+  	register sul, sur;
+  	register NODE *q, *p2;
+  
+! 	sul = p->left->su;
+! 	sur = p->right->su;
+  
+! 	switch( p->op ){
+  
+  	case ASG PLUS:
+  	case ASG OR:
+  	case ASG MINUS:
+! 		if( p->type != INT && p->type != UNSIGNED && !ISPTR(p->type) ) break;
+! 		if( p->right->type == CHAR || p->right->type == UCHAR ){
+! 			order( p->right, INAREG );
+  			return( 1 );
+  			}
+  		break;
+  
+  	case ASG ER:
+! 		if( sul == 0 || p->left->op == REG ){
+! 			if( p->left->type == CHAR || p->left->type == UCHAR ) goto rew;  /* rewrite */
+! 			order( p->right, INAREG|INBREG );
+  			return( 1 );
+  			}
+  		goto leftadr;
+--- 602,626 ----
+  	register sul, sur;
+  	register NODE *q, *p2;
+  
+! 	sul = p->in.left->in.su;
+! 	sur = p->in.right->in.su;
+  
+! 	switch( p->in.op ){
+  
+  	case ASG PLUS:
+  	case ASG OR:
+  	case ASG MINUS:
+! 		if( p->in.type != INT && p->in.type != UNSIGNED && !ISPTR(p->in.type) ) break;
+! 		if( p->in.right->in.type == CHAR || p->in.right->in.type == UCHAR ){
+! 			order( p->in.right, INAREG );
+  			return( 1 );
+  			}
+  		break;
+  
+  	case ASG ER:
+! 		if( sul == 0 || p->in.left->in.op == REG ){
+! 			if( p->in.left->in.type == CHAR || p->in.left->in.type == UCHAR ) goto rew;  /* rewrite */
+! 			order( p->in.right, INAREG|INBREG );
+  			return( 1 );
+  			}
+  		goto leftadr;
+***************
+*** 587,631 ****
+  
+  		/* harder; make aleft address, val, op, and store */
+  
+! 		if( p->left->op == UNARY MUL ){
+! 			offstar( p->left->left );
+  			return( 1 );
+  			}
+! 		if( p->left->op == FLD && p->left->left->op == UNARY MUL ){
+! 			offstar( p->left->left->left );
+  			return( 1 );
+  			}
+  	rew:	/* rewrite, accounting for autoincrement and autodecrement */
+  
+! 		q = p->left;
+! 		if( q->op == FLD ) q = q->left;
+! 		if( q->op != UNARY MUL || shumul(q->left) != STARREG ) return(0); /* let reader.c do it */
+  
+  		/* mimic code from reader.c */
+  
+  		p2 = tcopy( p );
+! 		p->op = ASSIGN;
+! 		reclaim( p->right, RNULL, 0 );
+! 		p->right = p2;
+  
+  		/* now, zap INCR on right, ASG MINUS on left */
+  
+! 		if( q->left->op == INCR ){
+! 			q = p2->left;
+! 			if( q->op == FLD ) q = q->left;
+! 			if( q->left->op != INCR ) cerror( "bad incr rewrite" );
+  			}
+! 		else if( q->left->op != ASG MINUS )  cerror( " bad -= rewrite" );
+  
+! 		q->left->right->op = FREE;
+! 		q->left->op = FREE;
+! 		q->left = q->left->left;
+  
+  		/* now, resume reader.c rewriting code */
+  
+  		canon(p);
+! 		rallo( p, p->rall );
+! 		order( p2->left, INTBREG|INTAREG );
+  		order( p2, INTBREG|INTAREG );
+  		return( 1 );
+  		}
+--- 634,678 ----
+  
+  		/* harder; make aleft address, val, op, and store */
+  
+! 		if( p->in.left->in.op == UNARY MUL ){
+! 			offstar( p->in.left->in.left );
+  			return( 1 );
+  			}
+! 		if( p->in.left->in.op == FLD && p->in.left->in.left->in.op == UNARY MUL ){
+! 			offstar( p->in.left->in.left->in.left );
+  			return( 1 );
+  			}
+  	rew:	/* rewrite, accounting for autoincrement and autodecrement */
+  
+! 		q = p->in.left;
+! 		if( q->in.op == FLD ) q = q->in.left;
+! 		if( q->in.op != UNARY MUL || shumul(q->in.left) != STARREG ) return(0); /* let reader.c do it */
+  
+  		/* mimic code from reader.c */
+  
+  		p2 = tcopy( p );
+! 		p->in.op = ASSIGN;
+! 		reclaim( p->in.right, RNULL, 0 );
+! 		p->in.right = p2;
+  
+  		/* now, zap INCR on right, ASG MINUS on left */
+  
+! 		if( q->in.left->in.op == INCR ){
+! 			q = p2->in.left;
+! 			if( q->in.op == FLD ) q = q->in.left;
+! 			if( q->in.left->in.op != INCR ) cerror( "bad incr rewrite" );
+  			}
+! 		else if( q->in.left->in.op != ASG MINUS )  cerror( " bad -= rewrite" );
+  
+! 		q->in.left->in.right->in.op = FREE;
+! 		q->in.left->in.op = FREE;
+! 		q->in.left = q->in.left->in.left;
+  
+  		/* now, resume reader.c rewriting code */
+  
+  		canon(p);
+! 		rallo( p, p->in.rall );
+! 		order( p2->in.left, INTBREG|INTAREG );
+  		order( p2, INTBREG|INTAREG );
+  		return( 1 );
+  		}
+***************
+*** 632,651 ****
+  
+  	/* harder case: do right, left address, left value, op, store */
+  
+! 	if( p->right->op == UNARY MUL ){
+! 		offstar( p->right->left );
+  		return( 1 );
+  		}
+  	/* sur> 0, since otherwise, done above */
+! 	if( p->right->op == REG ) goto leftadr;  /* make lhs addressable */
+! 	order( p->right, INAREG|INBREG );
+  	return( 1 );
+  	}
+  
+! int crslab = 10000;
+  
+  getlab(){
+! 	return( crslab++ );
+  	}
+  
+  deflab( l ){
+--- 679,698 ----
+  
+  	/* harder case: do right, left address, left value, op, store */
+  
+! 	if( p->in.right->in.op == UNARY MUL ){
+! 		offstar( p->in.right->in.left );
+  		return( 1 );
+  		}
+  	/* sur> 0, since otherwise, done above */
+! 	if( p->in.right->in.op == REG ) goto leftadr;  /* make lhs addressable */
+! 	order( p->in.right, INAREG|INBREG );
+  	return( 1 );
+  	}
+  
+! int crslab = 32767;
+  
+  getlab(){
+! 	return( crslab-- );
+  	}
+  
+  deflab( l ){
+***************
+*** 652,696 ****
+  	printf( "L%d:\n", l );
+  	}
+  
+! genargs( p) register NODE *p; {
+  	register size;
+  
+  	/* generate code for the arguments */
+  
+! 	/*  first, do the arguments on the right (last->first) */
+! 	while( p->op == CM ){
+! 		genargs( p->right );
+! 		p->op = FREE;
+! 		p = p->left;
+  		}
+  
+! 	if( p->op == STARG ){ /* structure valued argument */
+  
+! 		size = p->stsize;
+! 		if( p->left->op == ICON ){
+! 			/* make into a name node */
+! 			p->op = FREE;
+! 			p= p->left;
+! 			p->op = NAME;
+  			}
+  		else {
+  			/* make it look beautiful... */
+! 			p->op = UNARY MUL;
+  			canon( p );  /* turn it into an oreg */
+! 			if( p->op != OREG ){
+! 				offstar( p->left );
+  				canon( p );
+- 				if( p->op != OREG ) cerror( "stuck starg" );
+  				}
+  			}
+  
+! 		p->lval += size;  /* end of structure */
+! 		/* put on stack backwards */
+! 		for( ; size>0; size -= 2 ){
+! 			p->lval -= 2;
+! 			expand( p, RNOP, "	mov	AR,Z-\n" );
+! 			}
+! 		reclaim( p, RNULL, 0 );
+  		return;
+  		}
+  
+--- 699,746 ----
+  	printf( "L%d:\n", l );
+  	}
+  
+! genargs( p ) register NODE *p; {
+! 	register NODE *pasg;
+! 	register align;
+  	register size;
++ 	int count;
+  
+  	/* generate code for the arguments */
+  
+! 	/*  first, do the arguments on the right */
+! 	while( p->in.op == CM ){
+! 		genargs( p->in.right );
+! 		p->in.op = FREE;
+! 		p = p->in.left;
+  		}
+  
+! 	if( p->in.op == STARG ){ /* structure valued argument */
+  
+! 		size = p->stn.stsize;
+! 		align = p->stn.stalign;
+! 		if( p->in.left->in.op == ICON ){
+! 			p->in.op = FREE;
+! 			p = p->in.left;
+  			}
+  		else {
+  			/* make it look beautiful... */
+! 			p->in.op = UNARY MUL;
+  			canon( p );  /* turn it into an oreg */
+! 			for( count = 0; p->in.op != OREG && count < 10; ++count ){
+! 				offstar( p->in.left );
+  				canon( p );
+  				}
++ 			if( p->in.op != OREG ) cerror( "stuck starg" );
+  			}
+  
+! 		pasg = talloc();
+! 		pasg->in.op = STARG;
+! 		pasg->in.rall = NOPREF;
+! 		pasg->stn.stsize = size;
+! 		pasg->stn.stalign = align;
+! 		pasg->in.left = p;
+! 
+!  		order( pasg, FORARG );
+  		return;
+  		}
+  
+***************
+*** 699,722 ****
+  	order( p, FORARG );
+  	}
+  
+  argsize( p ) register NODE *p; {
+! 	register t;
+  	t = 0;
+! 	if( p->op == CM ){
+! 		t = argsize( p->left );
+! 		p = p->right;
+  		}
+! 	if( p->type == DOUBLE || p->type == FLOAT ){
+  		SETOFF( t, 2 );
+  		return( t+8 );
+  		}
+! 	else if( p->type == LONG || p->type == ULONG ) {
+  		SETOFF( t, 2);
+  		return( t+4 );
+  		}
+! 	else if( p->op == STARG ){
+! 		SETOFF( t, p->stalign );  /* alignment */
+! 		return( t + p->stsize );  /* size */
+  		}
+  	else {
+  		SETOFF( t, 2 );
+--- 749,773 ----
+  	order( p, FORARG );
+  	}
+  
++ OFFSZ
+  argsize( p ) register NODE *p; {
+! 	OFFSZ t;
+  	t = 0;
+! 	if( p->in.op == CM ){
+! 		t = argsize( p->in.left );
+! 		p = p->in.right;
+  		}
+! 	if( p->in.type == DOUBLE || p->in.type == FLOAT ){
+  		SETOFF( t, 2 );
+  		return( t+8 );
+  		}
+! 	else if( p->in.type == LONG || p->in.type == ULONG ) {
+  		SETOFF( t, 2);
+  		return( t+4 );
+  		}
+! 	else if( p->in.op == STARG ){
+! 		SETOFF( t, p->stn.stalign );  /* alignment */
+! 		return( t + p->stn.stsize );  /* size */
+  		}
+  	else {
+  		SETOFF( t, 2 );
+*** /old/src/lib/pcc/table.c	Fri Jul 10 14:36:11 1981
+--- /usr/src/lib/pcc/table.c	Tue Jul 30 14:11:48 1991
+***************
+*** 1,4 ****
+! # include "mfile2"
+  
+  # define AWD SNAME|SOREG|SCON|STARNM|STARREG|SAREG
+  # define LWD SNAME|SOREG|SCON|SAREG
+--- 1,4 ----
+! # include "pass2.h"
+  
+  # define AWD SNAME|SOREG|SCON|STARNM|STARREG|SAREG
+  # define LWD SNAME|SOREG|SCON|SAREG
+***************
+*** 282,288 ****
+  
+  OPLOG,	FORCC,
+  	AWD,	TCHAR|TUCHAR,
+! 	SCCON,	TINT,				/* look for constants between -128 and 127 */
+  		0,	RESCC,
+  		"	cmpb	AL,AR\nZI",
+  
+--- 282,288 ----
+  
+  OPLOG,	FORCC,
+  	AWD,	TCHAR|TUCHAR,
+! 	SSCON,	TINT,				/* look for constants between -128 and 127 */
+  		0,	RESCC,
+  		"	cmpb	AL,AR\nZI",
+  
+***************
+*** 506,512 ****
+  
+  ASG PLUS,	INAREG,
+  	LWD,	TLONG|TULONG,
+! 	SICON,	TINT|TLONG|TULONG,
+  		0,	RLEFT,
+  		"	add	UR,UL\n	adc	AL\n",
+  
+--- 506,512 ----
+  
+  ASG PLUS,	INAREG,
+  	LWD,	TLONG|TULONG,
+! 	SCCON,	TINT|TLONG|TULONG,
+  		0,	RLEFT,
+  		"	add	UR,UL\n	adc	AL\n",
+  
+***************
+*** 530,536 ****
+  
+  ASG MINUS,	INAREG,
+  	LWD,	TLONG|TULONG,
+! 	SICON,	TINT|TLONG|TULONG,
+  		0,	RLEFT,
+  		"	sub	UR,UL\n	sbc	AL\n",
+  
+--- 530,536 ----
+  
+  ASG MINUS,	INAREG,
+  	LWD,	TLONG|TULONG,
+! 	SCCON,	TINT|TLONG|TULONG,
+  		0,	RLEFT,
+  		"	sub	UR,UL\n	sbc	AL\n",
+  

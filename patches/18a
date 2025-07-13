@@ -1,0 +1,455 @@
+*** /old/src/bin/csh/alloc.c	Sun Feb  8 14:27:23 1987
+--- /usr/src/bin/csh/alloc.c	Sat Aug 31 00:03:00 1991
+***************
+*** 4,13 ****
+   * specifies the terms and conditions for redistribution.
+   */
+  
+! #ifndef lint
+  /* From "@(#)malloc.c	5.5 (Berkeley) 2/25/86"; */
+  static char *sccsid = "@(#)alloc.c	5.3 (Berkeley) 3/29/86";
+! #endif not lint
+  
+  /*
+   * malloc.c (Caltech) 2/21/82
+--- 4,13 ----
+   * specifies the terms and conditions for redistribution.
+   */
+  
+! #if	!defined(lint) && defined(DOSCCS)
+  /* From "@(#)malloc.c	5.5 (Berkeley) 2/25/86"; */
+  static char *sccsid = "@(#)alloc.c	5.3 (Berkeley) 3/29/86";
+! #endif
+  
+  /*
+   * malloc.c (Caltech) 2/21/82
+*** /old/src/bin/csh/alloc11.c	Sun Feb  8 14:27:29 1987
+--- /usr/src/bin/csh/alloc11.c	Sat Aug 31 00:03:33 1991
+***************
+*** 1,4 ****
+--- 1,6 ----
++ #if	!defined(lint) && defined(DOSCCS)
+  static	char *sccsid = "@(#)alloc.c 4.1 10/9/80";
++ #endif
+  
+  #include "sh.local.h"
+  #ifdef debug
+*** /old/src/bin/csh/doprnt.c	Sun Feb  8 14:27:24 1987
+--- /usr/src/bin/csh/doprnt.c	Sat Aug 31 00:03:56 1991
+***************
+*** 4,10 ****
+   * specifies the terms and conditions for redistribution.
+   */
+  
+! #ifndef lint
+  	.ascii	"@(#)doprnt.c	5.2 (Berkeley) 6/6/85"
+  #endif
+  
+--- 4,10 ----
+   * specifies the terms and conditions for redistribution.
+   */
+  
+! #if	!defined(lint) && defined(DOSCCS)
+  	.ascii	"@(#)doprnt.c	5.2 (Berkeley) 6/6/85"
+  #endif
+  
+*** /old/src/bin/csh/printf.c	Sun Feb  8 14:27:25 1987
+--- /usr/src/bin/csh/printf.c	Sat Aug 31 00:04:20 1991
+***************
+*** 4,10 ****
+   * specifies the terms and conditions for redistribution.
+   */
+  
+! #ifndef lint
+  static char *sccsid = "@(#)printf.c	5.2 (Berkeley) 6/6/85";
+  #endif
+  
+--- 4,10 ----
+   * specifies the terms and conditions for redistribution.
+   */
+  
+! #if	!defined(lint) && defined(DOSCCS)
+  static char *sccsid = "@(#)printf.c	5.2 (Berkeley) 6/6/85";
+  #endif
+  
+*** /old/src/bin/csh/sh.c	Sun Feb  8 14:27:27 1987
+--- /usr/src/bin/csh/sh.c	Sat Aug 31 00:04:45 1991
+***************
+*** 4,10 ****
+   * specifies the terms and conditions for redistribution.
+   */
+  
+! #ifndef lint
+  static char *sccsid = "@(#)sh.c	5.3 (Berkeley) 3/29/86";
+  #endif
+  
+--- 4,10 ----
+   * specifies the terms and conditions for redistribution.
+   */
+  
+! #if	!defined(lint) && defined(DOSCCS)
+  static char *sccsid = "@(#)sh.c	5.3 (Berkeley) 3/29/86";
+  #endif
+  
+*** /old/src/bin/csh/sh.char.c	Sun Feb  8 14:27:24 1987
+--- /usr/src/bin/csh/sh.char.c	Sat Aug 31 00:05:16 1991
+***************
+*** 4,10 ****
+   * specifies the terms and conditions for redistribution.
+   */
+  
+! #ifndef lint
+  static char *sccsid = "@(#)sh.char.c	5.3 (Berkeley) 3/29/86";
+  #endif
+  
+--- 4,10 ----
+   * specifies the terms and conditions for redistribution.
+   */
+  
+! #if	!defined(lint) && defined(DOSCCS)
+  static char *sccsid = "@(#)sh.char.c	5.3 (Berkeley) 3/29/86";
+  #endif
+  
+*** /old/src/bin/csh/sh.dir.c	Sun Feb  8 14:27:28 1987
+--- /usr/src/bin/csh/sh.dir.c	Sat Aug 31 00:05:37 1991
+***************
+*** 4,10 ****
+   * specifies the terms and conditions for redistribution.
+   */
+  
+! #ifndef lint
+  static char *sccsid = "@(#)sh.dir.c	5.3 (Berkeley) 6/11/85";
+  #endif
+  
+--- 4,10 ----
+   * specifies the terms and conditions for redistribution.
+   */
+  
+! #if	!defined(lint) && defined(DOSCCS)
+  static char *sccsid = "@(#)sh.dir.c	5.3 (Berkeley) 6/11/85";
+  #endif
+  
+*** /old/src/bin/csh/sh.dol.c	Sun Feb  8 14:27:27 1987
+--- /usr/src/bin/csh/sh.dol.c	Sat Aug 31 00:05:59 1991
+***************
+*** 4,10 ****
+   * specifies the terms and conditions for redistribution.
+   */
+  
+! #ifndef lint
+  static char *sccsid = "@(#)sh.dol.c	5.3 (Berkeley) 3/29/86";
+  #endif
+  
+--- 4,10 ----
+   * specifies the terms and conditions for redistribution.
+   */
+  
+! #if	!defined(lint) && defined(DOSCCS)
+  static char *sccsid = "@(#)sh.dol.c	5.3 (Berkeley) 3/29/86";
+  #endif
+  
+*** /old/src/bin/csh/sh.err.c	Sun Feb  8 14:27:25 1987
+--- /usr/src/bin/csh/sh.err.c	Sat Aug 31 00:06:19 1991
+***************
+*** 4,10 ****
+   * specifies the terms and conditions for redistribution.
+   */
+  
+! #ifndef lint
+  static char *sccsid = "@(#)sh.err.c	5.3 (Berkeley) 5/13/86";
+  #endif
+  
+--- 4,10 ----
+   * specifies the terms and conditions for redistribution.
+   */
+  
+! #if	!defined(lint) && defined(DOSCCS)
+  static char *sccsid = "@(#)sh.err.c	5.3 (Berkeley) 5/13/86";
+  #endif
+  
+*** /old/src/bin/csh/sh.exec.c	Sun Dec 25 20:53:38 1988
+--- /usr/src/bin/csh/sh.exec.c	Sat Aug 31 00:06:43 1991
+***************
+*** 4,10 ****
+   * specifies the terms and conditions for redistribution.
+   */
+  
+! #ifndef lint
+  static char *sccsid = "@(#)sh.exec.c	5.2 (Berkeley) 6/6/85";
+  #endif
+  
+--- 4,10 ----
+   * specifies the terms and conditions for redistribution.
+   */
+  
+! #if	!defined(lint) && defined(DOSCCS)
+  static char *sccsid = "@(#)sh.exec.c	5.2 (Berkeley) 6/6/85";
+  #endif
+  
+*** /old/src/bin/csh/sh.exp.c	Sun Feb  8 14:27:25 1987
+--- /usr/src/bin/csh/sh.exp.c	Sat Aug 31 00:07:02 1991
+***************
+*** 4,10 ****
+   * specifies the terms and conditions for redistribution.
+   */
+  
+! #ifndef lint
+  static char *sccsid = "@(#)sh.exp.c	5.3 (Berkeley) 6/23/85";
+  #endif
+  
+--- 4,10 ----
+   * specifies the terms and conditions for redistribution.
+   */
+  
+! #if	!defined(lint) && defined(DOSCCS)
+  static char *sccsid = "@(#)sh.exp.c	5.3 (Berkeley) 6/23/85";
+  #endif
+  
+*** /old/src/bin/csh/sh.file.c	Sun Feb  8 14:27:24 1987
+--- /usr/src/bin/csh/sh.file.c	Sat Aug 31 00:07:22 1991
+***************
+*** 4,10 ****
+   * specifies the terms and conditions for redistribution.
+   */
+  
+! #ifndef lint
+  static char *sccsid = "@(#)sh.file.c	5.6 (Berkeley) 5/18/86";
+  #endif
+  
+--- 4,10 ----
+   * specifies the terms and conditions for redistribution.
+   */
+  
+! #if	!defined(lint) && defined(DOSCCS)
+  static char *sccsid = "@(#)sh.file.c	5.6 (Berkeley) 5/18/86";
+  #endif
+  
+*** /old/src/bin/csh/sh.func.c	Sun Jul 19 12:03:23 1987
+--- /usr/src/bin/csh/sh.func.c	Sat Aug 31 00:07:46 1991
+***************
+*** 4,10 ****
+   * specifies the terms and conditions for redistribution.
+   */
+  
+! #ifndef lint
+  static char *sccsid = "@(#)sh.func.c	5.3 (Berkeley) 5/13/86";
+  #endif
+  
+--- 4,10 ----
+   * specifies the terms and conditions for redistribution.
+   */
+  
+! #if	!defined(lint) && defined(DOSCCS)
+  static char *sccsid = "@(#)sh.func.c	5.3 (Berkeley) 5/13/86";
+  #endif
+  
+*** /old/src/bin/csh/sh.glob.c	Sun Feb  8 14:27:27 1987
+--- /usr/src/bin/csh/sh.glob.c	Sat Aug 31 00:08:21 1991
+***************
+*** 4,10 ****
+   * specifies the terms and conditions for redistribution.
+   */
+  
+! #ifndef lint
+  static char *sccsid = "@(#)sh.glob.c	5.4 (Berkeley) 5/13/86";
+  #endif
+  
+--- 4,10 ----
+   * specifies the terms and conditions for redistribution.
+   */
+  
+! #if	!defined(lint) && defined(DOSCCS)
+  static char *sccsid = "@(#)sh.glob.c	5.4 (Berkeley) 5/13/86";
+  #endif
+  
+*** /old/src/bin/csh/sh.hist.c	Sun Feb  8 14:27:23 1987
+--- /usr/src/bin/csh/sh.hist.c	Sat Aug 31 00:08:48 1991
+***************
+*** 4,10 ****
+   * specifies the terms and conditions for redistribution.
+   */
+  
+! #ifndef lint
+  static char *sccsid = "@(#)sh.hist.c	5.2 (Berkeley) 6/6/85";
+  #endif
+  
+--- 4,10 ----
+   * specifies the terms and conditions for redistribution.
+   */
+  
+! #if	!defined(lint) && defined(DOSCCS)
+  static char *sccsid = "@(#)sh.hist.c	5.2 (Berkeley) 6/6/85";
+  #endif
+  
+*** /old/src/bin/csh/sh.init.c	Sun Feb 15 18:37:11 1987
+--- /usr/src/bin/csh/sh.init.c	Sat Aug 31 00:09:14 1991
+***************
+*** 4,10 ****
+   * specifies the terms and conditions for redistribution.
+   */
+  
+! #ifndef lint
+  static char *sccsid = "@(#)sh.init.c	5.2 (Berkeley) 6/6/85";
+  #endif
+  
+--- 4,10 ----
+   * specifies the terms and conditions for redistribution.
+   */
+  
+! #if	!defined(lint) && defined(DOSCCS)
+  static char *sccsid = "@(#)sh.init.c	5.2 (Berkeley) 6/6/85";
+  #endif
+  
+*** /old/src/bin/csh/sh.lex.c	Wed Jun  6 17:09:06 1990
+--- /usr/src/bin/csh/sh.lex.c	Sat Aug 31 00:09:42 1991
+***************
+*** 4,10 ****
+   * specifies the terms and conditions for redistribution.
+   */
+  
+! #ifndef lint
+  static char *sccsid = "@(#)sh.lex.c	5.4 (Berkeley) 3/29/86";
+  #endif
+  
+--- 4,10 ----
+   * specifies the terms and conditions for redistribution.
+   */
+  
+! #if	!defined(lint) && defined(DOSCCS)
+  static char *sccsid = "@(#)sh.lex.c	5.4 (Berkeley) 3/29/86";
+  #endif
+  
+*** /old/src/bin/csh/sh.misc.c	Sun Feb  8 14:27:25 1987
+--- /usr/src/bin/csh/sh.misc.c	Sat Aug 31 00:10:02 1991
+***************
+*** 4,10 ****
+   * specifies the terms and conditions for redistribution.
+   */
+  
+! #ifndef lint
+  static char *sccsid = "@(#)sh.misc.c	5.3 (Berkeley) 3/29/86";
+  #endif
+  
+--- 4,10 ----
+   * specifies the terms and conditions for redistribution.
+   */
+  
+! #if	!defined(lint) && defined(DOSCCS)
+  static char *sccsid = "@(#)sh.misc.c	5.3 (Berkeley) 3/29/86";
+  #endif
+  
+*** /old/src/bin/csh/sh.parse.c	Sun Feb  8 14:27:26 1987
+--- /usr/src/bin/csh/sh.parse.c	Sat Aug 31 00:10:31 1991
+***************
+*** 4,10 ****
+   * specifies the terms and conditions for redistribution.
+   */
+  
+! #ifndef lint
+  static char *sccsid = "@(#)sh.parse.c	5.3 (Berkeley) 5/13/86";
+  #endif
+  
+--- 4,10 ----
+   * specifies the terms and conditions for redistribution.
+   */
+  
+! #if	!defined(lint) && defined(DOSCCS)
+  static char *sccsid = "@(#)sh.parse.c	5.3 (Berkeley) 5/13/86";
+  #endif
+  
+*** /old/src/bin/csh/sh.print.c	Sun Feb  8 14:27:23 1987
+--- /usr/src/bin/csh/sh.print.c	Sat Aug 31 00:10:56 1991
+***************
+*** 4,10 ****
+   * specifies the terms and conditions for redistribution.
+   */
+  
+! #ifndef lint
+  static char *sccsid = "@(#)sh.print.c	5.2 (Berkeley) 6/6/85";
+  #endif
+  
+--- 4,10 ----
+   * specifies the terms and conditions for redistribution.
+   */
+  
+! #if	!defined(lint) && defined(DOSCCS)
+  static char *sccsid = "@(#)sh.print.c	5.2 (Berkeley) 6/6/85";
+  #endif
+  
+*** /old/src/bin/csh/sh.proc.c	Sun Feb  8 14:27:24 1987
+--- /usr/src/bin/csh/sh.proc.c	Sat Aug 31 00:11:22 1991
+***************
+*** 4,10 ****
+   * specifies the terms and conditions for redistribution.
+   */
+  
+! #ifndef lint
+  static char *sccsid = "@(#)sh.proc.c	5.5 (Berkeley) 5/13/86";
+  #endif
+  
+--- 4,10 ----
+   * specifies the terms and conditions for redistribution.
+   */
+  
+! #if	!defined(lint) && defined(DOSCCS)
+  static char *sccsid = "@(#)sh.proc.c	5.5 (Berkeley) 5/13/86";
+  #endif
+  
+*** /old/src/bin/csh/sh.sem.c	Fri Aug 19 20:52:10 1988
+--- /usr/src/bin/csh/sh.sem.c	Sat Aug 31 00:11:45 1991
+***************
+*** 4,10 ****
+   * specifies the terms and conditions for redistribution.
+   */
+  
+! #ifndef lint
+  static char *sccsid = "@(#)sh.sem.c	5.4 (Berkeley) 5/13/86";
+  #endif
+  
+--- 4,10 ----
+   * specifies the terms and conditions for redistribution.
+   */
+  
+! #if	!defined(lint) && defined(DOSCCS)
+  static char *sccsid = "@(#)sh.sem.c	5.4 (Berkeley) 5/13/86";
+  #endif
+  
+*** /old/src/bin/csh/sh.set.c	Sun Feb  8 14:27:26 1987
+--- /usr/src/bin/csh/sh.set.c	Sat Aug 31 00:12:08 1991
+***************
+*** 4,10 ****
+   * specifies the terms and conditions for redistribution.
+   */
+  
+! #ifndef lint
+  static char *sccsid = "@(#)sh.set.c	5.2 (Berkeley) 6/6/85";
+  #endif
+  
+--- 4,10 ----
+   * specifies the terms and conditions for redistribution.
+   */
+  
+! #if	!defined(lint) && defined(DOSCCS)
+  static char *sccsid = "@(#)sh.set.c	5.2 (Berkeley) 6/6/85";
+  #endif
+  
+*** /old/src/bin/csh/sh.time.c	Wed May 20 18:57:14 1987
+--- /usr/src/bin/csh/sh.time.c	Sat Aug 31 00:12:32 1991
+***************
+*** 4,10 ****
+   * specifies the terms and conditions for redistribution.
+   */
+  
+! #ifndef lint
+  static char *sccsid = "@(#)sh.time.c	5.4 (Berkeley) 5/13/86";
+  #endif
+  
+--- 4,10 ----
+   * specifies the terms and conditions for redistribution.
+   */
+  
+! #if	!defined(lint) && defined(DOSCCS)
+  static char *sccsid = "@(#)sh.time.c	5.4 (Berkeley) 5/13/86";
+  #endif
+  
+*** /old/src/bin/dd.c	Sun Feb  8 14:24:49 1987

@@ -1,0 +1,278 @@
+*** /old/src/new/rn/addng.c	Sun Mar 15 20:10:54 1987
+--- /usr/src/new/rn/addng.c	Thu Aug 27 11:04:00 1992
+***************
+*** 39,68 ****
+  
+  bool
+  newlist(munged,checkinlist)
+! bool munged;				/* are we scanning the whole file? */
+  bool checkinlist;
+  {
+      char *tmpname;
+!     register char *s;
+      long birthof();
+  
+!     tmpname = savestr(filexp("/tmp/rnew.%$"));
+!     tmpfp = fopen(tmpname,"w");
+      if (tmpfp == Nullfp) {
+  	printf(cantcreate,tmpname) FLUSH;
+  	return FALSE;
+      }
+      while (fgets(buf,LBUFLEN,actfp) != Nullch) {
+  	if (s = index(buf,' ')) {
+  	    *s++ = '\0';
+! 	    if (strnEQ(buf,"to.",3))
+  		continue;
+! 	    if (find_ng(buf) == nextrcline &&
+! 		    (checkinlist ?
+! 			(inlist(buf)) :
+! 			(birthof(buf,(ART_NUM)atol(s)) > lasttime)
+! 		    )
+! 		) {
+  					/* if not in .newsrc and younger */
+  					/* than the last time we checked */
+  		fprintf(tmpfp,"%s\n",buf);
+--- 39,89 ----
+  
+  bool
+  newlist(munged,checkinlist)
+! bool munged;			/* are we scanning the whole file? */
+  bool checkinlist;
+  {
+      char *tmpname;
+!     register char *s, *status;
+!     register NG_NUM ngnum;
+! #ifndef ACTIVE_TIMES
+      long birthof();
++ #endif
++     extern char int_count;
+  
+!     tmpname = filexp("/tmp/rnew.%$");
+!     tmpfp = fopen(tmpname,"w+");
+      if (tmpfp == Nullfp) {
+  	printf(cantcreate,tmpname) FLUSH;
+  	return FALSE;
+      }
++     UNLINK(tmpname);			/* be nice to the world */
++ 
+      while (fgets(buf,LBUFLEN,actfp) != Nullch) {
++ 	/* Check if they want to break out of the new newsgroups search */
++ 	if (int_count) {
++ 	    int_count = 0;
++ 	    fclose(tmpfp);
++ 	    return FALSE;
++ 	}
+  	if (s = index(buf,' ')) {
++ 	    status=s;
++ 	    while (isdigit(*status) || isspace(*status)) status++;
+  	    *s++ = '\0';
+! 	    if (strnEQ(buf,"to.",3) || *status == 'x' || *status == '=')
+! 	        /* since = groups are refiling to another group, just
+! 		   ignore their existence */
+  		continue;
+! #ifdef ACTIVE_TIMES
+! 	    if (inlist(buf) && ((ngnum = find_ng(buf)) == nextrcline
+! 				|| toread[ngnum] == TR_UNSUB)
+! #else
+! 	    if (checkinlist ?
+! 		(inlist(buf) && ((ngnum = find_ng(buf)) == nextrcline
+! 				 || toread[ngnum] == TR_UNSUB))
+! 	      : (find_ng(buf) == nextrcline
+! 		 && birthof(buf,(ART_NUM)atol(s)) > lasttime)
+! #endif
+! 	    ) {
+  					/* if not in .newsrc and younger */
+  					/* than the last time we checked */
+  		fprintf(tmpfp,"%s\n",buf);
+***************
+*** 72,79 ****
+  	    else {			/* not really a new group */
+  		if (!munged) {		/* did we assume not munged? */
+  		    fclose(tmpfp);	/* then go back, knowing that */
+- 		    UNLINK(tmpname);
+- 		    free(tmpname);
+  		    return TRUE;	/* active file was indeed munged */
+  		}
+  	    }
+--- 93,98 ----
+***************
+*** 87,105 ****
+  
+      /* we have successfully generated the list */
+  
+!     fclose(tmpfp);
+!     tmpfp = fopen(tmpname,"r");
+!     UNLINK(tmpname);			/* be nice to the world */
+!     if (tmpfp == Nullfp) {
+! 	printf(cantopen,tmpname) FLUSH;
+! 	return FALSE;
+!     }
+      while (fgets(buf,LBUFLEN,tmpfp) != Nullch) {
+  	buf[strlen(buf)-1] = '\0';
+  	get_ng(buf,TRUE);		/* add newsgroup, maybe */
+      }
+      fclose(tmpfp);			/* be nice to ourselves */
+-     free(tmpname);
+      return FALSE;			/* do not call us again */
+  }
+  
+--- 106,117 ----
+  
+      /* we have successfully generated the list */
+  
+!     fseek(tmpfp,0L,0);			/* rewind back to the beginning */
+      while (fgets(buf,LBUFLEN,tmpfp) != Nullch) {
+  	buf[strlen(buf)-1] = '\0';
+  	get_ng(buf,TRUE);		/* add newsgroup, maybe */
+      }
+      fclose(tmpfp);			/* be nice to ourselves */
+      return FALSE;			/* do not call us again */
+  }
+  
+*** /old/src/new/rn/common.h	Mon Oct  8 14:05:08 1990
+--- /usr/src/new/rn/common.h	Wed Jun 10 14:13:49 1992
+***************
+*** 213,223 ****
+  /* Space conservation section */
+  
+  /* To save D space, cut down size of MAXRCLINE, NGMAX, VARYSIZE. */
+! #define MAXRCLINE 800	/* number of lines allowed in .newsrc -was 1000*/
+  			/* several parallel arrays affected. */
+  			/* (You can have more lines in the active file, */
+  			/* just not in the .newsrc) */
+! #define HASHSIZ 881	/* should be prime, and at least MAXRCLINE + 10% 1013*/
+  #define NGMAX 10	/* number of newsgroups allowed on command line -10*/
+  			/* undefine ONLY symbol to disable "only" feature */
+  #define VARYSIZE 128	/* this makes a block 1024 bytes long in DECville */
+--- 213,223 ----
+  /* Space conservation section */
+  
+  /* To save D space, cut down size of MAXRCLINE, NGMAX, VARYSIZE. */
+! #define MAXRCLINE 900	/* number of lines allowed in .newsrc */
+  			/* several parallel arrays affected. */
+  			/* (You can have more lines in the active file, */
+  			/* just not in the .newsrc) */
+! #define HASHSIZ 991	/* should be prime, and at least MAXRCLINE + 10% */
+  #define NGMAX 10	/* number of newsgroups allowed on command line -10*/
+  			/* undefine ONLY symbol to disable "only" feature */
+  #define VARYSIZE 128	/* this makes a block 1024 bytes long in DECville */
+***************
+*** 237,243 ****
+  #define NOFIREWORKS	/* keep whole screen from flashing on certain */
+  			/* terminals such as older Televideos */
+  #define VERIFY		/* echo the command they just typed */
+! #define HASHNG		/* hash newsgroup lines for fast lookup-- */
+  			/* linear search used if not defined */
+  #define CONDSUB		/* allow %(cond?text:text) */
+  #define BACKTICK	/* allow %`command` */
+--- 237,243 ----
+  #define NOFIREWORKS	/* keep whole screen from flashing on certain */
+  			/* terminals such as older Televideos */
+  #define VERIFY		/* echo the command they just typed */
+! #undef HASHNG		/* hash newsgroup lines for fast lookup-- */
+  			/* linear search used if not defined */
+  #define CONDSUB		/* allow %(cond?text:text) */
+  #define BACKTICK	/* allow %`command` */
+***************
+*** 282,288 ****
+  #define ASYNC_PARSE	/* allow parsing headers asyncronously to reading */
+  			/* used by MCHASE and MUNGHEADER */
+  #define FINDNEWNG	/* check for new newsgroups on startup */
+! #define FASTNEW		/* do optimizations on FINDNEWNG for faster startup */
+  			/* (this optimization can make occasional mistakes */
+  			/* if a group is removed and another group of the */
+  			/* same length is added, and if no softpointers are */
+--- 282,288 ----
+  #define ASYNC_PARSE	/* allow parsing headers asyncronously to reading */
+  			/* used by MCHASE and MUNGHEADER */
+  #define FINDNEWNG	/* check for new newsgroups on startup */
+! #undef FASTNEW		/* do optimizations on FINDNEWNG for faster startup */
+  			/* (this optimization can make occasional mistakes */
+  			/* if a group is removed and another group of the */
+  			/* same length is added, and if no softpointers are */
+***************
+*** 679,685 ****
+  #endif
+  typedef long		ART_POS;	/* char position in article file */
+  typedef int		ART_LINE;	/* line position in article file */
+! typedef short		ACT_POS;	/* char position in active file */
+  typedef unsigned int	MEM_SIZE;	/* for passing to malloc */
+  
+  /* *** end of the machine dependent stuff *** */
+--- 679,686 ----
+  #endif
+  typedef long		ART_POS;	/* char position in article file */
+  typedef int		ART_LINE;	/* line position in article file */
+! /* following was short until 6/9/92 */
+! typedef long		ACT_POS;	/* char position in active file */
+  typedef unsigned int	MEM_SIZE;	/* for passing to malloc */
+  
+  /* *** end of the machine dependent stuff *** */
+*** /old/src/new/rn/ngdata.c	Sun Mar 15 22:26:37 1987
+--- /usr/src/new/rn/ngdata.c	Fri Jun 12 10:09:38 1992
+***************
+*** 117,122 ****
+--- 117,123 ----
+  #ifdef MININACT
+      {
+  	register char *s;
++ 	char *getval();
+  	ART_NUM tmp;
+  
+  	for (s=tmpbuf+len+1; isdigit(*s); s++) ;
+***************
+*** 126,131 ****
+--- 127,148 ----
+  #else
+  	    abs1st = tmp;
+  #endif
++ 	if (!in_ng) {
++ 	    for (s++; isdigit(*s); s++) ;
++ 	    while (isspace(*s)) s++;
++ 	    switch (*s) {
++ 	    case 'n': moderated = getval("NOPOSTRING"," (no posting)"); break;
++ 	    case 'm': moderated = getval("MODSTRING", " (moderated)"); break;
++ 	    /* This shouldn't even occur.  What are we doing in a non-existent
++ 	       group?  Disallow it. */
++ 	    case 'x': return TR_BOGUS;
++ 	    /* what should be done about refiled groups?  rn shouldn't even
++ 	       be in them (ie, if sci.aquaria is refiled to rec.aquaria, then
++ 	       get the news there) */
++ 	    case '=': return TR_BOGUS;
++ 	    default: moderated = nullstr;
++ 	    }
++ 	}
+      }
+  #endif
+      return atol(tmpbuf+len+1);
+*** /old/src/new/rn/ngdata.h	Sun Mar 15 22:37:32 1987
+--- /usr/src/new/rn/ngdata.h	Fri Jun 12 10:06:37 1992
+***************
+*** 22,27 ****
+--- 22,28 ----
+  # endif
+  #endif
+  
++ EXT	char	*moderated;
+  
+  void	ngdata_init();
+  ART_NUM	getngsize();
+*** /old/src/new/rn/rcstuff.c	Fri May 29 09:33:43 1987
+--- /usr/src/new/rn/rcstuff.c	Thu Jun 11 08:17:37 1992
+***************
+*** 111,117 ****
+  	    finalize(1);
+  	}
+  	if (tmpfp != Nullfp && fgets(tmpbuf,10,tmpfp) != Nullch)
+! 	    softptr[newng] = atoi(tmpbuf);
+  	else
+  	    softptr[newng] = 0;
+  	some_buf[--length] = '\0';	/* wipe out newline */
+--- 111,117 ----
+  	    finalize(1);
+  	}
+  	if (tmpfp != Nullfp && fgets(tmpbuf,10,tmpfp) != Nullch)
+! 	    softptr[newng] = atol(tmpbuf);
+  	else
+  	    softptr[newng] = 0;
+  	some_buf[--length] = '\0';	/* wipe out newline */

@@ -1,0 +1,385 @@
+*** /old/src/games/warp/Makefile	Tue Jun  5 17:29:53 1990
+--- /usr/src/games/warp/Makefile	Wed Dec 25 00:08:20 1991
+***************
+*** 12,22 ****
+  #
+  CC = cc
+  bin = /usr/games
+! mansrc = /usr/man/man6
+! manext = 6
+! CFLAGS =  -O
+  LDFLAGS = 
+! CHOWNER = daemon
+  privlib = /usr/games/lib/warp
+  NDIRC = 
+  NDIRO = 
+--- 12,22 ----
+  #
+  CC = cc
+  bin = /usr/games
+! mansrc = /tmp
+! manext = 1
+! CFLAGS = -O -O
+  LDFLAGS = 
+! CHOWNER = bin
+  privlib = /usr/games/lib/warp
+  NDIRC = 
+  NDIRO = 
+***************
+*** 148,154 ****
+  	cc sm.c $(SMALL) -o sm
+  
+  depend: makedepend
+! 	makedepend
+  
+  clist:
+  	echo $(c) | tr ' ' '\012' >.clist
+--- 148,154 ----
+  	cc sm.c $(SMALL) -o sm
+  
+  depend: makedepend
+! 	./makedepend
+  
+  clist:
+  	echo $(c) | tr ' ' '\012' >.clist
+*** /old/src/games/warp/UU/filexp	Sat Aug 29 13:49:20 1987
+--- /usr/src/games/warp/UU/filexp	Tue Dec 24 23:39:58 1991
+***************
+*** 2,8 ****
+  : expand filename
+  case "$1" in
+   ~/*|~)
+!     echo $1 | sed "s|~|${HOME-$LOGDIR}|"
+      ;;
+   ~*)
+      if /bin/test -f /bin/csh; then
+--- 2,8 ----
+  : expand filename
+  case "$1" in
+   ~/*|~)
+!     echo $1 | /bin/sed "s|~|${HOME-$LOGDIR}|"
+      ;;
+   ~*)
+      if /bin/test -f /bin/csh; then
+***************
+*** 9,16 ****
+  	/bin/csh -f -c "glob $1"
+  	echo ""
+      else
+! 	name=`expr x$1 : '..\([^/]*\)'`
+! 	dir=`sed -n -e "/^${name}:/{s/^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:\([^:]*\).*"'$'"/\1/" -e p -e q -e '}' </etc/passwd`
+  	if /bin/test ! -d "$dir"; then
+  	    me=`basename $0`
+  	    echo "$me: can't locate home directory for: $name" >&2
+--- 9,16 ----
+  	/bin/csh -f -c "glob $1"
+  	echo ""
+      else
+! 	name=`/bin/expr x$1 : '..\([^/]*\)'`
+! 	dir=`/bin/sed -n -e "/^${name}:/{s/^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:\([^:]*\).*"'$'"/\1/" -e p -e q -e '}' </etc/passwd`
+  	if /bin/test ! -d "$dir"; then
+  	    me=`basename $0`
+  	    echo "$me: can't locate home directory for: $name" >&2
+***************
+*** 18,24 ****
+  	fi
+  	case "$1" in
+  	*/*)
+! 	    echo $dir/`expr x$1 : '..[^/]*/\(.*\)'`
+  	    ;;
+  	*)
+  	    echo $dir
+--- 18,24 ----
+  	fi
+  	case "$1" in
+  	*/*)
+! 	    echo $dir/`/bin/expr x$1 : '..[^/]*/\(.*\)'`
+  	    ;;
+  	*)
+  	    echo $dir
+*** /old/src/games/warp/config.sh	Sat Aug 29 13:53:14 1987
+--- /usr/src/games/warp/config.sh	Tue Dec 24 23:43:57 1991
+***************
+*** 19,37 ****
+  uniq
+  grep
+  '
+! expr='expr'
+! sed='sed'
+! echo='echo'
+! cat='cat'
+! rm='rm'
+! mv='mv'
+! cp='cp'
+  tail=''
+! tr='tr'
+! mkdir='mkdir'
+! sort='sort'
+! uniq='uniq'
+! grep='grep'
+  trylist='
+  test
+  egrep
+--- 19,37 ----
+  uniq
+  grep
+  '
+! expr='/bin/expr'
+! sed='/bin/sed'
+! echo='/bin/echo'
+! cat='/bin/cat'
+! rm='/bin/rm'
+! mv='/bin/mv'
+! cp='/bin/cp'
+  tail=''
+! tr='/usr/bin/tr'
+! mkdir='/bin/mkdir'
+! sort='/bin/sort'
+! uniq='/usr/bin/uniq'
+! grep='/usr/ucb/grep'
+  trylist='
+  test
+  egrep
+***************
+*** 64,70 ****
+  d_ioctl='define'
+  d_normsig='define'
+  jobslib=''
+! d_portable='define'
+  d_rdchk='/*undef'
+  d_scorfl='/*undef'
+  d_sgndchr='define'
+--- 64,70 ----
+  d_ioctl='define'
+  d_normsig='define'
+  jobslib=''
+! d_portable='/*undef'
+  d_rdchk='/*undef'
+  d_scorfl='/*undef'
+  d_sgndchr='define'
+***************
+*** 74,86 ****
+  ndirc=''
+  ndiro=''
+  d_whoami='/*undef'
+! hostname='kazoo'
+  phostname='hostname'
+! mydomain='.uucp'
+  libc='/lib/libc.a'
+  libnm='/usr/lib/libtermlib.a'
+! mansrc='/usr/man/man6'
+! manext='6'
+  models='unsplit split'
+  split='-i'
+  small=''
+--- 74,86 ----
+  ndirc=''
+  ndiro=''
+  d_whoami='/*undef'
+! hostname='sms'
+  phostname='hostname'
+! mydomain='.imsd.contel.com'
+  libc='/lib/libc.a'
+  libnm='/usr/lib/libtermlib.a'
+! mansrc='/tmp'
+! manext='1'
+  models='unsplit split'
+  split='-i'
+  small=''
+***************
+*** 87,93 ****
+  medium=''
+  large=''
+  huge=''
+! ccflags=''
+  ldflags=''
+  n='-n'
+  c=''
+--- 87,93 ----
+  medium=''
+  large=''
+  huge=''
+! ccflags='-O'
+  ldflags=''
+  n='-n'
+  c=''
+***************
+*** 123,128 ****
+  startsh='#!/bin/sh'
+  voidflags='7'
+  bin='/usr/games'
+! chowner='daemon'
+  privlib='/usr/games/lib/warp'
+  CONFIG=true
+--- 123,128 ----
+  startsh='#!/bin/sh'
+  voidflags='7'
+  bin='/usr/games'
+! chowner='bin'
+  privlib='/usr/games/lib/warp'
+  CONFIG=true
+*** /old/src/games/warp/filexp	Sat Aug 29 14:49:50 1987
+--- /usr/src/games/warp/filexp	Tue Dec 24 23:39:59 1991
+***************
+*** 2,8 ****
+  : expand filename
+  case "$1" in
+   ~/*|~)
+!     echo $1 | sed "s|~|${HOME-$LOGDIR}|"
+      ;;
+   ~*)
+      if /bin/test -f /bin/csh; then
+--- 2,8 ----
+  : expand filename
+  case "$1" in
+   ~/*|~)
+!     echo $1 | /bin/sed "s|~|${HOME-$LOGDIR}|"
+      ;;
+   ~*)
+      if /bin/test -f /bin/csh; then
+***************
+*** 9,16 ****
+  	/bin/csh -f -c "glob $1"
+  	echo ""
+      else
+! 	name=`expr x$1 : '..\([^/]*\)'`
+! 	dir=`sed -n -e "/^${name}:/{s/^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:\([^:]*\).*"'$'"/\1/" -e p -e q -e '}' </etc/passwd`
+  	if /bin/test ! -d "$dir"; then
+  	    me=`basename $0`
+  	    echo "$me: can't locate home directory for: $name" >&2
+--- 9,16 ----
+  	/bin/csh -f -c "glob $1"
+  	echo ""
+      else
+! 	name=`/bin/expr x$1 : '..\([^/]*\)'`
+! 	dir=`/bin/sed -n -e "/^${name}:/{s/^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:\([^:]*\).*"'$'"/\1/" -e p -e q -e '}' </etc/passwd`
+  	if /bin/test ! -d "$dir"; then
+  	    me=`basename $0`
+  	    echo "$me: can't locate home directory for: $name" >&2
+***************
+*** 18,24 ****
+  	fi
+  	case "$1" in
+  	*/*)
+! 	    echo $dir/`expr x$1 : '..[^/]*/\(.*\)'`
+  	    ;;
+  	*)
+  	    echo $dir
+--- 18,24 ----
+  	fi
+  	case "$1" in
+  	*/*)
+! 	    echo $dir/`/bin/expr x$1 : '..[^/]*/\(.*\)'`
+  	    ;;
+  	*)
+  	    echo $dir
+*** /old/src/games/warp/makedepend	Sat Aug 29 13:53:39 1987
+--- /usr/src/games/warp/makedepend	Tue Dec 24 23:44:52 1991
+***************
+*** 17,35 ****
+  
+  export PATH || (echo "OOPS, this isn't sh.  Desperation time.  I will feed myself to sh."; sh $0; kill $$)
+  
+! cat='cat'
+! cp='cp'
+  cpp='cc -E'
+! echo='echo'
+  egrep='/usr/bin/egrep'
+! expr='expr'
+! mv='mv'
+! rm='rm'
+! sed='sed'
+! sort='sort'
+  test='/bin/test'
+! tr='tr'
+! uniq='uniq'
+  
+  $cat /dev/null >.deptmp
+  $echo "(Note: this is going to take a while.)"
+--- 17,35 ----
+  
+  export PATH || (echo "OOPS, this isn't sh.  Desperation time.  I will feed myself to sh."; sh $0; kill $$)
+  
+! cat='/bin/cat'
+! cp='/bin/cp'
+  cpp='cc -E'
+! echo='/bin/echo'
+  egrep='/usr/bin/egrep'
+! expr='/bin/expr'
+! mv='/bin/mv'
+! rm='/bin/rm'
+! sed='/bin/sed'
+! sort='/bin/sort'
+  test='/bin/test'
+! tr='/usr/bin/tr'
+! uniq='/usr/bin/uniq'
+  
+  $cat /dev/null >.deptmp
+  $echo "(Note: this is going to take a while.)"
+*** /old/src/games/warp/makedir	Sat Aug 29 13:53:43 1987
+--- /usr/src/games/warp/makedir	Tue Dec 24 23:44:56 1991
+***************
+*** 16,22 ****
+  
+  case $# in
+    0)
+!     echo "makedir pathname filenameflag"
+      exit 1
+      ;;
+  esac
+--- 16,22 ----
+  
+  case $# in
+    0)
+!     /bin/echo "makedir pathname filenameflag"
+      exit 1
+      ;;
+  esac
+***************
+*** 29,35 ****
+  
+  : strip last component if it is to be a filename
+  case X$2 in
+!   X1) set `echo $1 | sed 's:\(.*\)/[^/]*$:\1:'` ;;
+    *)  set $1 ;;
+  esac
+  
+--- 29,35 ----
+  
+  : strip last component if it is to be a filename
+  case X$2 in
+!   X1) set `/bin/echo $1 | /bin/sed 's:\(.*\)/[^/]*$:\1:'` ;;
+    *)  set $1 ;;
+  esac
+  
+***************
+*** 43,49 ****
+      case $1 in
+      */*)
+  	list="$1 $list"
+! 	set `echo $1 | sed 's:\(.*\)/:\1 :'`
+  	;;
+      *)
+  	break
+--- 43,49 ----
+      case $1 in
+      */*)
+  	list="$1 $list"
+! 	set `echo $1 | /bin/sed 's:\(.*\)/:\1 :'`
+  	;;
+      *)
+  	break
+***************
+*** 54,58 ****
+  set $list
+  
+  for dir do
+!     mkdir $dir >/dev/null 2>&1
+  done
+--- 54,58 ----
+  set $list
+  
+  for dir do
+!     /bin/mkdir $dir >/dev/null 2>&1
+  done
+*** /old/src/games/words/Makefile	Wed Jul  8 14:25:56 1987
