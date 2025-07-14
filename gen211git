@@ -23,7 +23,10 @@ git commit -m"2.11BSD history reconstruction project, initial empty commit"
 	usr/adm usr/lib usr/dict usr/doc usr/guest usr/hosts usr/include \
 	usr/pub usr/skel usr/spool usr/src) | tar xvf -
 
-# Note: XXX
+# Note: Patch-Level wasn't updated by each of the patches, especailly the early
+# ones, but we use it to keep track of things and NOT bump it when we have
+# 'discovered' patches that were rolled up into the 'checkpoints' we have but
+# don't appear prior as an individual patch.
 echo Patch-Level: 0 > PATCH-LEVEL
 git add *
 git commit -m"Import 2.11BSD, as released, as reconstructed"
